@@ -1,21 +1,94 @@
-\chapter{Preliminares}\label{chapter02}
+\chapter{Antecedentes}
 
-\section{Nombre de la primera sección}
+\section{Marco Teórico}
 
-Completar.\pdfcomment{Ejemplo de comentario en el pdf}
+\subsection{El punto ciego post-autenticación: problema central del proyecto}
+Los modelos tradicionales de seguridad informática centran la verificación de identidad en el momento de la autenticación inicial. Una vez que el sistema valida las credenciales de un usuario, este obtiene un nivel de confianza que se mantiene durante toda la sesión, sin realizar nuevas verificaciones sobre su comportamiento. Este enfoque, conocido comúnmente como modelo de seguridad perimetral o \emph{castle-and-moat}, presenta una limitación importante: si un atacante logra obtener credenciales válidas, puede operar dentro del entorno protegido sin generar alertas basadas en reglas o firmas predefinidas, ya que sus acciones aparentan corresponder a un usuario legítimo \parencite{Rose2020}. 
 
-\section{Nombre de la segunda sección}
+Este problema representa una de las principales preocupaciones de la seguridad informática actual. El robo de credenciales continúa siendo uno de los métodos de acceso más utilizados en incidentes de seguridad. Una vez que el atacante consigue ingresar al sistema, puede desplazarse por la infraestructura utilizando esas mismas credenciales comprometidas para acceder a nuevos recursos y obtener mayores privilegios. Este comportamiento es conocido como movimiento lateral.
 
-Completar.
+Esta limitación motiva la necesidad de monitoreo continuo del comportamiento durante la sesión. En este contexto, los sistemas UEBA son relevantes porque permiten detectar patrones anómalos incluso cuando el usuario ya fue autenticado. \textcite{Artioli2024} destacan que esto es especialmente importante porque los usuarios legítimos suelen tener altos niveles de privilegio, por lo que una cuenta comprometida representa un riesgo mayor que una intrusión externa.
 
-\section{Ejemplo de tabla}
+\subsection{Zero Trust Architecture: el marco normativo del diseño}
+El enfoque Zero Trust plantea un cambio en la forma de entender la confianza dentro de los sistemas de seguridad. Bajo este enfoque, ningún usuario, dispositivo o sistema debe considerarse confiable de manera automática, independientemente de que se encuentre dentro o fuera de la red de la organización. La confianza debe construirse y mantenerse de forma continua a partir de información observable sobre el comportamiento del usuario y el contexto en el que se realiza cada acción, en lugar de basarse únicamente en la ubicación de red o en una autenticación realizada previamente. Estos principios fueron formalizados por el National Institute of Standards and Technology (NIST) en la publicación SP 800-207 \emph{Zero Trust Architecture} \parencite{Rose2020}, documento que establece los lineamientos arquitectónicos y operativos de referencia para la adopción de este modelo de seguridad.
 
-\input{tables/table_example.tex}
+Entre los siete principios definidos por el estándar, dos resultan fundamentales para el diseño del presente proyecto. El primero es la verificación continua, que establece que la autenticación y autorización deben reevaluarse dinámicamente en función del tiempo transcurrido, los recursos accedidos o la detección de comportamientos anómalos. El segundo es la recopilación constante de información operativa para fortalecer la seguridad del sistema.  
 
-\noindent \ldots como se ve en la Tabla~\ref{tab:example} \ldots
+Desde la perspectiva del estándar NIST SP 800-207, la seguridad deja de apoyarse en perímetros estáticos para basarse en una infraestructura lógica que administra cada solicitud de acceso de forma dinámica mediante la interacción de tres componentes fundamentales: el Punto de Cumplimiento de Políticas (PEP), el Punto de Decisión de Políticas (PDP) y el Punto de Información de Políticas (PIP).
 
-\section{Ejemplo de figura}
+El Punto de Cumplimiento de Políticas (PEP) funciona como el componente operativo encargado de conectar, supervisar e interceptar las interacciones de los usuarios, permitiendo aplicar de manera efectiva las restricciones o medidas de mitigación necesarias durante una sesión activa. Las decisiones que determinan estas acciones dependen completamente del Punto de Decisión de Políticas (PDP), responsable de procesar continuamente el contexto y evaluar las desviaciones conductuales para establecer, en tiempo real, el nivel de confianza asignado a cada entidad.
 
-\input{figures/example.tex}
+Para que esta evaluación resulte precisa, el sistema se apoya en el Punto de Información de Políticas (PIP), que actúa como el repositorio central de información. Este componente proporciona las fuentes de telemetría, el historial de comportamiento previo y las reglas contextuales necesarias para que el motor inteligente pueda determinar la resolución más adecuada en cada situación.
 
-\noindent \ldots como se ve en la Figura~\ref{fig:example} \ldots
+La implementación de arquitecturas Zero Trust presenta desafíos documentados. Una revisión sistemática publicada en el \emph{Journal of Network and Systems Management} \parencite{JNSM2025}, que analiza diez años de investigaciones, identifica la evaluación dinámica de confianza y la autenticación continua como los mecanismos más utilizados. El mismo estudio señala que la complejidad de implementación, presente en el 74\% de los trabajos analizados, y la integración con sistemas legados constituyen las principales dificultades. Estas conclusiones influyen directamente en el diseño del agente local y en su integración con los sistemas IAM existentes. 
+
+\subsection{User and Entity Behavior Analytics: fundamentos y dataset de referencia}
+User and Entity Behavior Analytics (UEBA) es una tecnología que permite aplicar los principios de Zero Trust al monitoreo continuo de las sesiones. Su objetivo es construir perfiles de comportamiento habituales para usuarios y entidades a partir de información histórica, identificando en tiempo real aquellas actividades que se desvían de los patrones esperados y asignando un \emph{score} de riesgo según la gravedad de la anomalía detectada. A diferencia de los sistemas tradicionales basados en reglas, UEBA no depende del conocimiento previo de técnicas de ataque específicas, sino que aprende qué comportamientos son normales y detecta aquellas acciones que se apartan de ellos. 
+
+La arquitectura funcional de un motor UEBA se articula en cuatro etapas: (1)Recolección de datos provenientes de registros del sistema, actividad de red y dispositivos;(2)Construcción de \emph{baselines} de comportamiento individual y por grupo de rol mediante aprendizaje automático;(3)Detección de anomalías por comparación con el \emph{baseline} establecido;(4)\emph{Scoring} de riesgo con respuesta adaptativa.
+
+
+\subsection{Gestión de Identidad y Acceso: del control tradicional al acceso basado en riesgo}
+La Gestión de Identidad y Acceso (\emph{Identity and Access Management}, IAM) agrupa las políticas, procesos y tecnologías encargadas de administrar identidades digitales y definir qué recursos puede utilizar cada usuario dentro de una organización \parencite{Josang2024}. La evolución de estos modelos es clave para entender cómo los mecanismos modernos de seguridad complementan los sistemas de control de acceso tradicionales.
+
+\subsubsection{Control de acceso basado en roles (RBAC)}
+El modelo \emph{Role-Based Access Control} (RBAC) asigna permisos a roles definidos previamente, como administrador, ventas o técnico, y los usuarios heredan esos permisos según el rol que tengan asignado. Su adopción es muy común en entornos corporativos debido a su simplicidad y facilidad de administración \parencite{Talluri2023}.
+
+Sin embargo, este modelo tiene una limitación importante: solo considera el rol del usuario y no su comportamiento en tiempo real. Esto implica que un usuario legítimo y un atacante que haya obtenido sus credenciales operan con los mismos permisos. En consecuencia, RBAC es útil para controlar el acceso inicial, pero no para detectar comportamientos anómalos durante una sesión activa.
+
+\subsubsection{Control de acceso basado en atributos (ABAC)}
+El modelo \emph{Attribute-Based Access Control} (ABAC) extiende RBAC incorporando información contextual en las decisiones de acceso, como la ubicación, el horario, el dispositivo utilizado o el tipo de recurso solicitado \parencite{Hu2014}. Esto permite definir políticas más flexibles y adaptadas a cada situación.
+
+Este enfoque es relevante porque permite considerar el contexto en el que ocurre cada acción, evaluando si el comportamiento es coherente con lo esperado para un usuario en particular.
+
+\subsubsection{Control de acceso adaptado al riesgo (RADAC)}
+El modelo \emph{Risk-Adaptive Access Control} (RADAC) introduce una capa adicional basada en el riesgo asociado a cada acción. Según \textcite{Xiao2022}, las decisiones de autorización deben basarse no solo en roles y atributos, sino también en una evaluación dinámica del riesgo en tiempo real.
+
+En este enfoque, el nivel de confianza se expresa mediante un \emph{score} que representa el riesgo de la actividad observada. Dependiendo de este valor y de los umbrales definidos, el sistema puede permitir el acceso normal, solicitar una autenticación adicional (\emph{step-up authentication}) o restringir ciertos permisos. De este modo, la autorización deja de ser binaria y pasa a ajustarse de forma progresiva según el nivel de riesgo detectado.
+
+Estudios recientes en entornos críticos, como el sector salud, muestran que la combinación de RBAC, ABAC y evaluación dinámica de riesgo ofrece uno de los enfoques más robustos para la protección de accesos \parencite{MDPI2025}.
+
+En conjunto, IAM y RBAC establecen la base de gestión de identidades y permisos, ABAC introduce el contexto de las solicitudes, y RADAC incorpora la evaluación dinámica del riesgo. Este enfoque no reemplaza los sistemas de gestión de identidad existentes, sino que los amplía mediante una capa de análisis continuo del comportamiento y adaptación a condiciones cambiantes.
+
+\subsection{Modelos de inteligencia artificial para detección de anomalías conductuales}
+La detección de anomalías en el comportamiento de usuarios es un problema complejo debido a una característica central de este tipo de sistemas: la baja disponibilidad de ejemplos reales de ataques. En escenarios reales, la gran mayoría de los eventos corresponden a actividad legítima, mientras que los casos de comportamiento malicioso son escasos, variados y difíciles de generalizar. Esta condición hace que los enfoques supervisados tradicionales no sean adecuados como estrategia principal, ya que requieren grandes volúmenes de datos etiquetados de ataques para funcionar correctamente. Por este motivo, se recurre principalmente a modelos no supervisados, capaces de aprender patrones de comportamiento normal sin depender de ejemplos explícitos de anomalías.
+
+\subsubsection{LSTM Autoencoder}
+Un autoencoder es una arquitectura de red neuronal diseñada para aprender representaciones comprimidas de los datos y reconstruirlos posteriormente. Durante el entrenamiento, el modelo aprende a codificar la información en una representación intermedia de menor dimensionalidad y luego a reconstruirla con la mayor fidelidad posible. Cuando el modelo se entrena exclusivamente con datos de comportamiento normal, su capacidad de reconstrucción se optimiza para ese tipo de patrones.
+
+En este contexto, cuando el modelo recibe una secuencia que se desvía del comportamiento habitual, la reconstrucción tiende a ser menos precisa, lo que se refleja en un aumento del error de reconstrucción. Este error se utiliza como indicador de anomalía, ya que representa qué tan diferente es una observación respecto de lo aprendido como comportamiento normal.
+
+La variante LSTM (\emph{Long Short-Term Memory}) extiende esta arquitectura para trabajar con datos secuenciales. A diferencia de los modelos que tratan los datos como observaciones independientes, LSTM permite capturar dependencias temporales entre eventos consecutivos, lo que resulta fundamental para representar patrones de comportamiento en el tiempo. Este enfoque ha demostrado un rendimiento superior frente a métodos tradicionales en el análisis de series temporales multivariadas \parencite{Wei2023}, especialmente cuando los patrones dependen del orden y la evolución de los eventos.
+
+\subsubsection{Isolation Forest}
+El algoritmo Isolation Forest basa su funcionamiento en el principio de aislamiento de las observaciones para detectar anomalías. En lugar de generar un modelo detallado de la conducta normal, esta técnica emplea diversos árboles de decisión aleatorios para segmentar el espacio de datos. Aquellos registros que exhiben propiedades atípicas se diferencian por quedar aislados tras una menor cantidad de particiones, lo que facilita su reconocimiento como posibles irregularidades.
+
+Este método ofrece beneficios significativos al trabajar con grandes volúmenes de datos y múltiples dimensiones, ya que prescinde de requerimientos estadísticos rígidos o de la necesidad de contar con información previamente etiquetada. Asimismo, su bajo costo computacional lo convierte en una solución idónea para procesar flujos masivos de información. Estudios como el de \textcite{AlShehari2023} muestran que este método obtiene resultados sólidos en contextos altamente desbalanceados.
+
+\subsection{Introducción a los Datasets: Datos Reales vs. Datos Sintéticos}
+En el ámbito del aprendizaje automático y del análisis de sistemas, un \emph{dataset} es un conjunto estructurado de datos utilizado para entrenar, evaluar o validar modelos y algoritmos. Está compuesto por registros individuales que representan observaciones del fenómeno que se busca estudiar, junto con los atributos o variables que describen cada una de ellas. La calidad, el volumen y la representatividad del \emph{dataset} son aspectos fundamentales, ya que influyen directamente en la capacidad de generalización de cualquier modelo desarrollado a partir de esos datos. 
+
+Según su origen, los \emph{datasets} pueden clasificarse en dos grandes categorías: reales y sintéticos. Los datos reales son aquellos obtenidos directamente de sistemas en funcionamiento, interacciones humanas o procesos. Su principal ventaja es que reflejan la complejidad, el ruido y las distribuciones irregulares características de los entornos de producción, lo que los convierte en la fuente más confiable para evaluar el comportamiento de un sistema frente a situaciones reales. No obstante, su obtención suele estar sujeta a restricciones vinculadas con la privacidad, las regulaciones de protección de datos y la sensibilidad propia de la información que contienen, lo que con frecuencia requiere la aplicación de procesos de anonimización antes de su publicación o de ser compartidos. 
+
+Por otro lado, los datos sintéticos son generados de manera artificial mediante simulaciones, modelos estadísticos o técnicas generativas. Entre sus principales ventajas se encuentran la disponibilidad, el control sobre la distribución de clases y la ausencia de restricciones legales. Sin embargo, presentan una limitación importante: por más avanzado que sea el proceso de generación, resulta difícil reproducir con total fidelidad todos los patrones, anomalías y comportamientos emergentes presentes en sistemas reales. En áreas como la ciberseguridad, donde la detección de anomalías depende de identificar desviaciones sutiles respecto de un comportamiento basal auténtico, el uso de datos reales constituye una ventaja significativa en términos de validez y aplicabilidad de los resultados. 
+
+\subsection{Concept drift y reentrenamiento periódico del modelo}
+El reentrenamiento periódico de un modelo de IA no es solo una decisión técnica, sino una necesidad derivada de un fenómeno conocido como \emph{concept drift}, ampliamente estudiado en \emph{machine learning} aplicado a seguridad. Este fenómeno explica por qué los modelos pueden perder precisión con el tiempo si no se actualizan, ya que los patrones de comportamiento de los datos cambian de forma natural.
+
+\subsubsection{Definición y tipos de concept drift}
+El \emph{concept drift} ocurre cuando los datos cambian con el tiempo y los patrones aprendidos dejan de representar el comportamiento actual. En sistemas de análisis de comportamiento, esto es habitual: los hábitos de uso cambian por nuevas tareas, cambios de rol, herramientas o rutinas. Sin actualización, un comportamiento normal reciente puede ser interpretado como anómalo.
+
+Este concepto se distingue entre distintos tipos \parencite{Shyaa2024}: el gradual, cuando los cambios ocurren de forma progresiva; el súbito, cuando hay cambios abruptos en el comportamiento; y el recurrente, cuando ciertos patrones vuelven a aparecer con el tiempo. En este tipo de sistemas, los cambios graduales y recurrentes son los más frecuentes, por lo que requieren estrategias de actualización constantes.
+
+\subsubsection{Estrategias de adaptación}
+Existen dos enfoques principales: la adaptación reactiva, donde el sistema detecta el cambio y dispara el reentrenamiento, y la adaptación periódica, donde el modelo se actualiza cada cierto tiempo de forma programada. Un estudio reciente \parencite{MDPI2025} muestra que monitorear continuamente los datos permite detectar cambios de distribución y reentrenar cuando se superan ciertos umbrales, reduciendo el tiempo en que el modelo queda desactualizado.
+
+En este caso se adopta un enfoque periódico por su simplicidad y previsibilidad. Este método facilita el control de recursos y permite programar las actualizaciones en momentos de baja carga. Sin embargo, la frecuencia de actualización debe ajustarse cuidadosamente: si es demasiado alta, puede incorporar ruido o comportamientos anómalos como normales; si es demasiado baja, el modelo pierde precisión.
+
+\textcite{Kuppa2022} advierten además el riesgo de \emph{attacker-induced drift}, donde un atacante introduce comportamientos maliciosos de forma gradual para que el sistema los aprenda como normales. Por este motivo, es necesario incorporar revisión humana de ciertos eventos antes del reentrenamiento.
+
+\subsubsection{Ventana de reentrenamiento}
+El período de gracia es el tiempo durante el cual el modelo mantiene un rendimiento estable antes de que el \emph{drift} afecte su precisión. Este intervalo define la frecuencia máxima adecuada de actualización. En estos sistemas, el comportamiento de los usuarios suele cambiar lentamente, lo que permite ventanas de actualización de semanas o meses sin degradación significativa. La configuración de esta ventana refleja un principio de adaptación continua de políticas \parencite{Rose2020}, aplicado al ciclo de vida del modelo.
+
+\subsection{Estándares y marcos normativos}
+\textbf{NIST SP 800-207} \parencite{Rose2020} define los principios base del enfoque Zero Trust y sirve como referencia principal para el diseño de este tipo de sistemas. Su valor no es solo teórico, sino también práctico, ya que permite justificar decisiones clave como la verificación continua de usuarios, la aplicación de distintos niveles de respuesta según el riesgo, y la separación entre los componentes que evalúan decisiones y los que las ejecutan. Este estándar se complementa con NIST SP 800-207A \parencite{NIST2023}, que adapta el modelo a entornos modernos basados en servicios en la nube y APIs, lo que lo hace especialmente relevante para arquitecturas distribuidas.
