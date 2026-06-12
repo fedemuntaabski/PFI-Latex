@@ -1,78 +1,19 @@
-\chapter{Estado del Arte}
+\chapter{Introducción}
 
-\emph{El siguiente capítulo presenta un ejemplo de Estado del Arte. Se puede observar el uso de referencias bibliográficas, la estructura del contenido y el estilo de redacción académica esperado.}
+\section{Objetivo}
+El objetivo principal del proyecto es desarrollar un sistema que permita analizar el comportamiento de los usuarios mediante el uso de un \emph{score} dinámico que evalúe la desviación respecto a la conducta habitual de cada usuario y, en función de ello, tomar un conjunto de decisiones de forma inmediata.
 
-Este cap\'{\i}tulo asume cierta familiaridad con c\'alculo lambda y computaci\'on cu\'antica. Si este no es el caso del lector, se sugiere leer primero el cap\'{\i}tulo 2 y luego el presente cap\'{\i}tulo.
+\section{Alcance}
+El proyecto consiste en el desarrollo de un agente autónomo UEBA que trabaja en conjunto con una API. En esta última se implementará un motor de Inteligencia Artificial entrenado por los alumnos para detectar anomalías en el comportamiento de los usuarios. Finalmente, el sistema contará con un \emph{dashboard} que permitirá visualizar el nivel de confianza de cada usuario y modificar los umbrales que definen las acciones a realizar.
 
-En 1982, Richard Feynman destac\'o que la computaci\'on cl\'asica no alcanza para crear simulaciones de forma eficiente \parencite{Feynman1982}, debido
-a la propia construcci\'on de las computadoras cl\'asicas.
-La simulaci\'on de interacciones entre \(N\) part\'{\i}culas a nivel cu\'antico presenta una complejidad de orden exponencial de los recursos necesarios en la computaci\'on cl\'asica y esto no sucede si lo hici\'eramos directamente con una computadora con propiedades cu\'anticas.
+\section{Descripción}
+Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante, ya que las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.  
 
-La computaci\'on cu\'antica puede ser vista como un modelo de computaci\'on para la mec\'anica cu\'antica. La idea es considerar
-los estados de las part\'{\i}culas como estados del sistema computacional, y su evoluci\'on como un proceso de c\'omputo. Como tal,
-puede ser estudiado desde la teor\'{\i}a de lenguajes de programaci\'on, y desde all\'{\i}, la teor\'{\i}a de tipos. Tener una teor\'{\i}a
-de tipos completa para la computaci\'on cu\'antica induce nuevas conexiones con l\'ogica, siguiendo el isomorfismo de Curry-Howard \parencite{SorensenUrzyczyn2006}. Finalmente, este camino redundar\'a en una l\'ogica formal de la mec\'anica cu\'antica, fundamentada
-por las ciencias de la computaci\'on.
+Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API, que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
 
-Una de las soluciones m\'as importantes presentadas por la computaci\'on cu\'antica fue dada por Peter Shor,
-en 1994 \parencite{Shor1994}. La importancia del algoritmo de Shor es la utilizaci\'on de la transformada r\'apida cu\'antica de Fourier, que tiene aplicaciones en much\'{\i}simas \'areas. Por ejemplo, permite la descomposici\'on en factores de un n\'umero, de vital importancia
-para romper la criptograf\'{\i}a de clave p\'ublica. Otro algoritmo de gran importancia es el algoritmo de Grover \parencite{Grover1996},
-por Lov K. Grover en 1996, que permite la b\'usqueda de un valor en una secuencia no ordenada, por ejemplo, para todas las combinaciones de mol\'eculas hasta dar con una que cumpla una propiedad en particular.
+Dicho nivel de confianza no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
 
-En principio estos algoritmos se describen en t\'erminos de circuitos.
-En la b\'usqueda de un lenguaje de programaci\'on que permita abstraer los conceptos,
-un concepto que nace es el de \emph{control cl\'asico}, el cual se basa
-en dirigir instrucciones a una computadora cu\'antica desde una computadora cl\'asica. Las primeras nociones de
-este manejo las da Peter Selinger en el a\~no 2004 \parencite{Selinger2004} basado en la idea de qRAM de Knill \parencite{Knill1996},
-el cual propone que es necesario un conjunto de instrucciones de alto nivel que se abstraigan del hardware,
-con un flujo de control cl\'asico.
+Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de confianza y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el modelo de inteligencia artificial se reentrena para incorporar nuevos comportamientos de los usuarios, lo que permite mantener su precisión a lo largo del tiempo. El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
-De este tipo de control es como nace Quipper \parencite{GreenEtAl2013}, un lenguaje
-embebido creado en 2013, que utiliza Haskell como el lenguaje de programaci\'on mediante
-la importaci\'on de librer\'{\i}as, lo que lo clasifica como lenguaje funcional. Se clasifica como
-escalable y expresivo de orden superior.
-
-En el a\~no 2017, se publica QWIRE, un lenguaje de programaci\'on cu\'antica creado para escribir en alto nivel la
-programaci\'on de circuitos cu\'anticos, interpretando a estos como superoperadores en matrices de densidad \parencite{PaykinRandZdancewic2017} (similar a Quipper).
-
-Tambi\'en existen lenguajes cu\'anticos imperativos, como QCL (que permite al usuario definir sus propios
-operadores y funciones con una sintaxis parecida a C), o el m\'as reciente Q\# de Microsoft (que lee y
-devuelve datos cl\'asicos) nombrado as\'{\i} en referencia a C\#, dado que se accede mediante este \'ultimo.
-
-Otro tipo de control es el control cu\'antico, introducido por Altenkirch y Grattage
-\parencite{AltenkirchGrattage2005},
-donde se propone un c\'alculo que no necesite de un control indirecto de la computadora cu\'antica, sino que se
-pueda usar directamente en la misma. En 2019, se propone una extensi\'on cu\'antica al \(\lambda\)-c\'alculo (Lineal)
-m\'as expresivo \parencite{DiazcaroEtAl2019}, en el paradigma de control cu\'antico, basado en la t\'ecnica de la realizabilidad \parencite{Kleene1945}. Lineal~\parencite{ArrighiDowek2017} fue uno de los primeros lenguajes que tuvo como objetivo desarrollar un c\'alculo lambda de control cu\'antico. Es un c\'alculo lambda sin tipos extendido con superposiciones lineales arbitrarias. Las reglas de reescritura garantizan la confluencia y se toma una forma can\'onica como forma normal de los t\'erminos. Para evitar la clonaci\'on, se considera una estrategia {\em call-by-base}: se puede aplicar una abstracci\'on \(\lambda x.t\) a una superposici\'on de valores \((\alpha.v+\beta.w)\) que producen \(\alpha. (\lambda x.t)v+\beta.(\lambda x.t)w\). De esta manera, no s\'olo se evita la clonaci\'on, sino que adem\'as todas las abstracciones son lineales por construcci\'on. Esto permite expresar matrices y vectores y, por tanto, programas cu\'anticos, pero tambi\'en mapas no unitarios y, por supuesto, vectores no normalizados.
-
-\begin{center}
-	\ldots Texto \ldots
-\end{center}
-
-De las extensiones del \(\lambda\)-c\'alculo, Lambda-\(S\) \parencite{DiazcaroDowekRinaldi2019, DiazcaroMalherbe2024} presenta un sistema de tipos capaz de distinguir
-entre un estado superpuesto y un qubit con un estado no superpuesto respecto a una base dada. En esta tesis se propone
-una extensi\'on a Lambda-\(S\) para permitir identificar valores duplicables en m\'as de una base de medici\'on.
-
-Lambda-\(S\) est\'a enfocado en la propiedad cu\'antica conocida como superposici\'on. Su sistema de tipos puede distinguir entre estados superpuestos, respecto a una base dada, y estados de dicha base. Este sistema de tipos representa un dual de la l\'ogica lineal \parencite{DiazcaroMalherbe2020}.
-
-En \(\lambda\)-calculo, aplicar el t\'ermino \(\lambda x.(x \otimes x)\), que expresa una funci\'on no lineal, a un t\'ermino \(u\) produce el t\'ermino \((\lambda x.(x \otimes x))u\), que se eval\'ua a \(u
-	\otimes u\). Pero \enquote{clonar} este vector, es decir, el t\'ermino \(u\), est\'a prohibido en la computaci\'on cu\'antica.
-Varias extensiones cu\'anticas al \(\lambda\)-c\'alculo tratan este problema de diferentes maneras.
-
-Una manera es prohibir la construcci\'on del t\'ermino \(\lambda x.(x \otimes x)\), usando un sistema de tipos inspirado en la l\'ogica lineal
-\parencite{Girard1987,Abramsky1993}, lo que, por ejemplo, deriv\'o en c\'alculos l\'ogico-lineales 
-\parencite{	AltenkirchGrattage2005,
-	SelingerValiron2009,
-	GreenEtAl2013,
-	PaganiSelingerValiron2014,
-	Zorzi2016}.
-
-\begin{center}
-	\ldots Texto \ldots
-\end{center}
-
-Esto deriv\'o ulteriormente en una sem\'antica categ\'orica para el lenguaje, donde los t\'erminos del lenguaje son interpretados en una categor\'{\i}a cartesiana \textbf{Set}, mientras que las operaciones ocurren en una categor\'{\i}a aditiva monoidal \textbf{Vec}, a donde se transportan usando una \emph{adjunci\'on} entre ambas categor\'{\i}as \parencite{DiazcaroMalherbe2024, DiazcaroMalherbe2020}.
-
-Este lenguaje permite expresar algoritmos cu\'anticos con una informaci\'on muy precisa sobre los datos cu\'anticos procesados por esos algoritmos. Sin embargo, dado que ya se cuenta con un lenguaje que puede decidir cu\'ando un qubit est\'a en una base computacional, y cu\'ando podr\'{\i}a no estarlo, sin necesidad de medir, sino simplemente por haber seguido su evoluci\'on a lo largo del algoritmo, es interesante extender dicha t\'ecnica a otras bases, que es lo que hacemos en esta tesis.
-
-% Generalmente, uno puede poner acá un breve párrafo sobre la estructura de la tesis, explicando qué se verá en cada capítulo, y dicha explicación de a lo sumo una línea de largo. Consultar con los docentes de la PFI previamente.
+% Puedes descomentar y adaptar este párrafo según los requerimientos de tus docentes:
+% El presente documento se estructura de la siguiente manera: en el Capítulo 2 se detalla el Marco Teórico, en el Capítulo 3 se presenta el Diseño de la Solución...
