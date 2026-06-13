@@ -3,7 +3,7 @@
 %openany para que los cap\'{\i}tulos empiecen en cualquier p\'agina y no s\'olo las impares.
 %final es para compilar a modo normal. Cambiar a draft para que se compile en modo borrador. No se pone final dado que viene por defecto.
 \documentclass[a4paper, 12pt, oneside, titlepage, openany]{book}
-
+\usepackage{graphicx}
 % Para el seccionado, debe colocarse al principio este package.
 \usepackage{titlesec}
 
@@ -267,7 +267,7 @@
 	\printbibliography{}
 
 	\appendix
-	%\input{chapters/appendix/annex}
+	\input{chapters/appendix/annex}
 	\newpage
 	\listoffigures
 	\newpage
