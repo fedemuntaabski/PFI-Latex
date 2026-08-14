@@ -1,0 +1,389 @@
+\chapter{Análisis Comparativo del Estado del Arte}
+
+\section{Comparación general de alternativas}
+\label{sec:comparacion-general}
+Incluye las cuatro soluciones comerciales relevadas, la tecnología de autenticación adaptativa (Okta, tratada aparte porque no es UEBA de sesión completa sino un enfoque relacionado) y el modelo académico más cercano conceptualmente al proyecto (RADAC / ad-RACs), contra el proyecto propuesto. Cada alternativa se compara en cinco dimensiones: Tipo, Funcionalidad principal, Tecnología / IA, Alcance de monitoreo y Diferenciador del proyecto propuesto.
+
+\subsection{Microsoft Sentinel UEBA}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: Microsoft Sentinel UEBA}
+	\label{tab:comp-sentinel}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & SIEM + UEBA integrado (nube, ecosistema Microsoft) \\
+	\hline
+	Funcionalidad principal & Perfiles de comportamiento de usuarios y entidades (servidores, dispositivos de red) a partir de historial; calcula puntajes de riesgo por desviación de línea base \\
+	\hline
+	Tecnología / IA & Algoritmos propietarios no publicados; ingesta de logs de autenticación, red, dispositivos y servicios integrados \\
+	\hline
+	Alcance de monitoreo & Amplio (no se limita a usuarios individuales) pero centralizado en la nube, sin agente propio en el endpoint \\
+	\hline
+	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (IsolationForest + LSTM) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
+	\hline
+\end{longtable}
+
+\subsection{Splunk UBA}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: Splunk UBA}
+	\label{tab:comp-splunk}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & Plataforma UEBA especializada en \emph{insider threats} y movimiento lateral \\
+	\hline
+	Funcionalidad principal & Perfiles de comportamiento + correlación de eventos entre sistemas y momentos distintos; prioriza alertas por riesgo \\
+	\hline
+	Tecnología / IA & Motor de correlación propietario; ingesta multi-fuente (autenticación, red, logs de sistema, accesos a recursos) \\
+	\hline
+	Alcance de monitoreo & Centralizado, depende de integración con fuentes externas; sin agente propio de recolección \\
+	\hline
+	Diferenciador del proyecto propuesto & Splunk UBA no incorpora de forma nativa mecanismos de respuesta adaptativa: se detiene en detectar y priorizar. El proyecto cierra el ciclo completo detección, decisión, acción, sin depender de integraciones externas \\
+	\hline
+\end{longtable}
+
+\subsection{Exabeam}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: Exabeam}
+	\label{tab:comp-exabeam}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & SIEM + UEBA + SOAR combinado \\
+	\hline
+	Funcionalidad principal & Perfiles de comportamiento, correlación multi-fuente, asignación de riesgo a usuarios/dispositivos/actividades, con automatización de respuesta \\
+	\hline
+	Tecnología / IA & No transparente (funcionamiento interno de los modelos no público); depende de fuentes de datos ya existentes en la infraestructura \\
+	\hline
+	Alcance de monitoreo & Es el más cercano en concepto (incluye SOAR), pero no incorpora un agente ligero propio para recolección directa en el endpoint \\
+	\hline
+	Diferenciador del proyecto propuesto & El proyecto no depende de orquestar herramientas externas ya integradas para actuar: el propio agente PEP ejecuta la mitigación directamente sobre el proceso/carpeta del endpoint \\
+	\hline
+\end{longtable}
+
+\subsection{Microsoft Entra ID Protection}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: Microsoft Entra ID Protection}
+	\label{tab:comp-entra}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & Protección de identidad (IAM) \\
+	\hline
+	Funcionalidad principal & Evaluación continua de señales de riesgo ligadas al usuario y al proceso de autenticación; aplica políticas de acceso condicional \\
+	\hline
+	Tecnología / IA & Señales propias del ecosistema Microsoft (ubicación, dispositivo, credenciales filtradas) \\
+	\hline
+	Alcance de monitoreo & Fuertemente atado al ecosistema Microsoft; enfocado en identidad, no en comportamiento operativo continuo durante el uso de recursos (limitación citada textualmente en la fuente) \\
+	\hline
+	Diferenciador del proyecto propuesto & El proyecto evalúa comportamiento durante toda la sesión activa, no solo señales de autenticación, y no depende de estar dentro del ecosistema de un proveedor de identidad específico \\
+	\hline
+\end{longtable}
+
+\subsection{Okta Adaptive MFA}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: Okta Adaptive MFA}
+	\label{tab:comp-okta}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & Autenticación adaptativa basada en riesgo (no es UEBA de sesión completa) \\
+	\hline
+	Funcionalidad principal & Estima riesgo en el momento del \emph{login} a partir de señales contextuales (ubicación, IP, dispositivo, red, patrones previos); aplica MFA adicional o bloqueo \\
+	\hline
+	Tecnología / IA & Motor de riesgo propietario de Okta, señales en tiempo real al momento de inicio de sesión \\
+	\hline
+	Alcance de monitoreo & La evaluación se concentra principalmente en la autenticación inicial; la re-evaluación durante la sesión, si existe, ``no suele ser completamente continua ni profundiza en el comportamiento del usuario una vez que el acceso fue concedido'' (cita textual de la fuente) \\
+	\hline
+	Diferenciador del proyecto propuesto & Es exactamente el ``punto ciego post-\emph{login}'' que el proyecto toma como justificación central, Okta Adaptive MFA no cubre lo que pasa después de que el acceso ya fue concedido \\
+	\hline
+\end{longtable}
+
+\subsection{RADAC académico (ad-RACs)}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: RADAC académico (ad-RACs)}
+	\label{tab:comp-radac}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Aliyu2024} \\
+	\hline
+	Tipo & Modelo académico de control de acceso adaptativo basado en riesgo \\
+	\hline
+	Funcionalidad principal & Autorización de acceso en tiempo real evaluando cuatro factores: contexto del usuario, sensibilidad del recurso, criticidad de la acción, historial de riesgo acumulado \\
+	\hline
+	Tecnología / IA & CatBoost (ML supervisado) para el \emph{score} de riesgo por solicitud \\
+	\hline
+	Alcance de monitoreo & Modelo de decisión de acceso validado con métricas fuertes (\emph{Recall} 100\%, F1 98\%), pero sin agente de \emph{enforcement} local descrito: es una política de decisión, no una implementación de PEP en el endpoint \\
+	\hline
+	Diferenciador del proyecto propuesto & El proyecto es, en la práctica, una implementación \emph{end-to-end} de este mismo paradigma RADAC, pero cerrando el circuito con un PEP real en el endpoint: no se queda en el nivel de política de decisión \\
+	\hline
+\end{longtable}
+
+\subsection{Proyecto propuesto}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación: proyecto propuesto (fila de referencia)}
+	\label{tab:comp-proyecto}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Tipo & UEBA + \emph{enforcement} local, arquitectura PDP/PEP (NIST SP 800-207) \\
+	\hline
+	Funcionalidad principal & \emph{Score} dinámico de confianza por usuario, actualizado por evento, con decaimiento temporal y continuidad entre sesiones \\
+	\hline
+	Tecnología / IA & Modelo híbrido propio: IsolationForest (agregado diario) + LSTM Autoencoder (secuencias), código propio auditable \\
+	\hline
+	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
+	\hline
+	Diferenciador del proyecto propuesto & No aplica: esta fila es el punto de referencia contra el que se compara cada alternativa \\
+	\hline
+\end{longtable}
+
+\section{Matriz de capacidades}
+\label{sec:matriz-capacidades}
+Verificación explícita de qué cubre cada alternativa, usando solo lo que la Sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en vez de asumir una respuesta, es más defendible que completar casilleros con información no verificada sobre productos de terceros.
+
+\begin{longtable}{p{2.5cm}p{1.8cm}p{1.8cm}p{2.0cm}p{2.4cm}p{2.8cm}}
+	\caption{Matriz de capacidades}
+	\label{tab:matriz-capacidades}\\
+	\hline
+	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
+	\hline
+	\endhead
+	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & N/D & $\times$ \\
+	\hline
+	Splunk UBA & \checkmark & \checkmark & N/D & $\times$ & N/D \\
+	\hline
+	Exabeam & \checkmark & \checkmark & N/D & \checkmark (vía SOAR) & $\times$ \\
+	\hline
+	Microsoft Entra ID Protection & \checkmark & \checkmark & $\times$ & $\bigtriangleup$ (solo acceso condicional/MFA) & $\times$ \\
+	\hline
+	Okta Adaptive MFA & $\bigtriangleup$ (solo en \emph{login}) & $\bigtriangleup$ & $\times$ & $\bigtriangleup$ (solo MFA/bloqueo en \emph{login}) & N/D \\
+	\hline
+	RADAC académico (ad-RACs) & \checkmark & \checkmark & \checkmark (por solicitud) & $\bigtriangleup$ (política de acceso, sin PEP físico descrito) & N/D \\
+	\hline
+	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo IsolationForest, top-3 \emph{features} por \emph{z-score}; LSTM sin XAI propio) \\
+	\hline
+\end{longtable}
+
+\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio Estado del Arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido.
+
+\section{Comparación de algoritmos de inteligencia artificial}
+\label{sec:comparacion-algoritmos}
+Profundiza lo señalado en la comparación general de alternativas (Sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto.
+
+\subsection{CatBoost (score de riesgo por solicitud)}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: CatBoost}
+	\label{tab:algo-catboost}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Aliyu2024} (ad-RACs) \\
+	\hline
+	Dataset / validación & Comparación vs. reglas estáticas/ACL \\
+	\hline
+	Métrica reportada & \emph{Recall} 100\%, Precisión 95\%, F1 98\% \\
+	\hline
+	Limitación reportada & No se reporta limitación explícita en el resumen relevado \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto comparte el paradigma de \emph{score} dinámico por evento, con un modelo distinto (no supervisado) porque no dispone de etiquetas de ``acceso autorizado/denegado'' como sí tenía este trabajo \\
+	\hline
+\end{longtable}
+
+\subsection{LSTM secuencial}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: LSTM secuencial}
+	\label{tab:algo-lstm}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{VillarrealVasquez2023} \\
+	\hline
+	Dataset / validación & CMU-CERT r4.2 \\
+	\hline
+	Métrica reportada & Detección 93\%, falsos positivos 4.1\% \\
+	\hline
+	Limitación reportada & \emph{Cold-start}: depende de historial suficiente por usuario, baja el rendimiento en usuarios nuevos \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto usa LSTM Autoencoder con el mismo problema de \emph{cold-start}, y lo declara explícitamente vía el estado de cobertura ``parcial''/``sin \emph{score}'' en vez de ocultarlo \\
+	\hline
+\end{longtable}
+
+\subsection{Graph Neural Networks (GNN)}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: Graph Neural Networks (GNN)}
+	\label{tab:algo-gnn}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Tian2023HGNN} \\
+	\hline
+	Dataset / validación & CERT r6.2 \\
+	\hline
+	Métrica reportada & F1 +8.3\% vs. modelos secuenciales \\
+	\hline
+	Limitación reportada & Alta complejidad de infraestructura para grafos a gran escala \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto evaluó ese costo de infraestructura como desproporcionado para el alcance de un PFI y priorizó IsolationForest + LSTM por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
+	\hline
+\end{longtable}
+
+\subsection{Clustering no supervisado (K-Means, DBSCAN, OPTICS, GMM)}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: Clustering no supervisado}
+	\label{tab:algo-clustering}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Artioli2024} \\
+	\hline
+	Dataset / validación & Datasets reales de actividad de red \\
+	\hline
+	Métrica reportada & Sin un único algoritmo ganador en todos los escenarios \\
+	\hline
+	Limitación reportada & Mayor consumo de recursos en enfoques de densidad; alta diversidad entre perfiles de usuario dificulta líneas base estables \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto sigue exactamente la conclusión de este trabajo: combina dos técnicas (IsolationForest + LSTM) en vez de apostar a un único algoritmo \\
+	\hline
+\end{longtable}
+
+\subsection{Isolation Forest}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: Isolation Forest}
+	\label{tab:algo-isolationforest}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Hariri2019} \\
+	\hline
+	Dataset / validación & Logs NGINX / tráfico e-commerce \\
+	\hline
+	Métrica reportada & Precisión 87\% / \emph{Accuracy} 93\%, F1 92\% \\
+	\hline
+	Limitación reportada & Falsas alertas ante usuarios con comportamiento legítimo muy variable \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto mitiga esta limitación reportada combinando IsolationForest (agregado diario) con LSTM (secuencia) + regla de piso + decaimiento temporal, en vez de depender de IsolationForest solo \\
+	\hline
+\end{longtable}
+
+\subsection{Revisión sistemática}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: revisión sistemática}
+	\label{tab:algo-revision}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Fuente académica & \textcite{Landauer2023} \\
+	\hline
+	Dataset / validación & Múltiples datasets de logs \\
+	\hline
+	Métrica reportada & Concluye que LSTM\slash{}Autoencoders dominan para anomalías secuenciales; IsolationForest sigue siendo eficiente en baja latencia \\
+	\hline
+	Limitación reportada & Pocos trabajos enfocados específicamente en comportamiento de usuario (vs. logs de sistema en general) \\
+	\hline
+	Relación con el diseño del proyecto & El proyecto adopta literalmente la combinación que esta revisión identifica como dominante: no es una elección arbitraria de tecnología \\
+	\hline
+\end{longtable}
+
+\subsection{IsolationForest + LSTM Autoencoder (proyecto propuesto)}
+\begin{longtable}{p{3cm}p{11.6cm}}
+	\caption{Comparación de algoritmos: proyecto propuesto}
+	\label{tab:algo-proyecto}\\
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Campo} & \textbf{Detalle} \\
+	\hline
+	\endhead
+	Dataset / validación & CLUE-LDS: \textasciitilde50M eventos reales anonimizados, 5.000+ usuarios, 5+ años de actividad de producción (Huemer Group) \\
+	\hline
+	Métrica reportada & Ver \texttt{run\_regression\_}\allowbreak\texttt{test.py}, validado contra \emph{scores} \emph{offline} documentados \\
+	\hline
+	Limitación reportada & \emph{Cold-start} compartido con el resto de la literatura (declarado, no oculto) \\
+	\hline
+	Relación con el diseño del proyecto & Síntesis directa de las recomendaciones de \textcite{Artioli2024} y \textcite{Landauer2023}: enfoque híbrido, sobre un dataset de producción real en vez de sintético/simulado como buena parte de los trabajos citados \\
+	\hline
+\end{longtable}
+
+\section{Síntesis de diferenciadores}
+A partir de la propia Conclusión del Estado del Arte de la documentación del proyecto (Sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
+
+Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
+
+El proyecto cierra ese ciclo de forma autónoma, desplegando un agente local en el endpoint que actúa como \emph{Policy Enforcement Point} (PEP), mientras la lógica de decisión se mantiene en la nube como \emph{Policy Decision Point} (PDP), siguiendo el estándar NIST SP 800-207.
+
+El agente mantiene conexión con el motor de IA e intercepta la respuesta casi en tiempo real. Ante una desviación conductual inusual durante la sesión activa, el sistema pasa de ``monitoreo y alerta'' a ``respuesta adaptativa'', ejecutando restricciones de permisos o aislamiento del proceso directamente en la máquina del usuario, sin intermediarios y sin depender de un \emph{re-login}.
+
+Ninguna de las cuatro soluciones comerciales relevadas hace esto: Sentinel y Splunk UBA se detienen en detección/priorización; Exabeam automatiza respuesta pero vía orquestación externa, no vía agente propio; Entra ID Protection actúa solo en el momento de autenticación, no durante el uso continuo de recursos.

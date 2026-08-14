@@ -1060,3 +1060,33 @@ Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo 
 	Ausencia declarada de TLS mutuo y de firma de respuestas del PDP & Agente $\leftrightarrow$ API & Actualmente, la falta de autenticación mutua entre el agente y el PDP se considera una limitación propia del alcance de esta etapa del proyecto y se encuentra documentada. Para una futura puesta en producción, sería recomendable resolver este punto mediante algún mecanismo de autenticación entre ambos componentes, de forma que puedan verificar su identidad antes de intercambiar información o recibir instrucciones. (Nota de alcance: mejora planteada para después del hito del 50\%, sujeta a los tiempos y alcance restante del proyecto.) \\
 	\hline
 \end{longtable}
+
+\clearpage
+\section{Modelo de Datos}
+\subsection{Diagrama de Bases de Datos}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{images/diagramas/Redis.png}
+	\caption{Diagrama de Bases de Datos.}
+	\label{fig:diagrama-bases-de-datos-redis}
+\end{figure}
+\FloatBarrier
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{images/diagramas/Supabase.png}
+	\caption{Diagrama de Bases de Datos.}
+	\label{fig:diagrama-bases-de-datos-supabase}
+\end{figure}
+\FloatBarrier
+
+\subsection{Diagrama de Arquitectura}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{images/diagramas/diagramaarquitectura.png}
+	\caption{Diagrama de Arquitectura del producto.}
+	\label{fig:diagrama-arquitectura}
+\end{figure}
+\FloatBarrier
