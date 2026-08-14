@@ -1,0 +1,461 @@
+Speaker 1: Yo les cuento, yo trabajo en lo que es seguridad hace más de 20 años.
+Speaker 1: Empecé como analista de seguridad en una empresa de seguros y hoy en día lidero un equipo
+Speaker 1: de 7 personas dentro de lo que es el área de operaciones de seguridad y accesos, gestión de
+Speaker 1: accesos de un grupo económico que se llama Grupo ST.
+Speaker 1: El grupo es un grupo financiero, o sea, que está conformado por una aseguradora, un banco,
+Speaker 1: una SGR, o sea, una compañía que brinda leasing, o sea, es un múltiples compañías
+Speaker 1: que conforman este grupo financiero.
+Speaker 1: Y bueno, yo estoy a cargo de todo lo que dentro del área de lo que sería seguridad, de todo
+Speaker 1: lo que es seguridad en operaciones y gestión de accesos.
+Speaker 1: O sea, sería una gran interesada del producto de ustedes para obtenerlo.
+Speaker 1: Así que, nada, está buenísima la idea, me parece buenísima.
+Speaker 1: Ahí como para darle una utilidad y poder generar una acción más
+Speaker 1: proactiva para la gestión de los accesos de los usuarios y mitigar riesgos.
+Speaker 1: Bárbaro, bárbaro.
+Speaker 2: Perfecto, porque eso, o sea, nos viene perfecto también entender un poco cuál es el
+Speaker 2: trasfondo que tenés vos de carrera, pues también las preguntas nos permite también encaminarlas
+Speaker 2: un poco por eso.
+Speaker 2: Buenísimo.
+Speaker 2: Bueno, ¿te molesta si empezamos la entrevista?
+Speaker 2: Tranquilo, disparen.
+Speaker 2: Y como consultita.
+Speaker 3: Más que nada por el tema de transcripción, la minuta después, ¿te molestas y grabamos?
+Speaker 3: Para nada, chicos, graben.
+Speaker 3: Genial, gracias.
+Speaker 3: Bueno, ¿pones vos, Santi?
+Speaker 3: Sí, ahí te grabamos.
+Speaker 3: Ok, ahí...
+Speaker 3: Ah, perfecto.
+Speaker 3: Ahí está, ahora ya apareció.
+Speaker 3: Ahí está.
+Speaker 3: Bueno, ahora vamos a arrancar la entrevista.
+Speaker 3: Dale.
+Speaker 2: Vamos a ir con lo que es la primera pregunta.
+Speaker 2: La primera pregunta sería, ¿cómo describirías el mayor desafío de seguridad que
+Speaker 2: hoy ves relacionado a tu organización o empresa?
+Speaker 2: El mayor desafío hoy es la inteligencia artificial.
+Speaker 2: No solamente saber cómo usarla, sino también cómo lograr.
+Speaker 1: Que los usuarios que la usan no expongan información de las compañías y
+Speaker 1: de nuestros clientes, en definitiva.
+Speaker 1: El objeto final del área de seguridad nuestro siempre es cuidar la información de nuestros
+Speaker 1: clientes.
+Speaker 1: Entonces, lo fundamental es eso, que no se termine exponiendo ninguna información.
+Speaker 1: como activo de la compañía, como información de clientes nuestros, a través de una
+Speaker 1: buena intención del uso de la inteligencia artificial para mejorar algún proceso o algo.
+Speaker 1: Entonces el mayor desafío hoy está en poder potenciar a la compañía permitiendo el uso de
+Speaker 1: esa inteligencia artificial, pero en forma limitada para que esto no suceda.
+Speaker 1: La gran disyuntiva está ahí porque hay una gran presión de los accionistas para poder hacer
+Speaker 1: uso de estas inteligencias artificiales y potenciar a la compañía, pero a su vez también nosotros
+Speaker 1: tenemos que hablar por la información de nuestros clientes y que no sea expuesta.
+Speaker 1: Entiendo, perfecto.
+Speaker 1: Claro, ahí está la acción entre medir los beneficios que traen estas herramientas de
+Speaker 1: inteligencia artificial.
+Speaker 1: contra los riesgos que presenta en la privacidad y todo lo relacionado a los datos.
+Speaker 1: Sí, después también está la arista, no lo nombré, pero también es importante, los atacantes
+Speaker 1: también utilizan esta inteligencia artificial y entonces los ataques...
+Speaker 1: Se mueven mucho más rápido, se movilizan mucho más rápido que en otras épocas o simulan
+Speaker 1: mucho más a un humano que lo que lo hacían antes.
+Speaker 1: Antes uno era mucho más fácil de detectar cuando tenías algún bot o algo atrás que te estaba
+Speaker 1: queriendo atacar a través de alguna herramienta que estaba utilizando algún atacante.
+Speaker 1: Hoy ya eso es más difícil de detectar, dado la...
+Speaker 1: al uso de la inteligencia artificial atrás y la propia inteligencia ya va aprendiendo y va
+Speaker 1: cambiando su comportamiento, entonces eso también hace que sea más desafiante el
+Speaker 1: poder cuidar los activos de la compañía de esa forma.
+Speaker 1: O sea, si me preguntas hoy cuál es tu desafío de la inteligencia artificial en todos sus aristas,
+Speaker 1: o sea, desde el uso hasta el cuidado y hasta el poder
+Speaker 2: protegernos de los atacantes que hacen uso de esa inteligencia artificial.
+Speaker 2: Claro.
+Speaker 2: Perfecto.
+Speaker 2: Bueno, pasamos a la siguiente pregunta, que sería, ¿qué tipos de incidentes de seguridad
+Speaker 2: relacionados con usuarios son los que más han tenido impacto en tu
+Speaker 2: empresa o organización en las que has trabajado en los últimos años?
+Speaker 2: Sí.
+Speaker 1: Se me ocurren dos, o sea, como principales, filtración de datos inintencionadamente,
+Speaker 1: digamos, sin intención de algún usuario que mandó algún archivo con algún adjunto o algo,
+Speaker 1: alguna dirección errónea o alguien que no lo tenía que mandar.
+Speaker 1: Ese es uno de los incidentes más comunes, digamos, con
+Speaker 1: mayor impacto.
+Speaker 1: Y por otro lado, los phishings.
+Speaker 1: O sea, parece ya viejo, pero sigue estando presente todos los días y evoluciona
+Speaker 1: con esto también de la inteligencia artificial.
+Speaker 1: Cada vez es más artesanal, más dirigido a cada persona, pero la
+Speaker 1: gente sigue cayendo en el phishing, entonces también trabajamos muy duro en concientizar a
+Speaker 1: los usuarios en cuanto a eso.
+Speaker 3: Claro, perfecto.
+Speaker 3: O sea, el phishing es una de las principales problemáticas que se presentan.
+Speaker 3: Sí.
+Speaker 3: Perfecto.
+Speaker 3: Bueno, si querés, hago yo un poco para variar.
+Speaker 3: Después te quería consultar más orientado a la gestión de acceso, que vos dijiste que estabas
+Speaker 3: laburando en eso.
+Speaker 3: Con respecto a la supervisación o el monitoreo de usuarios, ¿ustedes qué nivel de acciones
+Speaker 3: pueden llegar a ver?
+Speaker 1: ¿Qué tanto pueden ver de la actividad del día a día del usuario?
+Speaker 1: A ver, tenés diferentes capas, ¿no?
+Speaker 1: O sea, por lo general uno tenés como capas o aristas, digamos, de lo que hace un
+Speaker 1: usuario.
+Speaker 1: Podés verlo desde que se conecta a nivel red, ¿sí?
+Speaker 1: ¿A qué webs?
+Speaker 1: está accediendo o qué aplicaciones tiene instalada en su máquina, un usuario, a qué aplicaciones,
+Speaker 1: después tenés las actividades que realiza dentro de un aplicativo, si el aplicativo tiene
+Speaker 1: un logueo, depende del nivel al que loguea la aplicación, eso va a depender de cada aplicación.
+Speaker 1: Nosotros tenemos ciertos estándares, pero muchas veces vienen aplicaciones ya dadas que no
+Speaker 1: tienen.
+Speaker 1: que solamente tienen un login básico, de un login o un logout, y ya está, te quedaste ahí,
+Speaker 1: y no sabes qué acciones realizan dentro del aplicativo.
+Speaker 1: Cuando son aplicaciones críticas de negocio, nosotros solicitamos que tengan ese login de,
+Speaker 1: bueno, realizó esta acción crítica dentro de la aplicación, ¿no?
+Speaker 1: No sé, por decir algo relacionado a seguros, modificó el monto de la prima de una póliza,
+Speaker 1: ¿sí?
+Speaker 1: O el monto asegurado de una póliza.
+Speaker 1: Entonces, esa acción es crítica, bueno.
+Speaker 1: Se tiene que quedar registrado que esa persona realizó esa acción.
+Speaker 1: Entonces, va a depender, en ese caso, del aplicativo que tanto lo intenia.
+Speaker 1: Pero, como te decías, como uno va a depender el tipo de usuario, también cuánta profundidad
+Speaker 1: va a tener.
+Speaker 1: Porque capaz un usuario que no accede a ninguna aplicación, sino que meramente utiliza, no
+Speaker 1: sé, su correo electrónico y navega por internet.
+Speaker 4: No vas a tener mucho nivel de detalle, más que eso, pero va a depender un poco
+Speaker 4: de la actividad y los privilegios también que tenga ese usuario.
+Speaker 4: Ok, y por ejemplo, los usuarios que tienen privilegios, por ejemplo, para hacer la base de
+Speaker 4: datos o datos críticos, ¿será este un seguimiento de actividad que realizan o cómo es ese
+Speaker 4: chequeo?
+Speaker 4: Se loguea, queda logueado, queda registrado.
+Speaker 1: Pero no quiere decir que se haga un seguimiento, ¿sí?
+Speaker 1: No se revisa ese log en forma diaria, sino que lo que se
+Speaker 1: hace es como el control inverso.
+Speaker 1: Si hay alguien que está realizando una tarea crítica que no está dentro del grupo de usuarios
+Speaker 1: que está permitido, ahí se genera una alerta.
+Speaker 1: ¿Sí?
+Speaker 1: Es como la situación inversa.
+Speaker 1: Porque tenés ciertas personas que ya tienen esa actividad permitida.
+Speaker 1: Yo de esas personas sí voy a tener un registro de qué es lo que están haciendo, por una cuestión
+Speaker 1: de control, si requiero alguna auditoría posterior a eso, pero de la situación como más reactiva,
+Speaker 1: preventiva, lo que voy a tener es un control de una alerta si hay una actividad de, por
+Speaker 1: ejemplo, una persona que tiene privilegios de administración de base de datos.
+Speaker 1: pero que no está dentro de las personas que yo sé que son las administradoras de base de datos.
+Speaker 1: ¿Sí?
+Speaker 1: Que por algún motivo tengo algún usuario que ganó esos privilegios y puedo detectarlo fácilmente
+Speaker 1: porque está ejecutando tareas que no son propias de su usuario.
+Speaker 1: ¿No?
+Speaker 1: Ok.
+Speaker 1: Genial.
+Speaker 1: Sería como medio un control por oposición de alguna forma.
+Speaker 1: Ok.
+Speaker 4: Y con respecto a esto que vos nombraste, los registros, lo de auditoría, ¿qué herramientas
+Speaker 4: se utiliza para eso?
+Speaker 4: Tenemos un SIEM, que es el de Azure, el Sentinel, donde se colectan
+Speaker 4: ahí todos los eventos.
+Speaker 4: Después cada plataforma, cada herramienta tiene su propio login, pero lo que hacemos es recolectarlos
+Speaker 4: después todos.
+Speaker 3: en este aplicativo que es el Sentinel entonces ahí lo que puedes empezar a hacer son las correlaciones
+Speaker 3: estas de eventos genial eso se entendió perfecto
+Speaker 3: ahora pasamos a otra pregunta que es principalmente ¿cuánto tiempo pasa de por ejemplo que
+Speaker 3: ocurre una actividad que es sospechosa dentro de un usuario hasta que verdaderamente el equipo
+Speaker 3: lo detecte y lo soluciona?
+Speaker 3: ¿se entiende?
+Speaker 3: más o menos
+Speaker 1: Sí, va a depender de la criticidad de ese evento, ¿no?
+Speaker 1: Si hay una actividad sospechosa probablemente esté siendo alertada y eso
+Speaker 1: es, te diría que casi inmediato de cuando ocurre esa actividad sospechosa.
+Speaker 1: Ahora, después hay todo un proceso de investigación, que eso sí ya puede llevar más tiempo,
+Speaker 1: pues, no sé, desde...
+Speaker 1: Una hora, hasta cinco horas, depende de qué tanto te cueste rastrear eso.
+Speaker 1: La idea es justamente tener todos los eventos dentro de la consola para poder hacer ese análisis,
+Speaker 1: pero muchas veces requiere poder contactar al usuario, al equipo del usuario, secuestrar de
+Speaker 1: alguna forma al equipo del usuario, tomar posesión de ese equipo para poder hacer una investigación
+Speaker 1: más profunda por si el equipo estuvo...
+Speaker 1: tomado por el incidente entonces va a depender pero desde el momento en
+Speaker 1: que se detecta que es casi al unísono de que sucede porque nada tenemos las alertas y
+Speaker 1: tenemos la consola generando esos eventos después el tiempo
+Speaker 1: de investigación va a depender del tipo de incidente
+Speaker 2: Una pregunta medio relacionada por ese estilo de los incidentes.
+Speaker 2: En el caso de que ustedes detecten una actividad sospechosa de algún usuario, ¿cómo
+Speaker 2: sería el proceso desde que se detecta hasta que se llevan las acciones?
+Speaker 2: Perdón, me te consulto.
+Speaker 2: Una pregunta que viene un poco antes de esa es, ¿usted tiene un equipo SOC?
+Speaker 2: supongo, dentro de la organización.
+Speaker 2: Sí.
+Speaker 2: Chiquito, pero sí.
+Speaker 2: Todavía somos medio APL en ese sentido, pero sí.
+Speaker 2: Estamos evolucionando, vamos de a poco evolucionando.
+Speaker 2: Así que no, la pregunta era, primero, si tenían equipo SOC y después cómo es ese proceso desde
+Speaker 2: que se detecta la amenaza hasta el proceso en el cual
+Speaker 1: Se finaliza la amenaza ya sea bloqueando o haciendo la acción correspondiente.
+Speaker 1: Primero, aclaración es, yo tengo un evento.
+Speaker 1: No sé si es un incidente o no es un incidente, que es un poco lo que les decía antes.
+Speaker 1: Yo tengo esa alerta, a mí me llega esa alerta y no sé en qué deriva.
+Speaker 1: Por eso en cantidad de horas no les puedo decir, el promedio es tanto.
+Speaker 1: Si querés te digo, el promedio son dos horas de análisis, ¿sí?
+Speaker 1: Por lo general, hasta que uno dice, fue un incidente, no fue un incidente, está contenido,
+Speaker 1: no está contenido, o sea, en el promedio son dos horas, ¿sí?
+Speaker 1: Pero hay veces que son diez minutos que descartás el evento, decís, esto no es un evento,
+Speaker 1: no es un incidente, digo, ya está, listo, lo descartaste.
+Speaker 1: Pero la alerta la tenés que analizar.
+Speaker 1: Sí, ese trabajo te lo tenés que tomar.
+Speaker 1: Entonces, cada evento que llega, cada alerta que llega, se analiza y se
+Speaker 1: destipula, no sé, un acceso, como hablábamos antes, de una persona que está ejecutando
+Speaker 1: una tarea de administración de base de datos y no está dentro de los usuarios permitidos.
+Speaker 1: Eso es un evento, ¿sí?
+Speaker 1: Y yo voy a empezar a investigar cómo esa persona obtuvo sus accesos.
+Speaker 1: quién es ese usuario, si es un usuario que está en nómina o no está en nómina, se empieza
+Speaker 1: a hacer todo ese traqueo de información, ver qué otros eventos se ejecutaron con
+Speaker 1: ese usuario.
+Speaker 1: Voy a empezar a hacer todo ese análisis y va a depender un poco, tenemos ciertos runbooks
+Speaker 1: por cada tipo de evento, qué acciones ir tomando.
+Speaker 2: Pero un poco es eso, perdón, pero me fui y no me acuerdo exactamente qué era que me habías
+Speaker 2: consultado.
+Speaker 2: No, igual está bien.
+Speaker 2: O sea, está bien que te splashes, pues no, nos sirve también, pues no, nos da información.
+Speaker 2: La pregunta original era, cuando se detectan
+Speaker 2: los eventos, como dijiste vos, en una sesión de un usuario, ¿cómo es el proceso desde la
+Speaker 2: detección hasta
+Speaker 1: por así decirlo, el cierre del evento o la finalización que se dice, esto no es, o sea, no
+Speaker 1: es nada peligroso o esto puede ser un problema de seguridad para la organización.
+Speaker 1: Bueno, un poco es esto que les venía diciendo, ¿no?
+Speaker 1: O sea, es detectar ese evento, poder hacer el análisis de acuerdo al runbook del
+Speaker 1: tipo de evento que sea, o si es algo que está por fuera de los runbooks, poder...
+Speaker 1: o sea, el equipo ya está reunido analizando el evento, y una vez que se determina
+Speaker 1: si hay algún impacto o no, si es un incidente o no, todo eso queda registrado
+Speaker 1: en un informe, que después está abierto a que todo el equipo lo
+Speaker 1: comparta, se sube toda la evidencia registrada durante el análisis, todo esto se...
+Speaker 1: Por más que no sea un incidente, nosotros vamos tomando evidencia para poder tenerla
+Speaker 1: también a futuro, por si se repite alguna situación similar, decir, para, esto ya nos pasó,
+Speaker 1: voy y consulto y tengo la evidencia de lo que sucedía anteriormente en un caso similar.
+Speaker 1: Y es eso, se cierra con el informe.
+Speaker 1: Y muchas veces dentro de ese informe lo que se incluye son
+Speaker 1: mejoras, posibles mejoras que podemos tener también dentro, por ejemplo, de la herramienta
+Speaker 1: del CIEM, decir, no, pará, che, me está alertando esto, que en realidad es cualquier cosa,
+Speaker 1: ¿no?
+Speaker 1: Mejoremos.
+Speaker 1: Entonces, ahí haces otra correlación de eventos que sea mejor.
+Speaker 1: O, uy, pará, este usuario ahora sí tenía que tener estos permisos de administrar de base de
+Speaker 1: datos porque...
+Speaker 1: Pasó de rol y no actualizamos en nuestras reglas del CIEM que esta persona ahora
+Speaker 1: tenía que tener estos permisos y esto no es ningún incidente, simplemente se pone como un
+Speaker 1: falso positivo y se avanza, pero se deja registrado como mejora que hay que cambiar
+Speaker 1: las reglas de la consola del CIEM.
+Speaker 1: Perfecto.
+Speaker 2: Bueno, pasamos a la siguiente pregunta, un poco también relacionada con las mejoras
+Speaker 2: que vos decís, de tipo, che, esto ya no sirve, o quizás el usuario ahora sí
+Speaker 2: necesitaba tener este rol o registro.
+Speaker 2: La siguiente pregunta sería, ¿cuáles son los principales desafíos que hoy en día vos
+Speaker 2: pensás que hay en lo que es?
+Speaker 2: El monitoreo de usuarios.
+Speaker 2: O sea, pueden ser mejoras, por ejemplo, se me ocurre, menores tiempos
+Speaker 2: o algo que se te ocurra por ese estilo.
+Speaker 2: ¿Mejoras en cuanto al monitoreo de los usuarios?
+Speaker 2: Sí.
+Speaker 2: Sí, que ya no son los usuarios los que hacen las acciones.
+Speaker 1: O sea, el mayor desafío hoy en día es esto que hablábamos al principio de la inteligencia
+Speaker 1: artificial, que hoy ya no es el propio usuario el que está haciendo las acciones, sino que
+Speaker 1: capaz es un agente que lo está haciendo por el usuario.
+Speaker 1: Entonces, a veces poder discernir en eso, o que el usuario tenga esa conciencia
+Speaker 1: de esa autonomía que le está dando.
+Speaker 1: Es la parte difícil de poder detectar esa diferencia entre un usuario y un agente.
+Speaker 1: Entonces, ahí yo creo que están las mejoras que uno puede ir haciendo de poder
+Speaker 1: acercarse a diferenciar esto, porque claramente una cosa es que la acción
+Speaker 1: la da un usuario y otra que le está haciendo un agente automatizado.
+Speaker 1: Y por otro lado, de poder detectar también el uso de esos agentes
+Speaker 1: que a veces no tenemos en radar.
+Speaker 1: O sea, directamente los usuarios los generan y nosotros no tenemos conciencia
+Speaker 1: de que esos agentes existen.
+Speaker 1: Entonces, estar detectando esos agentes hoy dentro de la red.
+Speaker 3: Perfecto, quedó re claro.
+Speaker 3: Y como otra pregunta más orientada al tema del uso de las herramientas, como comentaste antes,
+Speaker 3: usan herramientas para muchos casos, ¿qué es lo que más se valora en una herramienta al momento
+Speaker 3: de ayudar al equipo de seguridad?
+Speaker 3: O sea, ¿qué son las características que más se toman en cuenta para usar una herramienta y
+Speaker 3: no otra?
+Speaker 3: Los costos.
+Speaker 1: No, la realidad es que hoy este tipo de herramientas de seguridad son súper costosas y
+Speaker 1: cuanto más funcionalidades te dé la herramienta por menor costo, la realidad es que es
+Speaker 1: la herramienta que va a ganar dentro del mercado o inclusive la...
+Speaker 1: La interoperabilidad, digamos, el poder adaptarse a trabajar con otras herramientas de otras
+Speaker 1: marcas diferentes.
+Speaker 1: La realidad es que hoy en día es eso.
+Speaker 1: Hoy para las empresas argentinas, por lo menos, es súper costoso cualquier herramienta que
+Speaker 1: uno quiera adquirir, que no sea open source, que sea paga.
+Speaker 1: Es bastante costoso y si no, si vos querés desarrollar algo más open source, utilizar algo
+Speaker 1: más open source, que por lo general requiere mucha más parametrización, más armado, necesitas
+Speaker 1: mucho más tiempo de CTO y necesitas un equipo más grande para
+Speaker 1: eso.
+Speaker 1: Entonces también es costo.
+Speaker 1: Entonces a veces es como, bueno, ¿dónde pongo?
+Speaker 4: las ganas va a depender de una decisión más corporativa, directivo, que si
+Speaker 4: se quiere del área propiamente dicho.
+Speaker 4: Ok, y con respecto a, ya fuera del tema de costos, que es totalmente entendible en las empresas,
+Speaker 4: el tema de funcionalidades, o sea, ¿qué es lo que se tomaría en cuenta suponiendo el caso
+Speaker 4: de que el costo no es el principal problema?
+Speaker 1: O sea, ¿qué se tomaría en cuenta como ventaja de una herramienta con respecto a otra?
+Speaker 1: Que cumpla la funcionalidad de lo que vos estás buscando en esa herramienta.
+Speaker 1: O sea, básicamente es eso, que te cubra lo que vos estás buscando y capaz
+Speaker 1: hasta que te dé algún valor abrigado de algo que vos no estabas viendo, que podías llegar
+Speaker 1: a, no sé, pensando en una herramienta de monitoreo, como hablábamos antes.
+Speaker 1: Pensar en monitorear algo que ni se te ocurría que podías monitorear.
+Speaker 1: Creo que es eso un poco.
+Speaker 1: Que sea adaptable, que pueda tener interoperabilidad con otras aplicaciones
+Speaker 1: de otras marcas y que te sumen funcionalidades que vos no tenías en cuenta.
+Speaker 1: Ok, genial.
+Speaker 3: Otra pregunta, aparte de este tema anterior, es ¿qué factores vos considerás que
+Speaker 3: aumentan el riesgo asociado a un usuario?
+Speaker 3: Por ejemplo, si depende de rol o depende de la actividad que realiza.
+Speaker 3: ¿Qué acciones generan más riesgo?
+Speaker 3: O sea, ¿qué considerás que aumenta el riesgo más en la actividad de un usuario?
+Speaker 3: Si se depende por el rol o por la actividad que realiza.
+Speaker 3: No sé si se llega a entender.
+Speaker 2: Sí, pero no.
+Speaker 2: Un ejemplo, a ver si capaz me clarifica.
+Speaker 2: O sea, la pregunta está enfocada básicamente en vos monitoreas
+Speaker 2: un grupo de usuarios y lo habíamos pensado tipo, vos
+Speaker 2: siendo por ejemplo un usuario con un rol bajo o teniendo otro con un rol alto.
+Speaker 2: ¿Qué cosas aumentan el riesgo en cada uno de esos casos?
+Speaker 2: ¿Es preferible, por ejemplo, que los usuarios con
+Speaker 2: un rol bajo tengan la misma visibilidad que los de un rol alto?
+Speaker 2: Factores así.
+Speaker 2: No sé si me expliqué bien, la verdad.
+Speaker 1: Seguridad, para mí es como un principio, un pilar, si se quiere, es todo lo que es el mínimo
+Speaker 1: privilegio.
+Speaker 1: Siempre a los usuarios basándose en el mismo, inclusive validando siempre identidades,
+Speaker 1: o sea, si bien como el concepto de Zero Trust, si bien
+Speaker 1: no...
+Speaker 1: es muy difícil de implementar al 100% el cero trust, como tener esa visión de cero
+Speaker 1: trust, y siempre basándose en el mínimo privilegio, o sea, ahí siempre vas a reducir riesgo,
+Speaker 1: o sea, que el usuario tenga, no quiere decir que no pueda haber un acceso basado en roles,
+Speaker 1: por eso me generaba un poco de confusión, porque vos podés
+Speaker 1: tener un...
+Speaker 1: un rol y que ese rol tenga el mínimo privilegio que requiera el usuario.
+Speaker 1: No necesitas salir de lo que son los accesos por roles para llegar
+Speaker 1: a que el usuario tenga el mínimo privilegio y no incrementar un riesgo.
+Speaker 1: Perfecto.
+Speaker 1: No sé si respondí o no respondí la pregunta.
+Speaker 1: Sí, o sea...
+Speaker 2: La pregunta quedó, o sea, ahora leyéndola no estaba muy bien formulada, así que...
+Speaker 2: No, no, no.
+Speaker 2: O sea, puedo yo no haber interpretado correctamente por eso.
+Speaker 2: No, no, no.
+Speaker 2: No fue un problema tuyo.
+Speaker 2: La verdad que pensamos que íbamos por un lado, pero como no terminó de...
+Speaker 2: No le pudimos sacar jugo a esta pregunta, porque no la pudimos plantear bien.
+Speaker 2: Bueno, si quieren...
+Speaker 4: Tienen otra idea, tírenla y le respondo.
+Speaker 4: O sea, no hay problema.
+Speaker 4: Pregúntenme sobre esa, capaz.
+Speaker 4: O sobre lo que les dije.
+Speaker 4: Si se les ocurre, no sé.
+Speaker 4: Dame un medio segundo.
+Speaker 4: Les estoy sacando del libreto.
+Speaker 4: A mí lo que me puse a pensar es...
+Speaker 4: O sea, vos dijiste que monitorean constantemente y hacen, por ejemplo, una investigación de
+Speaker 4: los problemas.
+Speaker 4: capaz la pregunta puede ir por ese lado, o sea, ¿qué son las características que definen que
+Speaker 4: primero investigamos este problema antes que otro?
+Speaker 4: Nosotros tenemos estipulado cuáles son las actividades riesgosas, si se quieren, no sé,
+Speaker 4: privilegios altos, yo voy a estar monitoreando cualquier privilegio elevado o usuarios que
+Speaker 4: tienen, en realidad yo no...
+Speaker 1: monitoreo todos los usuarios, pero lo que yo estoy monitoreando es qué usuarios están realizando
+Speaker 1: una actividad con privilegios elevados.
+Speaker 1: Como les decía antes, el ejemplo de los usuarios con base de datos, con permiso de administración
+Speaker 1: de base de datos.
+Speaker 1: Así como base de datos tenés en todos los aspectos, ¿no?
+Speaker 1: Cualquier tipo de administrador.
+Speaker 1: Entonces, esas son las cosas que yo voy a monitorear después.
+Speaker 1: Tengo otros controles también sobre sus usuarios, más allá del monitoreo, ¿sí?
+Speaker 1: Que me van a disminuir mi riesgo.
+Speaker 1: Que otras actividades riesgosas monitoreo, actividades sospechosas
+Speaker 1: que no son habituales, ¿sí?
+Speaker 1: Entonces, todas esas van a ser alertadas, no sé.
+Speaker 1: la ejecución de un programa que normalmente no se ejecuta.
+Speaker 1: Hay un nuevo programa que se está ejecutando, eso va a ser una alerta.
+Speaker 1: No quiere decir que después termine siendo un incidente, pero sí va a ser alertado.
+Speaker 1: Entonces actividades sospechosas en ese sentido también.
+Speaker 1: Entonces son como diferentes tipos de alertas, de eventos que uno va a monitorear.
+Speaker 1: ¿Sí?
+Speaker 1: Va a dar monitoreos.
+Speaker 1: Hay muchos.
+Speaker 1: Alertas son una porción de eso.
+Speaker 1: ¿Sí?
+Speaker 1: Yo monitoreo, monitoreo el login, el logout, el login fallido.
+Speaker 1: O sea, hay millones de eventos que se monitorean y va a depender también de qué tecnología
+Speaker 1: o qué herramienta, qué aplicación estás monitoreando.
+Speaker 1: Como les dije antes, también en ciertas aplicaciones, ¿cómo se llama?
+Speaker 1: Acciones críticas que se realicen dentro de una aplicación, también los vas a estar monitoreando.
+Speaker 1: Una actividad crítica de cualquier usuario dentro de ese aplicativo, vas a estar monitoreándolo.
+Speaker 1: Entonces, va a depender de qué es lo que estás monitoreando, qué es lo que vas a monitorear.
+Speaker 1: Ahora, de todos esos eventos, que es una bolsa de gatos enorme, es decir, bueno, de todo esto
+Speaker 1: que es lo que estoy alertando, bueno, voy a alertar, sí, lo que me genere más riesgo, o cuando
+Speaker 1: se me dé cierta correlación de esos eventos.
+Speaker 1: Yo siempre pongo el ejemplo más pavo, el que ya no aplica, pero es que cuando antes
+Speaker 1: uno venía todos los días a la oficina y decías, bueno, la máquina la tenías en la oficina,
+Speaker 1: Y no estaba el evento de que la persona había pasado por el molinete y después la persona
+Speaker 1: se conectaba a la máquina y eso tenía que ser un rojo en todos lados, saltando por todos lados,
+Speaker 1: porque cómo puede ser que esa persona se estuviera conectando si no habían ingresado a la
+Speaker 1: oficina.
+Speaker 1: Algún control pasó, algo está fallando.
+Speaker 1: Esos son los tipos de correlaciones de eventos que tenemos que ver.
+Speaker 1: No, esa obviamente hoy en día ya no aplica.
+Speaker 1: Se traslada de otra forma, ¿sí?
+Speaker 1: Por decirlo, si hay una aplicación que es interna, que no está expuesta a internet, si el
+Speaker 1: usuario no se conectó a la VPN, no se puede estar conectando a esa aplicación.
+Speaker 1: Si tenemos todo dentro de esa red securizada, tiene que primero conectarse a la VPN.
+Speaker 1: el usuario entonces tiene que estar ese evento de login del usuario en la vpn para después
+Speaker 1: poder estar ese evento de login en el aplicativo si eso no sucede no sea de esa forma tiene
+Speaker 1: que haber un alerta es como el paralelismo a lo que les decía antes del molinete entonces
+Speaker 1: todo ese tipo de acciones sospechosas y eventos críticos son los que se alertan
+Speaker 1: no es que es
+Speaker 1: Si sucede este evento, se alerta.
+Speaker 1: A veces es, sucede este evento, más este evento, más este evento, o no sucede un evento previo
+Speaker 1: a ese.
+Speaker 1: Si tengo que ir a buscar si previamente sucedió el otro evento, y si no, te lo alerto.
+Speaker 1: Todo eso es, nada, horas de configuración del
+Speaker 1: CIEM, y bueno, habrá mucho de inteligencia artificial también meterle ahí.
+Speaker 2: cosas de la gente o cosas como las que están pensando en desarrollar ustedes también es
+Speaker 2: parte puede ser parte puede ser parte bueno perfecto
+Speaker 2: ya vamos a ir dándole un cierre a esto ya hicimos creo
+Speaker 2: que la mayoría de las preguntas que tengan muchísimo valor
+Speaker 2: Así que nada, vamos, la última es, básicamente, si hay alguna pregunta que vos pensás que
+Speaker 2: deberíamos haber hecho, que ahora se te ocurra, o que durante la entrevista habrás dicho,
+Speaker 2: che, me tendrían que preguntar esto que no te hicimos.
+Speaker 2: Ok.
+Speaker 2: No, ahí lo que creo que es importante para que tengan, no
+Speaker 2: sé si como preguntas, sino como darles como...
+Speaker 1: información, digamos, que no agrupar a los usuarios bajo una
+Speaker 1: misma categoría, bajo un mismo grupo, por experiencia lo digo.
+Speaker 1: Es decir, bueno, todos los usuarios de finanzas, ustedes hablaban de niveles de riesgo y,
+Speaker 1: o sea, que no, por ser de finanzas tienen un nivel de riesgo y por ser, no, cada usuario es
+Speaker 1: un mundo.
+Speaker 1: O sea, porque por ser de un grupo determinado o tener un rol, que hablábamos antes de los
+Speaker 1: roles, o sea, no.
+Speaker 1: Cada usuario tiene que tener su propio índice de riesgo y que se tiene que ir autogenerando.
+Speaker 1: Y poder cambiar solo.
+Speaker 1: Esa es la parte difícil, si se quiere.
+Speaker 1: Como poder, generando su nuevo rating, ¿sí?
+Speaker 1: Dentro de ese ranking de riesgo, automáticamente en base a su comportamiento, ¿no?
+Speaker 1: Es decir, bueno, está accediendo a esta aplicación, a esta página que es riesgosa o no es
+Speaker 1: riesgosa, como poder hacer ese análisis individualmente por usuario y no como ya presetearle
+Speaker 1: algo por ser de este área o de este otro área.
+Speaker 1: como que tiene que tener ese aprendizaje, la herramienta del usuario.
+Speaker 1: Obviamente que ahí está lo rico que ustedes le tienen que dar de qué es lo riesgoso
+Speaker 1: y qué es lo que no.
+Speaker 1: Pero bueno, ahí entra el desafío.
+Speaker 1: Sí, sí, total.
+Speaker 1: Justo lo que decís es exactamente el desafío que hay es crear ese...
+Speaker 2: esa línea base de comportamiento, o sea, algo general, y después decir, che, para los usuarios
+Speaker 2: se comportan de forma diferente.
+Speaker 2: Dos gerentes pueden comportarse de forma diferente, pueden hacer actividades totalmente diferentes
+Speaker 2: y no necesariamente es posible ponerlos a todos en
+Speaker 2: una misma bolsa, por así decirlo.
+Speaker 2: Pero bueno, eso serían todas las preguntas.
+Speaker 1: ahí podés parar de grabarse antes si querés ok bueno, buenísimo
+Speaker 1: chicos, no sé lo que necesiten si después se les queda alguna duda o algo me
+Speaker 1: avisan y espero que sea con suerte que salga adelante no
+Speaker 1: se dejen intimidar por Hugo no, no, no Hugo no quiere
+Speaker 1: Bueno, muchísimas gracias por el tiempo y por todo.
+Speaker 1: Esto es invaluable.
+Speaker 1: Bueno, espero que haya servido y que...
+Speaker 1: Nada, si se me ocurre a alguien más que puedan llegar a entrevistar, les
+Speaker 1: aviso.
+Speaker 1: En este momento no...
+Speaker 1: Porque las personas que están en la facu no tienen, o sea, como esta orientación.
+Speaker 1: que yo conozca no quiere decir que no haya otros pero les aviso muchas
+Speaker 1: gracias por todo muchas gracias a ustedes un beso suerte

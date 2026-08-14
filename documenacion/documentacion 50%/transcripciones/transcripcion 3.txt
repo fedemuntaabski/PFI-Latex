@@ -1,0 +1,563 @@
+Speaker 1: No a vos en particular, ¿no?
+Speaker 1: Mañana vamos a tomar un café a la luna y volvemos y total...
+Speaker 1: Ah, lleva de un corante, pero si total...
+Speaker 1: Pero me dicen, ¿pero cómo?
+Speaker 1: ¿Qué me estás diciendo?
+Speaker 1: Es una boludez, se agarra un cueto y irá a la luna.
+Speaker 1: Entonces, a lo que voy con esta ironía es que muchas veces se enuncian cosas que
+Speaker 1: luego, cuando vas...
+Speaker 1: O sea, cuando vas al qué es muy bonito y cuando vas al cómo, que es lo que estoy desafiando
+Speaker 1: a propósito, es donde te encontraste.
+Speaker 1: Digo, porque, a ver...
+Speaker 1: Puedo hablar con propiedad porque nosotros, en todos los años que tengo acá, y esta instalación
+Speaker 1: es enorme, toda esta casuística ya la tenemos relevada.
+Speaker 1: No es sencillo relevar esta casuística, por eso te digo que tampoco es tan directa
+Speaker 1: la obtención de esa información solamente del sistema operativo así per se.
+Speaker 1: Existen recopiladores de información, agentes como el tipo, un agente gratuito del X-Log,
+Speaker 1: que loguea determinadas cosas, otras no las loguea, y la actividad en general de ese tipo
+Speaker 1: se obtiene de diferentes fuentes, en donde muchas veces, por la característica de los sistemas
+Speaker 1: operativos, otra vez, por eso la enunciación, o esa información está incompleta o
+Speaker 1: no está en todos lados.
+Speaker 1: o se obtiene de lugares en donde tenés que tener determinados privilegios, entonces es riesgoso
+Speaker 1: que un agente, un agente de software, se coloque en un lugar con determinados privilegios.
+Speaker 1: Por eso te digo, entonces, no es lo mismo estar en una plataforma Linux que en una plataforma
+Speaker 1: Windows.
+Speaker 1: Si lo tienen que hacer.
+Speaker 1: Por eso te digo, yo no sé si ustedes están llegando a presentar el qué, o el qué y el cómo,
+Speaker 1: y la ejecución propiamente dicha.
+Speaker 1: No sé cuál es el alcance del trabajo.
+Speaker 1: Mira, nosotros, para lo que es la parte de...
+Speaker 2: O sea, nosotros hicimos una etapa inicial donde nosotros presentamos la idea de lo que queríamos
+Speaker 2: hacer con el objetivo, el alcance y una breve descripción de todo lo que involucraba.
+Speaker 2: Y esa etapa fue el qué, o sea, el qué queríamos hacer.
+Speaker 2: Ahora nosotros, en la siguiente entrega, que es el 18 de agosto, nosotros tenemos que mostrar,
+Speaker 2: por así decirlo, el 50% del avance.
+Speaker 2: Eso sería el cómo vamos a hacerlo.
+Speaker 2: Nosotros venimos avanzando, tenemos ya armado
+Speaker 2: por lo menos la interfaz operativa, entrenado los modelos con un
+Speaker 2: dataset que encontramos.
+Speaker 2: La gente está en proceso.
+Speaker 1: Pero bueno, igual me sirve que vos me des esa visión del programa.
+Speaker 1: Yo lo que te diría es lo siguiente.
+Speaker 1: Vos lo que vas a estar haciendo con lo que describís, decime si me equivoco, creo que no,
+Speaker 1: es, vas a estar recolectando eventos.
+Speaker 1: Correcto.
+Speaker 1: Ok.
+Speaker 1: Entonces, Windows tiene trillones de eventos, y no solo tiene trillones de eventos, sino que
+Speaker 1: para que te des una idea,
+Speaker 1: Creo que es 49-20, si mal no recuerdo, porque es el que más usamos acá, que es el de login,
+Speaker 1: pero no es lo...
+Speaker 1: Creo que el 49-20 tiene a su vez siete sub...
+Speaker 1: Categorías.
+Speaker 1: Claro, subcategorías.
+Speaker 1: Entonces, digo, te digo, a ver, yo soy muy detallista cuando...
+Speaker 1: O sea, me describo un poco porque a mí lo general, si bien obviamente es por donde se arranca,
+Speaker 1: me gusta la ejecución.
+Speaker 1: Entonces, desde ese lugar, yo te digo, puedo hablar con propiedad porque esto lo hacemos,
+Speaker 1: de hecho respondemos oficios judiciales por fraudes que cometen los mismos empleados de acá
+Speaker 1: y sabemos dónde se logonean, qué hacen, qué no hacen, cuándo cortan, cuándo no cortan, no
+Speaker 1: es lo mismo el login en un Active Directory, ¿sabes lo que es el Active Directory?
+Speaker 1: Sí, cuando vos te conectás a una máquina, o sea, desde tu máquina abrís un SSH,
+Speaker 1: No, no, no, no.
+Speaker 1: El Active Directory, el directorio activo, es básicamente, no, no, es una mega herramienta,
+Speaker 1: que es una herramienta muy nativa de Microsoft para manejo de identidades y de objetos.
+Speaker 1: Y ahí nosotros, nuestro manejador de identidades y de objetos, entendiendo por objeto, un
+Speaker 1: objeto es un impresor, un teléfono, un ser humano, o sea, no un ser humano justamente, las
+Speaker 1: credenciales de alguien.
+Speaker 1: Y ahora te voy a dar un tip que, llévatelo porque es muy importante.
+Speaker 1: Y te lo digo porque si decís esto, creo que te van a tomar con mucha más seriedad.
+Speaker 1: No te garantices que un ser humano estuvo frente a una computadora haciendo algo.
+Speaker 1: Garantiza que recabaste información para que la identidad digital de esa persona se
+Speaker 1: presentó en esa estación de trabajo.
+Speaker 1: ¿Qué te digo con esto?
+Speaker 1: Yo te doy a vos mi usuario y mi password.
+Speaker 1: O vos me miraste por arriba del hombro, ¿sí?
+Speaker 1: Y viste mi password y sabés mi usuario.
+Speaker 1: Vos soy yo.
+Speaker 1: No.
+Speaker 1: Entonces, a mí, no, no, claro, pero vos sabés qué tema es esto con la justicia, porque a mí
+Speaker 1: me dicen, bueno, dígame, Guillermo Pita estuvo frente, yo te voy a decir, las credenciales
+Speaker 1: de Guillermo Pita fueron utilizadas de acuerdo a nuestros registros, en tal y tal, no es lo
+Speaker 1: mismo que las credenciales han sido usadas, que ahora, como todo, si ladra, levanta
+Speaker 1: la pata y tiene pelos, y levanta la pata va a ser pis, y tiene pelos, generalmente no es un
+Speaker 1: flamenco, es un perro.
+Speaker 1: Entonces, vos decís, che, este tipo ingresó por tal puerta, tenemos una cámara de seguridad
+Speaker 1: que lo tiene registrado, el tipo metió su registro biométrico a las 3 de la tarde, tuvo su
+Speaker 1: primer login a las 3 y 8, que es más o menos lo que tarda el ascensor en subir, bla, bla,
+Speaker 1: bla, bla, y así durante...
+Speaker 1: Es él y el tipo puede decir, no, mirá, nunca fui yo.
+Speaker 1: Esto es como cuando vos vas, yo soy perito también, en caso de que...
+Speaker 1: Perdón que me vaya por las ramas, pero te quiero dar la certeza del manejo
+Speaker 1: de la información tan delicada como puede ser la presencia de una persona frente a una máquina.
+Speaker 1: Vos decís, che, apareció una persona asesinada en tal domicilio.
+Speaker 1: Te vieron entrar, te vieron salir y cuando salías tenías la camisa con sangre y salías con
+Speaker 1: una valija que colgaba una zapatilla y decís, la mató, y sí, yo no tengo la afirmación de
+Speaker 1: que la mató, pero la probabilidad de que la haya matado es muy alta.
+Speaker 1: Y el tipo, en cana igual.
+Speaker 1: Esto es lo mismo.
+Speaker 1: A lo que voy es, cuidado con el, ahora voy para otro lado, cuidado con el manejo de eventos,
+Speaker 1: porque si no lo mirás en detalle, pues te lo voy a decir en el mejor castellano que tengo,
+Speaker 1: puedes estar informando una boludez.
+Speaker 1: Porque otra vez, el tema de manejo de eventos, del event log de Windows, no voy a decir que
+Speaker 1: es delicado, pero no siempre el Windows, de hecho yo soy anti-Windows, por supuesto, como
+Speaker 1: buen informático, no siempre responde,
+Speaker 1: regularmente a lo que tiene que responder.
+Speaker 1: Entonces, te diría que, como el cabucho marca poco aprieta, fíjense si el alcance que le quieren
+Speaker 1: dar a esto, en términos de riesgo, es un alcance en donde ustedes están analizando, digo una
+Speaker 1: boludez, 5.000 eventos, no te metas en esa.
+Speaker 1: O sea, para analizar 5.000 eventos necesitas un SIEM, no sé si sabés lo que es un SIEM.
+Speaker 1: Es decir, seguridad, ¿verdad?
+Speaker 1: Es donde se almacenan los logs.
+Speaker 1: Sí, ponele, es un recopilador más que de logs, sí de logs, pero lo que tiene es una herramienta
+Speaker 1: que si bien ingesta logs, lo que tiene es la capacidad de colección, o sea, recolectar
+Speaker 1: y correlación.
+Speaker 1: Por ejemplo, nosotros tenemos un CIEM muy grande que colecciona los eventos de las 15
+Speaker 1: .000 estaciones de trabajo, 2.000 servidores que tenemos acá, y por ejemplo, si...
+Speaker 1: tu credencial está siendo usada en Buenos Aires y en La Rioja, automáticamente te bloquea
+Speaker 1: el usuario.
+Speaker 1: Porque correlacionó.
+Speaker 1: Hay una regla que le dice, un tipo no puede estar en dos ubicaciones al mismo tiempo.
+Speaker 1: Ahora, si el tipo se movió dentro de Buenos Aires con diferencia de media hora y se lo goñó
+Speaker 1: en dos máquinas, me va a dar una alerta, no me va a bloquear, pero me va a decir, che, pará,
+Speaker 1: este tipo se lo goñó en Paseo Colón y ahora está en Córdoba y Maipú.
+Speaker 1: ¿Qué pasó?
+Speaker 1: Pasó dos horas.
+Speaker 1: Y puede ser que haya dejado abierta la sesión, pero me va a generar una alerta.
+Speaker 1: Entonces, lo que digo es, la información de riesgo de gestión tiene que ser información correlacionada.
+Speaker 1: Y ahí es donde yo te sugiero que ustedes, como parte del trabajo, digan o pongan dos o tres
+Speaker 1: casos de uso, en donde, porque eso le va a dar, me parece, un poquito de valor agregado a
+Speaker 1: la tarea, de decir, che, mirá, por ejemplo, el ejemplo que te puse.
+Speaker 1: Nosotros estudiamos que si dos personas se están logoneando con diferencia de 200 kilómetros
+Speaker 1: al mismo tiempo o en 5 minutos, no va.
+Speaker 1: Ahí te manda un bloqueo.
+Speaker 1: Nosotros tenemos, nosotros, en general en ciberseguridad vos tenés dos grandes hitos de trabajo,
+Speaker 1: el bloqueo y la alerta.
+Speaker 1: Hay cosas que se bloquean porque ya sabés, o sea, la probabilidad de que estén mandando una
+Speaker 1: cagada o que estés ya habiendo un fraude es importante, y otras te alerta, te dice, che, se
+Speaker 1: lo pasa un analista y la alerta tiene,
+Speaker 1: Lo que nosotros llamamos en la jerga cinco tiers, tiers es cinco niveles, de rojo a verde.
+Speaker 1: Algunos se tienen que mirar inmediatamente en el término de 15 minutos, 10 minutos, 5 minutos,
+Speaker 1: otros se pueden ver a fin del día o mañana.
+Speaker 1: Entonces, todo esto forma parte de los motores de riesgo, porque no es solamente, porque vos
+Speaker 1: me decís, veo si se creó una carpeta, y desde el riesgo no me estás diciendo nada que se creó
+Speaker 1: una carpeta.
+Speaker 1: Si vos me decís, no, esa carpeta tiene información porque la tengo censada o la tengo auditada
+Speaker 1: como información confidencial y se está metiendo alguien que no tiene que meterse frecuentemente
+Speaker 1: y la está copiando y se está moviendo un Excel que hay ahí adentro, es distinto.
+Speaker 1: Entonces, guarda con la casuística, ¿sí?
+Speaker 1: Porque es lo mismo, otra vez, no es lo mismo.
+Speaker 1: Que la casuística te la da lo que se llama en la jerga el caso de uso.
+Speaker 1: El caso de uso es, si pasa tal cosa, entonces hago tal cosa, si sucede tal otra, disparo tal...
+Speaker 2: un tema de causa-efecto.
+Speaker 2: No sé si te ayuda todo esto.
+Speaker 2: Sí, sí, sí.
+Speaker 2: A ver, me da un...
+Speaker 2: O sea, me da otra perspectiva que no me dieron, o sea, por lo menos las otras
+Speaker 2: personas con las que entrevistamos o así no nos dieron esta perspectiva y está bueno.
+Speaker 2: Porque también nos permite ser más realistas.
+Speaker 2: Es que este es el tema, o sea, vos me decís un motor de riesgo, pero te lo digo sinceramente.
+Speaker 1: Entró una persona a tu casa, yo te digo a vos.
+Speaker 1: Y vos me decís, sí, puede ser mi hermana, mi viejo.
+Speaker 1: Digo, entró una persona a tu casa con una escopeta en la mano, encapuchado y con dos cuchillos
+Speaker 1: en la cintura.
+Speaker 1: Es mierda, o sea, no es lo mismo.
+Speaker 1: También la persona.
+Speaker 1: Guillermo, creo que ahí Santiago mandó, pues recién se pudo unir.
+Speaker 1: Si le podés aceptar.
+Speaker 1: Para que lo admito, bancame.
+Speaker 1: Igual está muy bueno lo que mencionás.
+Speaker 1: Me sirve un montón.
+Speaker 2: porque es una mirada que no nos habían dicho y nos
+Speaker 2: ayudó un montón.
+Speaker 2: También para hacer, o sea, el momento de desarrollar, esto es lo que mencionas de, por ejemplo,
+Speaker 2: los casos de uso.
+Speaker 2: Nosotros habíamos hablado de la idea general de, por ejemplo, cuando
+Speaker 2: nos pusimos a analizar el conjunto, el dataset que teníamos nosotros,
+Speaker 2: para armar los modelos con inteligencia artificial, por ejemplo, nos había pasado que teníamos
+Speaker 2: una cantidad impresionante de usuarios.
+Speaker 2: Pero después, cuando nos poníamos a analizar, por ejemplo, teníamos muchas cuentas que eran
+Speaker 2: bots, que hacían actividades, por ejemplo, de AWS, de servicios de
+Speaker 2: mensajería, tipo newsletter, cosas así.
+Speaker 1: Y está bueno que vos des esa visión de que quizás nosotros nos tenemos que enfocar más en
+Speaker 1: los casos de uso que corresponden a lo que vamos a hacer o a lo que pensamos hacer.
+Speaker 1: Ustedes lo que tienen que hacer es primero, antes que nada, definir los casos de uso.
+Speaker 1: O sea, definir la casuística que va a resolver esta herramienta.
+Speaker 1: Esa casuística generalmente se lo mide por la definición, básicamente.
+Speaker 1: Si googleás casos de uso, vas a ver que hay metodologías para el armado de lo que se llama
+Speaker 1: use cases o casos de uso.
+Speaker 1: Yo no, en máximo en el trabajo práctico, no abundaría en casos de uso, para que te des una
+Speaker 1: idea, nosotros, siendo una organización de 15.000 estaciones, 400 sucursales, yo tengo críticos
+Speaker 1: 49 casos de uso.
+Speaker 1: Pero no es tanto, es un montón.
+Speaker 1: O sea, para que sean críticos, es una bocha.
+Speaker 1: Con lo cual, ustedes yo creo que deberían ceñirse a sugerencias.
+Speaker 1: Tres, como muchos, cinco, te diría muchísimo.
+Speaker 1: Y si fueran tres, mejor.
+Speaker 1: pero muy certeros y muy con este concepto de la colección y la correlación.
+Speaker 1: Claro.
+Speaker 1: ¿Sí?
+Speaker 1: Entonces, vos, una cosa es levantar el evento, coleccionarlo, ¿sí?
+Speaker 1: Pero luego, sea correlacionado o no, vos tenés que decir, bueno, ¿qué valor agregado le doy
+Speaker 1: a esa información?
+Speaker 1: Porque la información tenés que transformarla en datos.
+Speaker 1: La información por si no te dice nada.
+Speaker 1: El tema es el dato.
+Speaker 1: Entonces, ahí yo colocaría, no sé por decir algo, tres casos de uso,
+Speaker 1: Y diría, bueno, ¿qué eventos necesito para que estos casos de uso sean efectivos?
+Speaker 1: Y no es menor lo que llamamos prueba y contraprueba.
+Speaker 1: Vos tenés que probar que constantemente ese evento está llegando.
+Speaker 1: No podés asumir que el evento...
+Speaker 1: Porque ya te digo, los sistemas operativos son muy inestables, parecen estables, pero son
+Speaker 1: muy inestables y se trata de Microsoft mucho más.
+Speaker 1: Entonces, posiblemente...
+Speaker 1: digas, sí, estoy coleccionando los eventos, pero cuando vas a hacer un análisis semanal, te
+Speaker 1: diste cuenta que el martes a las 3 de la tarde dejó de coleccionar hasta las 3 de la mañana
+Speaker 1: de jueves.
+Speaker 1: Y viene alguien y te dice, bueno, che, ¿qué pasó en ese periodo?
+Speaker 1: No sé, se puede haber apagado un equipo o no, pero tenés que saber qué pasó.
+Speaker 1: Muchas veces, y esto es un error en la ciberseguridad, se asumen un montón de cosas que cuando
+Speaker 1: vas al fino, fino, fino, no son.
+Speaker 1: Bueno, hola.
+Speaker 2: ¿Qué tal?
+Speaker 2: ¿Cómo andás?
+Speaker 2: Sí, también estoy de compañero en el TFI.
+Speaker 2: Perdón la demora, pero tome la reunión antes y no me puedo presentar.
+Speaker 2: No pasa nada.
+Speaker 2: Bueno, perfecto, Guillermo.
+Speaker 2: Todo lo que dijiste lo grabé para que nos sirva
+Speaker 2: para después tenerlo en cuenta, la charla esta.
+Speaker 2: Si querés,
+Speaker 2: Si querés, primero te paso las preguntas o si querés te las hago y vamos viendo.
+Speaker 2: No, no, decíme, decímelas.
+Speaker 2: Ok, ok.
+Speaker 2: Bueno, la primera pregunta sería cuál o cómo describirías el mayor desafío de
+Speaker 2: seguridad que enfrentás hoy en relación con los usuarios de tu organización o del trabajo
+Speaker 2: que realizás.
+Speaker 2: Ok, el mayor desafío y es el enorme y tremendo desafío que tiene.
+Speaker 1: El planeta Tierra que se ha digitalizado tanto, básicamente, o sea, después resumí mi respuesta,
+Speaker 1: ¿no?
+Speaker 1: Es saber que la identidad digital está siendo utilizada por la identidad humana.
+Speaker 1: O sea, que son iguales.
+Speaker 1: O sea, el reemplazo de identidad, básicamente.
+Speaker 1: Vos hoy no tenés perímetro en la ciberseguridad.
+Speaker 1: Cuando digo no hay perímetro, es ya se acabó el tema de tener, en términos físicos, un alambrado
+Speaker 1: alrededor de un terreno.
+Speaker 1: Vos acá tenés accesos desde celulares, desde países distintos, el celular se mueve, esa persona
+Speaker 1: deja el celular en una mesa y automáticamente se conecta con una tableta, o en esa tableta
+Speaker 1: queda una cookie de identidad.
+Speaker 1: Entonces, el mayor desafío que hay es saber que quien está operando digitalmente es
+Speaker 1: quien dice ser realmente.
+Speaker 1: O sea, date una idea.
+Speaker 1: Yo estoy hablando ahora con Federico.
+Speaker 1: Yo no sé si vos sos Federico, yo nunca te vi.
+Speaker 1: Y vos podés ser alguien que se está haciendo pasar por Federico, o yo alguien que se pueda
+Speaker 1: hacer pasar por Guillermo.
+Speaker 1: No es así.
+Speaker 1: Te pongo un ejemplo burdo, para que te des cuenta de que digitalmente no hay una forma de
+Speaker 1: saber a ciencia cierta, salvo que todas las veces que nos conectamos siempre escuché la misma
+Speaker 1: voz, siempre di la misma foto de perfil, siempre te mostraste voz, siempre la hipera la misma,
+Speaker 1: siempre los...
+Speaker 1: Bueno, y ahí decís, como te decía al principio,
+Speaker 1: si levanta la pata y ladra para hacer pis, es perro generalmente y no es un flamenco.
+Speaker 1: Entonces, a lo que voy es, el mayor desafío que yo tengo como director de ciberseguridad o
+Speaker 1: experto en ciberseguridad, porque ya hace más de 20 años que estoy en esto, básicamente es
+Speaker 1: enseñarle al individuo común a desconfiar de lo digital.
+Speaker 1: Lo digital no debe generar confianza, debe generar desconfianza naturalmente.
+Speaker 1: ¿Por qué?
+Speaker 1: Porque no hay presencia física, ni hay certeza de que quien dice ser es quien es.
+Speaker 1: Porque si yo me siento con vos, cara a cara, tomar un café 20 veces, vos siempre sos el mismo.
+Speaker 1: Ahora, detrás de una pantalla o detrás de un dispositivo, ¿sos siempre el mismo?
+Speaker 1: No hay forma de garantizarlo.
+Speaker 1: Claro.
+Speaker 1: Bueno, paso a la siguiente pregunta, que también está un poco relacionada, que sería, ¿qué
+Speaker 1: tipo de incidentes de seguridad relacionados con usuarios?
+Speaker 2: han tenido más impacto en tu empresa en los últimos dos años, o los años que vos consideres
+Speaker 2: necesarios?
+Speaker 2: A ver, vamos de vuelta, o sea, reformulamela, o sea, repetímela porque no termino de entender
+Speaker 2: la base del concepto.
+Speaker 2: Ok, básicamente lo que dice la pregunta es, de los incidentes de seguridad que se presentaron
+Speaker 2: en tu organización en los últimos años, que afectaron a usuarios, ¿cuál vos considerás que
+Speaker 2: son los más importantes?
+Speaker 1: Los más importantes, te diría, intentos de suplantación de identidad, lo que estábamos hablando
+Speaker 1: un poco antes.
+Speaker 1: Claro, el que vos no conoces, ¿quién está detrás de la pantalla?
+Speaker 1: Yo no puedo dar certeza a quién está detrás de la pantalla, yo puedo saber que una identidad
+Speaker 1: de una persona, al cual se le otorgó un usuario y generó una clave, es quien se conectó
+Speaker 1: en una máquina en un determinado momento.
+Speaker 1: Entonces el mayor desafío nuestro es siempre poder informar, de hecho nosotros informamos,
+Speaker 1: como te decía al principio, mucho a la justicia por fraudes que se cometen, dar certeza, informar
+Speaker 1: de forma lo más paciente posible que detrás de esa pantalla había una persona cometiendo lo
+Speaker 1: que estuviera haciendo.
+Speaker 3: Si querés, pregunto yo, pero así no siempre sos vos.
+Speaker 3: Después de que se loguean, supongo que ustedes en la empresa donde vos laburás utilizan un
+Speaker 3: guión para verificar el tema del login y la autenticación.
+Speaker 3: Pero después, o sea, después de que se autentica exitosamente, ¿usted tiene alguna herramienta
+Speaker 3: para visualizar las acciones que hace durante la sesión?
+Speaker 3: A ver, primero,
+Speaker 1: Es como que vos me digas, muchas veces, déjame responder de una forma diferente, muchas
+Speaker 1: veces no se comprende el volumen de información que genera una transacción digital.
+Speaker 1: Esto es ANSES, es Estado, es la Administración Nacional de Seguridad Social.
+Speaker 1: Vos en 15.000 usuarios, números grandes, que se lo ganean todos los días, la trazabilidad
+Speaker 1: de cada acción no es razonable mantenerla.
+Speaker 1: ¿Desde qué lugar?
+Speaker 1: Desde el volumen bestial de información que genera.
+Speaker 1: Cuando hablo de trazabilidad de información es absolutamente todo lo que hace.
+Speaker 1: Ahora vos me decís, tener registro de lo que hace con un grado de sensibilidad que
+Speaker 1: hemos determinado entre varias direcciones o varias gerencias de ANSES, sabemos que hay bases
+Speaker 1: de datos que tienen una determinada sensibilidad y a esa base de datos sí le ponemos el ojo
+Speaker 1: y la miramos con total detalle.
+Speaker 1: Ahora.
+Speaker 1: Si vos realmente te logoneaste, abriste un Word, abriste un Excel y trabajaste, es irrelevante
+Speaker 1: y se está llenando almacenamiento de información para algo que no se utiliza para nada.
+Speaker 1: Entonces, la respuesta es distinta desde mi punto de vista.
+Speaker 1: Lo primero que tengo que decirte es no en función de cómo está formulada la pregunta, pero
+Speaker 1: sí en relación a la sensibilidad de la información que ese individuo o quien sea acceda.
+Speaker 1: O sea, no sigo al individuo.
+Speaker 1: O sea, estoy mirando la base de datos, estoy mirando el sitio web, estoy mirando y registro,
+Speaker 1: logueo, logueamos, registro la actividad sobre ese objeto.
+Speaker 1: Luego veo quién es, o sea, no sigo a la persona.
+Speaker 1: Miro el objeto para que el objeto no sea vulnerado.
+Speaker 1: ¿Se entiende?
+Speaker 1: Ok, pero en caso de actividades como críticas o sospechosas, ahí sí hay un tipo de visualización
+Speaker 1: para ver si está haciendo una actividad sospechosa o no.
+Speaker 1: Por ejemplo, lo que vos decías de la base de datos, etc.
+Speaker 1: Claro, pero vos fíjate que vos me estás hablando de la persona, de nuevo, o yo por lo menos
+Speaker 1: lo escucho así, y yo te estoy hablando del objeto, que es la base de datos.
+Speaker 1: O sea, yo le pongo la linterna a la base de datos y miro, no miro si Santiago, Federico o
+Speaker 1: Guillermo fueron a la base de datos, miro quiénes fueron.
+Speaker 1: ¿Sí?
+Speaker 1: Y quiénes fueron si luego hay una actividad y alguien pide, che, ¿quiénes estuvieron entre
+Speaker 1: tal hora y tal hora?
+Speaker 1: accediendo a tales datos, te lo puedo decir.
+Speaker 1: Ahora, vos imaginate que en 2.000 servidores la cantidad de carpetas compartidas que hay.
+Speaker 1: No están todas las carpetas compartidas siendo, te pongo otro ejemplo, siendo analizadas a
+Speaker 1: ver quién entró y quién salió de esa carpeta.
+Speaker 1: No, porque es imposible registrar el 100% de la actividad de todo el mundo porque no es relevante
+Speaker 1: registrar el 100% de la actividad de todo el mundo.
+Speaker 1: Ahora, y la pregunta fuera, fuera.
+Speaker 1: ¿Yo en este momento me puedo colgar de la sesión de alguien sin que se dé cuenta y ver qué
+Speaker 1: está haciendo?
+Speaker 1: Sí.
+Speaker 1: ¿Puedo entrar a un equipo y analizarlo?
+Speaker 1: Sí, porque es mi función.
+Speaker 1: Ahora, eso no se hace en forma regular, porque es, ya te digo, no es ni económicamente ni
+Speaker 1: funcionalmente relevante que yo vea el paso a paso como una hormiguita de qué está haciendo
+Speaker 1: cada individuo.
+Speaker 1: Yo miro los objetos sensibles.
+Speaker 1: Por eso, con las organizaciones grandes, hay una tarea que se llama clasificación de información.
+Speaker 1: La información se clasifica en función de su grado de criticidad.
+Speaker 1: Si es muy crítica o sensible, menos o irrelevante de crítica.
+Speaker 1: No sé, que yo tenga un Word con un memorándum en este momento en mi carpeta de memorándums,
+Speaker 1: no es información crítica a la hora de la sensibilidad que puede tener versus una base de
+Speaker 1: datos que tiene los sueldos y los aportes previsionales de todo el país.
+Speaker 1: ¿Se entiende?
+Speaker 1: Entonces,
+Speaker 1: O sea, nosotros registramos actividad sobre objetos sensibles, y si ese objeto sensible en
+Speaker 1: algún momento es posible de una investigación, vemos qué actividad tuvo, o sea, qué personas
+Speaker 1: se lo goñaron y desde dónde, y en qué espacio de tiempo se lo goñaron en forma remota, local,
+Speaker 1: desde un móvil, esa trazabilidad la tenemos, pero es posible mirar el 100% de la información.
+Speaker 1: Porque no es, insisto, como te decía al principio,
+Speaker 1: No es relevante mirarlo porque no me dice nada si vos entraste a una carpeta tuya en tu estación
+Speaker 1: de trabajo.
+Speaker 1: ¿Para qué voy a registrar un evento que es irrelevante?
+Speaker 1: Como que te dijera, estoy filmando el 100% de tu vida.
+Speaker 1: No, en todo caso, filmo cuando vas a una caja de seguridad.
+Speaker 1: No estoy mirando el 100%.
+Speaker 1: ¿Se entiende un poco el ejemplo?
+Speaker 1: Sí, sí, se entendió perfecto.
+Speaker 1: Ok.
+Speaker 1: Perfecto.
+Speaker 1: Bueno, sigo yo, Santi.
+Speaker 1: Volviendo un poco a esa pregunta que vos mencionaste, capaz no es tanto...
+Speaker 1: mirar todo el recorrido que hace el usuario, sino ver los puntos más críticos.
+Speaker 1: ¿Ustedes utilizan alguna herramienta para visualizar o tomar acciones con respecto a esto?
+Speaker 1: Es que tomar acción no tiene...
+Speaker 1: Por eso digo que no...
+Speaker 1: Las preguntas, yo creo que sé a dónde van, pero tal vez no están determinadas, tan bien formuladas.
+Speaker 1: Tomar acción.
+Speaker 1: En el caso de que se requiera, voy y busco qué se hizo.
+Speaker 1: Y sí, particularmente te decía al principio, antes de que llegue, perdón que estoy un poco
+Speaker 1: con carraspera, Santiago, tenemos un CIEM muy grande, Machazo, una bestia,
+Speaker 1: que colecciona y correlaciona los eventos que consideramos más importantes que lo que hablamos
+Speaker 1: al principio, para poder tener trazabilidad de la actividad.
+Speaker 1: O sea, la respuesta sería sí, pero obviamente siempre colocando en el tamiz qué evento estoy
+Speaker 1: mirando, que era lo que hablamos al principio.
+Speaker 1: Claro, claro, entiendo, entiendo.
+Speaker 1: O sea, es imposible mirar el 100% de los eventos y categorías de cada evento que tiene Windows,
+Speaker 1: que aparte no te va a decir nada.
+Speaker 1: Es como que estés juntando y juntando y juntando cosas que...
+Speaker 1: Sí, no tiene sentido.
+Speaker 1: Que después no usa.
+Speaker 1: Claro.
+Speaker 1: Sí, nosotros quizás tenemos...
+Speaker 2: en la propuesta, como mencionaste vos, ir más directo a unos casos de uso específicos
+Speaker 2: y listo.
+Speaker 2: Correcto.
+Speaker 2: Bueno, paso con alguna otra pregunta y así vamos armando un poco el cierre
+Speaker 2: o yo ando directo los puntos.
+Speaker 2: Por ejemplo, ¿a vos qué tan difícil es con las herramientas
+Speaker 2: que tenés?
+Speaker 2: que obviamente revisan los movimientos críticos, detectar un
+Speaker 2: comportamiento legítimo y distinguirlo de uno que sea, por ejemplo, inusual.
+Speaker 2: O sea, eso yo entiendo que vos mencionaste lo del CIEM, que es el que habías mencionado, que
+Speaker 2: es el agente, no el agente, donde se recolectan la gran mayoría de los logs que llegan y ahí
+Speaker 2: se hace la correlación.
+Speaker 2: Correcto.
+Speaker 1: ¿Distinguen ustedes entre los comportamientos inusuales del comportamiento usual
+Speaker 1: que se suele usar?
+Speaker 1: Es que justamente es el caso de uso el que dispara el comportamiento inusual, porque si yo
+Speaker 1: no, o sea, los 49 casos de uso crítico que yo te comentaba, básicamente lo que están buscando
+Speaker 1: es comportamiento inusual.
+Speaker 1: Entonces, a ver, como te decía al principio, si una persona se está logoneando en La Rioja
+Speaker 1: y en Buenos Aires, con diferencia de 5 minutos.
+Speaker 1: Eso salta, o sea, digo, es el caso de uso el disparador de la actividad irregular.
+Speaker 1: Por eso, como decía Santiago antes, la actividad regular, salvo
+Speaker 1: que sea sobre objetos críticos, no se logonea, porque si no, no es una locura.
+Speaker 1: Ahora, no sé, por ejemplo, que una persona haya excedido una carpeta acá,
+Speaker 1: y digo la carpeta porque la habían mencionado antes, acá y en La Rioja.
+Speaker 1: A mí me es irrelevante porque previamente a ese evento tiene que haber un evento de login
+Speaker 1: y ya lo atajo antes.
+Speaker 1: Como que la red del medio mundo la tengo más chiquita al principio para no dejar pasar y no
+Speaker 1: tener que estar mirando cosas que vienen después que van a estar diciendo algo que debería
+Speaker 1: haber visto antes.
+Speaker 1: ¿Se entiende?
+Speaker 1: Sí.
+Speaker 1: Básicamente el disparador es el caso de uso.
+Speaker 1: Claro.
+Speaker 1: Consulta que no relacionado con...
+Speaker 1: ¿Eso no sería algo parecido a un Exoar o algo así?
+Speaker 1: No, ¿un CIEM?
+Speaker 1: No, es la respuesta automática por casos de uso.
+Speaker 1: Sí, podría ser, pero es la naturaleza de un CIEM.
+Speaker 1: CIEM, ya te digo, colecciona y correlaciona, y tiene, si no sería una gran caja coleccionadora,
+Speaker 1: y no tendría el sentido de la correlación.
+Speaker 1: El sentido de correlación es el caso de uso que te analiza la correlación.
+Speaker 1: Claro.
+Speaker 1: Bueno, ahí, un minutito.
+Speaker 1: Busco otra pregunta.
+Speaker 1: Bueno, esta es una pregunta bastante más genérica que dice, ¿qué
+Speaker 1: características valorás más vos en una herramienta que ayuda al equipo de seguridad?
+Speaker 1: Me estás hablando, si me gustan más las noruegas, las finlandesas, las brasileras, las herramientas,
+Speaker 1: lo que te quiero decir es una pregunta tan genérica que no te la puedo responder directamente.
+Speaker 1: Cada herramienta tiene una función y no es lo mismo proteger un sitio web que proteger las
+Speaker 1: conexiones este o este, que son las conexiones internas dentro de un data center, que las
+Speaker 1: conexiones norte-sur, que son las que van y vienen de internet.
+Speaker 1: Cada cosa tiene su importancia relativa.
+Speaker 1: No puedo decirte que algo es más importante que otra cosa.
+Speaker 1: Te puedo decir que lo mínimo indispensable para que un data center esté protegido...
+Speaker 1: decir las tres o cuatro herramientas que no pueden faltar, pero la pregunta como está formulada
+Speaker 1: de, si mal no recuerdo, me dijiste cuál era la más importante, no hay una más importante,
+Speaker 1: hay varias muy importantes que hoy con la realidad de la ciberseguridad actual no
+Speaker 1: pueden faltar si lo que está protegiendo o la organización es una organización que se jacte
+Speaker 1: de estar protegiendo sus activos.
+Speaker 1: No sé si se entiende.
+Speaker 1: No es una sola.
+Speaker 1: Son varias.
+Speaker 1: Algunas pueden faltar, sí.
+Speaker 1: No deberían, pero obviamente si tengo que rankear no puedo colocar una delante de otra.
+Speaker 1: Claro, entiendo.
+Speaker 1: Ok, pero entonces dentro de esas características que vos nombraste son...
+Speaker 1: Importante es que algunas pueden faltar que no son tan necesarias.
+Speaker 1: ¿Cuáles son las que no pueden faltar nunca dentro de todo este ámbito?
+Speaker 1: Lo que no puede faltar, básicamente es un firewall de borde, un Next Generation Firewall,
+Speaker 1: no puede faltar jamás.
+Speaker 1: No puede faltar una herramienta que esté detectando denegaciones de servicio en diferentes
+Speaker 1: capas del modelo OSI, no es lo mismo una negación de servicio sobre el DNS, que es capa 3,
+Speaker 1: capa 4, que es capa 7, que es aplicación.
+Speaker 1: Por eso no quiero entrar en tecnicismos, pero hay cosas que no pueden faltar en relación,
+Speaker 1: a ver, no puede para mí, en un centro de cómputo, no puede faltar una herramienta de microsegmentación.
+Speaker 1: Sería una locura no tener una herramienta de microsegmentación sólida que te permita dividir
+Speaker 1: la red en segmentos y que si alguien quiere hacer lo que se llama, ustedes saben lo que es
+Speaker 1: ransomware, sí.
+Speaker 1: Sí.
+Speaker 1: Bueno, o sea, el ransomware se basa no solo en atacar un equipo, sino hacer movimiento lateral
+Speaker 1: y tratar de ir de un lado al otro.
+Speaker 1: Una herramienta de microsegmentación lo que te permite es controlar el tráfico en cada equipo
+Speaker 1: crítico y que cuando alguien intenta hacer un movimiento que no tiene que hacerlo o intenta
+Speaker 1: reemplazar un proceso que ya está hallado previamente por el propio agente de microsegmentación,
+Speaker 1: no permite el reemplazo.
+Speaker 1: O sea, el ransomware actúa normalmente conectándose a un servidor llamado de comando y control.
+Speaker 1: Y empieza a bajar software, que generalmente es software que busca enmascararse en nombre
+Speaker 1: de archivos ya existentes.
+Speaker 1: No sé, sistema, librerías.
+Speaker 1: Y vos tenés, desde el momento en que el agente de microsigmentación tocó ese equipo, halló
+Speaker 1: todos los procesos y todos los archivos de este tema, y vos querés reemplazarlo, el tipo
+Speaker 1: automáticamente te bloquea y bloquea la conexión.
+Speaker 1: Entonces, hay herramientas que no pueden faltar, te digo, un Next Generation Firewall,
+Speaker 1: no puede estar faltando un 100 puede faltar, es una locura, pero puede faltar, pero el borde
+Speaker 1: tiene que estar protegido, el borde lo proteges con un firewall, el borde lo proteges con
+Speaker 1: un dispositivo de negación de servicio, un WAF, un web application firewall, que es otra cosa
+Speaker 1: distinta, web application, o sea, aplicaciones web, no puede estar faltando si tienes una
+Speaker 1: presencia de internet fuerte, porque te van a estar destrozando los sitios web.
+Speaker 3: robándote información o denegándote la actividad.
+Speaker 3: Entonces hay cosas que no pueden faltar.
+Speaker 3: Ok.
+Speaker 3: Para cerrar, ya medio que cubrimos un poco todo, vos sentís que hay algo que nos
+Speaker 3: faltó preguntarte que pueda ser importante que entendamos para todo lo relacionado a nuestra
+Speaker 3: propuesta, que supongo que te comentó Fede anteriormente.
+Speaker 3: No diría que faltó.
+Speaker 3: Creo que lo que ustedes tienen que llevar,
+Speaker 1: como mochila, y se lo comentaba Federico al principio, o tiene que tener grabado a fuego,
+Speaker 1: es la desconfianza digital.
+Speaker 1: O sea, quien se dedique a ciberseguridad debe ser un maestro en enseñar a desconfiar.
+Speaker 1: Entonces, todo debe ser validado más de una vez, todo debe ser coleccionado y correlacionado
+Speaker 1: y probado en más de una oportunidad, y por otro lado, estar constantemente pensando
+Speaker 1: en que lo que está sucediendo digitalmente no es lo que dice ser.
+Speaker 1: El día que te paras desde ese lugar de la vereda, estás haciendo bastante mejor tu laburo
+Speaker 1: de ciberseguridad, porque la confianza mata al hombre, y cuando vos no ves que hay del otro
+Speaker 1: lado, es increíble, porque yo hasta lo he leído en análisis psicológicos de ciberdelincuentes,
+Speaker 1: no puedo entender todavía como una persona...
+Speaker 1: se deja seducir por una pantalla bonita sin saber que del otro lado, o sea, esa pantalla bonita
+Speaker 1: le está diciendo, le está generando confianza de que del otro lado hay gente seria y responsable.
+Speaker 1: Y no entiendo desde dónde sacan eso.
+Speaker 1: Ahora, el ciberdelincuente aprovecha esa situación para que, y esto tómenlo como estadística
+Speaker 1: porque es una realidad, el cibercrimen en este momento recauda más que el narcotráfico, recauda
+Speaker 1: más que la trata de personas, recauda más que el tráfico de armas en su conjunto.
+Speaker 1: Y en el año 2025 recaudó más que el PBI de la Unión Europea en general.
+Speaker 1: O sea, ni siquiera el PBI de Alemania.
+Speaker 1: El primer PBI del mundo es Estados Unidos, el segundo es China, el tercero es el cibercrimen.
+Speaker 1: Y si la gente desconfiara más de lo digital, no sería así.
+Speaker 1: Bueno, con esto yo creo que preguntamos todo lo que necesitábamos.
+Speaker 2: así que ya por mi parte esta área, no sé si Fede quiere aportar algo más a mí Guillermo yo
+Speaker 2: te quiero agradecer primero por atendernos ya sé que tienen horarios recontro ocupados
+Speaker 2: y bueno ya tuve 5 llamados en el mes así que muchísimas
+Speaker 2: gracias por eso y también muchísimas gracias por el feedback que diste al principio ok
+Speaker 2: Porque en todas las entrevistas que habíamos tenido, por lo menos nadie nos había
+Speaker 2: criticado o puesto el foco en lo que quizás es
+Speaker 2: realista.
+Speaker 2: Y eso ayuda un montón.
+Speaker 2: Yo tengo un concepto muy arraigado en mi vida, soy un tipo grande, ya tengo varias heridas
+Speaker 2: de guerra, y aparte fui militar, independientemente de la herida de guerra.
+Speaker 1: como es, yo soy muy amigo de la crítica constructiva, muy amigo, o sea, a mí, el que me digan
+Speaker 1: las cosas lindas, o sea, lo destructivo sí no me gusta, pero no me molesta en lo absoluto,
+Speaker 1: que alguien me diga, che, mirá, me parece que es por este lado y no por él, ah, mirá, qué
+Speaker 1: bueno, me convenciste, listo, y voy por ese lado.
+Speaker 1: Entonces, esa fue mi intención desde un principio, o sea, ser crítico constructivamente para
+Speaker 1: que, en todo caso, cambien un poco el enfoque, eso te lo digo desde la experiencia de,
+Speaker 2: dos décadas de estar haciendo esto.
+Speaker 2: Claro, perfecto.
+Speaker 2: Así que nada, eso sería todo, pero gracias en sí.
+Speaker 2: No, no, por favor, ningún problema.
+Speaker 2: Y después, si no te molesta, si podías completar una encuesta que tarda unos cinco minutos,
+Speaker 2: como mucho, después en algún momento que tengas libre, no es necesario ahora.
+Speaker 2: Dame un segundo, te mando el forms, te lo mando por...
+Speaker 1: Haz una cosa, anotá mi celular, porque si bien yo tengo mucha actividad de mail, obviamente
+Speaker 1: si no te tengo agendado no te voy a atender, pero mandame un WhatsApp, y en todo caso, si
+Speaker 1: hubiera una necesidad más adelante, me pingueas, pingueas, mirá ese ser informático, pingueas,
+Speaker 1: pingueas de la red, ¿no?
+Speaker 1: Y en la GR usamos eso, nosotros, chete, pingueo.
+Speaker 1: O sea, me mandás un mensajito por WhatsApp, anótalo, 11-5461-3250.
+Speaker 1: Un poquito más lento.
+Speaker 1: Yo soy medio eléctrico, pero sí.
+Speaker 1: 11-5461-3250.
+Speaker 1: Perfecto.
+Speaker 1: 54-61-3250.
+Speaker 1: Perfecto.
+Speaker 1: Listo.
+Speaker 1: Muchísimas gracias, Guillermo.
+Speaker 1: Muchas gracias.
+Speaker 1: No, todo bien.
+Speaker 1: Hasta luego.
+Speaker 1: Hasta luego.
+Speaker 1: Buen día.
+Speaker 4: Igualmente.
