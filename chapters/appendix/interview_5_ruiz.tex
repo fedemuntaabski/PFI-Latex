@@ -1,0 +1,47 @@
+\anexo{Transcripción de la entrevista a Matías Gabriel Ruiz}
+
+\textbf{Entrevistado:} Ruiz Matías Gabriel
+
+\textbf{Formato:} cuestionario escrito (10 preguntas), no conversación grabada
+
+\begin{description}[leftmargin=0cm, labelsep=0.5cm]
+    \item[\textbf{Pregunta 1:}] ¿Cómo describirías el mayor desafío de seguridad que enfrentás hoy en relación con los usuarios de tu organización/lugar de trabajo?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] El mayor desafío es garantizar que los usuarios accedan únicamente a la información y funcionalidades que les corresponden, sin afectar la experiencia de uso. También es importante detectar rápidamente comportamientos anómalos, especialmente en aplicaciones críticas donde un uso indebido puede generar un impacto operativo o financiero.
+
+    \item[\textbf{Pregunta 2:}] ¿Qué tipo de incidentes de seguridad relacionados con usuarios han tenido más impacto en tu empresa en los últimos dos años?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Los incidentes de mayor impacto suelen estar relacionados con el compromiso de credenciales, accesos no autorizados, intentos de phishing y errores operativos derivados de permisos incorrectos. También representan un riesgo los accesos no autorizados desde fuera del país; este tipo representa uno de los campos de mayor alerta en el último tiempo.
+
+    \item[\textbf{Pregunta 3:}] Después de que un usuario se autentica exitosamente, ¿qué visibilidad tiene el área de ciberseguridad sobre lo que hace durante esa sesión?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] La visibilidad depende de las herramientas implementadas por la organización. Generalmente se centralizan eventos mediante SIEM y otras soluciones de monitoreo, registrando autenticaciones, accesos, cambios relevantes y eventos de seguridad. Estas herramientas permiten correlacionar eventos, generar alertas e iniciar investigaciones, aunque no siempre ofrecen una visualización completa de toda la actividad del usuario en tiempo real.
+
+    \item[\textbf{Pregunta 4:}] ¿Cuánto tiempo pasa normalmente entre que ocurre una actividad anómala y que tu equipo la detecta?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Depende del tipo de evento y de las reglas de monitoreo. En incidentes críticos la detección puede ser prácticamente inmediata mediante alertas automáticas, mientras que otros casos pueden detectarse minutos u horas después durante los procesos de análisis y correlación.
+
+    \item[\textbf{Pregunta 5:}] Cuando sospechan que hay actividad sospechosa en una sesión activa, ¿cómo es el proceso desde que lo detectan hasta que toman una acción concreta?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Primero se valida la alerta para descartar falsos positivos. Luego se recopilan evidencias, se analiza el contexto del usuario y, si el riesgo lo justifica, se escala al equipo correspondiente para aplicar medidas como bloquear la cuenta, revocar sesiones, limitar accesos o aislar el equipo afectado siguiendo el procedimiento de respuesta a incidentes.
+
+    \item[\textbf{Pregunta 6:}] ¿Qué tan difícil les resulta distinguir entre comportamiento legítimo inusual y una amenaza real dentro de una sesión activa?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Es uno de los mayores desafíos, especialmente cuando usuarios con privilegios realizan tareas poco frecuentes pero válidas. Por eso resulta fundamental combinar el contexto del negocio, el perfil del usuario, su historial de comportamiento y la información proveniente de múltiples fuentes antes de tomar una decisión.
+
+    \item[\textbf{Pregunta 7:}] ¿Cuáles son los principales desafíos que enfrenta hoy tu equipo en materia de monitoreo de usuarios?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Los principales desafíos son reducir los falsos positivos, correlacionar información proveniente de diferentes herramientas, obtener contexto suficiente para priorizar incidentes y responder rápidamente sin afectar la continuidad operativa del negocio.
+
+    \item[\textbf{Pregunta 8:}] ¿Qué características valorás más en una herramienta que ayude al equipo de seguridad?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Valoro especialmente la capacidad de integración con el ecosistema existente (SIEM, XDR, IAM y ticketing), la detección basada en comportamiento, la automatización mediante playbooks, la trazabilidad completa de las acciones, la facilidad para investigar incidentes y la generación de alertas con contexto suficiente para reducir falsos positivos.
+
+    \item[\textbf{Pregunta 9:}] ¿Qué factores considerás que aumentan el riesgo asociado a un usuario, por ejemplo si depende del rol o de la actividad?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] El riesgo depende principalmente del nivel de privilegios del usuario, la criticidad de la información a la que accede, el tipo de operaciones que puede realizar, la ubicación y el dispositivo desde donde accede, el horario de actividad y cualquier desviación significativa respecto de su comportamiento habitual.
+
+    \item[\textbf{Pregunta 10:}] ¿Hay algo sobre este tema que no te preguntamos y que creés que sería importante que entendiéramos?
+
+    \item[\textbf{Ruiz Matías Gabriel:}] Más allá de la tecnología utilizada, el éxito del monitoreo de usuarios depende de una adecuada definición de procesos, roles y políticas. Las herramientas son un facilitador, pero su efectividad está directamente relacionada con la calidad de las reglas de detección, la integración con el resto del ecosistema de seguridad y la capacitación continua de los usuarios y de los equipos de respuesta.
+\end{description}

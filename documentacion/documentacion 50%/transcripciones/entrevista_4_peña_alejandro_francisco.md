@@ -1,0 +1,162 @@
+# Entrevista 4 — Peña Alejandro Francisco
+
+**Entrevistado:** Peña Alejandro Francisco (jefe de seguridad, compañía financiera regulada)
+**Entrevistadores:** Muntaabski Federico, Mociulsky Santiago Bernardo
+
+---
+
+**MUNTAABSKI FEDERICO:** Bueno, ahí arranco yo con las preguntas. La primera pregunta sería, ¿cómo describirías el mayor desafío de seguridad que enfrentas hoy en relación al comportamiento de usuarios dentro de tu organización o de las empresas que vos trabajas?
+
+**PEÑA ALEJANDRO FRANCISCO:** Yeah. A ver, ¿cuál es el mayor desafío hoy que hay? Justamente un poco el tema de, lo que comentan ustedes, el tema del control. Determinar en todo momento la posición de seguridad de los endpoints, sería.
+
+**MUNTAABSKI FEDERICO:** Claro. Ehm.
+
+**PEÑA ALEJANDRO FRANCISCO:** Este. hoy en día este y en tema además de que obviamente los endpoints, cuando hablamos de endpoint, hablamos también de dispositivos móviles, hablamos de sobre todo de las laptops corporativas, ¿no? Desde, bueno,
+
+**MUNTAABSKI FEDERICO:** Dizzy.
+
+**PEÑA ALEJANDRO FRANCISCO:** ¿Qué está haciendo? No el que está haciendo desde un punto de vista por ver qué hace el usuario, ¿no? Pero ¿qué acciones está realizando? Y más allá de eso, ¿qué tipo de software puede llegar a correr? en su entorno, porque si bien yo puedo limitar muchas veces la instalación, por ejemplo, de algún tipo de sistema, hay programas que por ejemplo no piden principios privilegios de administrador y de todas maneras puedo instalarlo, puedo instalar programas portables, etcétera. Eso a veces Puede llegar a ser un riesgo hasta un simple plugin de Chrome, por ejemplo, no, si no, si la compañía no tiene a nivel corporativo, por ejemplo, el Chrome. Con pólisis, sí, una extensión sencilla de Chrome que puede hasta hacer un robo masivo de datos o un simple lector de PDF. Este Sobre todo, es importante también destacar el tema también, por ejemplo, de el phishing, ¿no? Y cuando hablamos de phishing, hablamos de robo, y también el tema del ransomware, no que generalmente los usuarios pueden llegar a descargar, etcétera. Hoy está bastante mitigado por lo que son las herramientas de. Ya sea de antivirus por heurística, lo puedes bloquear a nivel firewall, sin esa inspección de. Inspección de paquetes. Tenés varias capas. De hecho, la seguridad se basa en capas, no vas a poner una sola herramienta, pero bueno, básicamente eso ahí es donde más me. Y por ejemplo, también que los usuarios no puedan pasear controles, no por ejemplo, que deshabiliten el proxy, no, por ejemplo, si bien puedo hacerlo por política de AD. Sí, que no puedan tocar esa configuración, obviamente que la vez es muy titanular en ese sentido. Hay usuarios que por las tareas que realizan, a veces requieren que yo no pueda tener que bloquear el proxy. Por ejemplo, no sé a los usuarios de TI o ciertos usuarios desarrolladores, no, o sea, necesitan de esa flexibilidad. Y ahí es donde se me complica, porque el desarrollador es un especialista técnico, sabe lo que hace. Pero también es donde más tengo el riesgo, ¿no? Ahí es donde más por ahí apuntaría.
+
+**MUNTAABSKI FEDERICO:** Perfecto. Bueno, ahí paso a la siguiente pregunta. Bueno, justo mencionas lo de los endpoints Ahora la pregunta va más por el ¿Qué tipo de incidentes de seguridad relacionados con usuarios? Por ejemplo, credenciales comprometidas, uso indebido de datos Por ejemplo, vos mencionabas que hoy en día es importante y hay un montón de herramientas para usar en conjunto para lo que es el tema de evitar esos plugins que pueden aparecer. La pregunta sería ¿Qué tipo de incidente de seguridad? relacionados con usuarios, tuvieron más impacto en los últimos 2 o 3 años que vos te acuerdes que estuviste trabajando en tu empresa.
+
+**PEÑA ALEJANDRO FRANCISCO:** Sí, puede ser este justamente todo lo que es la parte de robo de de credenciales y abuso de privilegios. ¿O sea, un usuario legítimo, no? Por ejemplo, un. Un administrador de los del dominio que se toma ciertas libertades, como por ejemplo. ¿Resetear la paso del compañero en un entorno regulado, como puede ser un entorno bancario o similar, no? Hola. No respetando el circuito.
+
+**MUNTAABSKI FEDERICO:** Claro.
+
+**PEÑA ALEJANDRO FRANCISCO:** Después el tema también de algo muy candente hoy en día es. El tema del uso de la inteligencia artificial también. ¿Qué datos suben los usuarios? ¿A qué tipos de guía? Sí. Si vos no tenés una política de proxy bastante granular y selecta. O una buena gobernanza no hacen problemas.
+
+**MUNTAABSKI FEDERICO:** Perfect. Bueno, ahí paso con o le vas al montado Santi.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Si viene ahora con un tallo.
+
+**MUNTAABSKI FEDERICO:** Belly.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Ok, en mi consulta es, o sea, después de que un usuario se autentica del diam, supongo que utilizan en su empresa. ¿El área de ciberseguridad tiene algún tipo de visibilidad de las acciones que realiza durante su sesión o de, por ejemplo, elementos críticos a los que accede?
+
+**PEÑA ALEJANDRO FRANCISCO:** Por supuesto, eso está no solamente auditado para el análisis forense, sino también por regulaciones, ya sea de PSI, Banco Central, etcétera, está regulado. Nosotros no podemos dejar al usuario libremente al azar, de hecho se controla hasta si hiciste click en el mute de Teams para que te hagas una idea y cuánto tiempo inclusive pasó una persona en el call, con quién, si cortó, pero fue la llamada, calidad, inclusive hasta mide la calidad de la conectividad a internet, para que se den una idea. Se mide todo lo que pasa por proxi. Y después, bueno, cada herramienta también tiene su registro de auditoría, no, pero a lo que es IAM también hay que ver también este. Las posiciones no, por ejemplo, no es lo mismo un usuario que se conecta desde el dispositivo móvil o un usuario que se conecta desde Uruguay, es decir, hay cierto. A ver, cierta. Ahí no me sale. Cierto cambio, digamos, cuando según el contexto, ahí está este que son políticas, acceso condicional, ahí está, no es la palabra, acceso condicional, que es cuando, por ejemplo, el usuario en determinado evento lo dejo o no lo dejo, eso lo hace. Hoy en IAM, sí, lo que también algo muy importante es nosotros tenemos entornos regulados y demás grandes grandes empresas. Se suelen tener bóvedas, no donde yo tengo así como ustedes pueden tener un. Pasqui, por ejemplo, para borrar las contraseñas vieron.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Mhm.
+
+**PEÑA ALEJANDRO FRANCISCO:** o un administrador de claves existen administradores de claves corporativos en donde yo puedo guardar todas las claves de todos mis sistemas y servidores y además los accesos privilegiados bueno ante esos casos obviamente El IAM, obviamente no actúa, el que actúa ahí directamente es el. Cómo se llama el la bóveda no lo que usas de Como por ejemplo no sé password 6 les puedo dar un nombre Centify búsquenlo después para que sea una idea de lo que es ese sí me graba inclusive hasta la sesión audita etcétera lo que Estaría bueno
+
+**MOCIULSKY SANTIAGO BERNARDO:** Hmm.
+
+**PEÑA ALEJANDRO FRANCISCO:** Va a ser muy difícil, no creo que lo puedan hacer porque son productos cerrados. este. Pero bueno, ahí tienen algo bastante crítico que es, por ejemplo, cuando un usuario pide acceso administrativo, ¿no? Yeah.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Hmm. Ok, o sea, y me puedes repetir un poco lo último que no termine de entender.
+
+**PEÑA ALEJANDRO FRANCISCO:** Claro. A ver, repetir la pregunta si la contextualizo.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Sí, o sea que después de que un usuario se autentica exitosamente, el área de ciberseguridad tiene alguna visibilidad de lo que hace cada persona en la sesión.
+
+**PEÑA ALEJANDRO FRANCISCO:** Okay. Sí, al menos.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Okay.
+
+**PEÑA ALEJANDRO FRANCISCO:** Totalmente y de hecho se audita y se logra, perdón, se audita y se deja, se deja constancia y registro y muchas veces depende del tipo de acciones hasta se pueden. hacer acciones en tiempo real. Como por ejemplo, si yo empiezo a descargar desde Microsoft Drive absolutamente todos mis archivos, porque no sé, los quiero bajar un pendrive, eso automáticamente dispara una alerta en el SOC y el SOC actúa inmediatamente notificando al usuario si esa acción es legítima o no. Sí, porque puede haber un robo de datos, por ejemplo.
+
+**MOCIULSKY SANTIAGO BERNARDO:** O K. O sea, actúa en casi al momento con respecto a lo que se está haciendo, se encuentra.
+
+**PEÑA ALEJANDRO FRANCISCO:** Y. Easy. Está la lista de soc, le llega la alerta del tablero y actúa.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Genial, okay. Y más o menos a esto va como enganche a otra pregunta justo que teníamos ¿Cuánto tiempo tarda entre que sale esa alerta hasta que por ejemplo un equipo lo soluciona? O sea, es casi al momento o, por ejemplo, se tardan un par de días.
+
+**PEÑA ALEJANDRO FRANCISCO:** Depende, a veces generalmente la alerta es una suerte de aviso vía mail que tiene que resolver el usuario. Y siempre está copiado el jefe del área, por ejemplo, no este y tiene que resolverlo depende que se la no. Dos o tres días, por ejemplo, tiene que dar respuesta de si fui yo. No, no fui yo. Sí, obviamente que ahí se genera una brecha porque si definitivamente te robaron datos y vos no fuiste. No bien, les pongo un ejemplo concreto. Recuerdo yo una vez que fui a las oficinas de Google y fue a un evento, me conecto con la máquina corporativa. Y no me acuerdo por qué se empezó a sincronizar de live. ¿Qué pasó en la alerta del SOC? ¿Cuál fue como Google tiene una conexión de evidentemente por VPN y yo estaba saliendo? un enlace que era el ISP de Google saltó una alerta dijo Che está Alejandro Peña en dos lugares al mismo tiempo me dijo o sea el ya me tenía de alguna manera en Buenos Aires Y de alguna manera Office 365 me decía "Che, pero estoy saliendo por... por otro lado" Sí, o sea, el IAM, cuando yo hago el Authenticator, vino Microsoft Authenticator que tiene el doble factor, bueno, el celular mío estaba físicamente en Buenos Aires y la máquina era como que salía ¿No la conectividad IP con una IP de Estados Unidos que era de Google, no? Entonces era muy particular el asunto, o sea, entonces eso dio una alerta del SOC diciendo, che, comentame acá qué pasó. De hecho, me acuerdo que por qué traigo esto, porque fue un análisis que tuvimos que hacer, es decir, dónde sale esta IP? ¿Quién es? ¿Por qué yo me metí acá? Estuvimos un rato analizando con los chicos hasta que me acordé que yo me había conectado. Sí, este, pero bueno, en todo Sinterin, por ejemplo, pasaron 3 días. Sí, hasta que yo me acordé, analicé. Sí, y generalmente ese análisis se hace acompañado en mi caso porque era del área de seguridad, no, pero ese análisis se tiene que hacer acompañado con alguien del SOC. Sí, también hay a veces que es mucho más rápido, por ejemplo, en nuestro caso, que somos una compañía financiera. En el caso, por ejemplo, de que a muchas veces los datos de tarjeta de crédito son muy, son muy sensibles y estamos regulados. Hay usuarios, por ejemplo, de call center, que son datos HGPT, le dicen: 'Ay, me hacés una planilla que me ordene estos datos de mano mayor.' Ahí la alerta es inmediata y se genera un bloqueo inmediato. El usuario directamente se bloquea, creo que se bloquea el usuario y se manda a ver al jefe, algo así. Totalmente violento. ¿Por qué? Porque ya está filtrando datos, por ejemplo, a un sistema que está totalmente fuera de alcance de la norma. Y ahí sí se toma acción inmediata. O sea, va a depender Mucho del caso y de la particularidad.
+
+**MUNTAABSKI FEDERICO:** Joya, sigo yo, Santi, si querés. Bueno, voy a pasar a la siguiente pregunta. ¿Qué tan difícil resulta Y. Va, viste, vos mencionaste que justo en esa ocasión trabajabas con un equipo de shock, según entendí.
+
+**PEÑA ALEJANDRO FRANCISCO:** Sí.
+
+**MUNTAABSKI FEDERICO:** ¿O sea, qué tan difícil les resulta distinguir entre un comportamiento legítimo? Un comportamiento legítimo, pero que es inusual y una amenaza real cuando, por ejemplo, hay una sesión.
+
+**PEÑA ALEJANDRO FRANCISCO:** That. Es que no podés, siempre te vas a hacer en sospechas.
+
+**MUNTAABSKI FEDERICO:** Y. Claro. Y.
+
+**PEÑA ALEJANDRO FRANCISCO:** Y. Entonces, ahí es más fácil. Hasta que no descartaste todas las opciones y hablarte precisamente con la persona o analizaste efectivamente un log, no hay chance de que vos puedas saber. Si se trata de una acción legítima o ilegítima. Siempre se presupone ilegítima.
+
+**MUNTAABSKI FEDERICO:** Claro, el hecho de el cero trust, el siempre desconfiar y todo, sí, y nada, una pregunta que viene de, o sea, viene en parte de esto, que es como siempre, estás como desconfiando.
+
+**PEÑA ALEJANDRO FRANCISCO:** But... Siempre.
+
+**MUNTAABSKI FEDERICO:** de las acciones. ¿O sea, qué costo tiene para el negocio el falso positivo? O sea, el hecho de bloquear un usuario que en realidad no era, como por ejemplo, viste, vos mencionaste tu caso que saltaban alertas que en realidad vos no habías hecho nada ilegítimo, simplemente fue parte de lo que es la conexión con Google.
+
+**PEÑA ALEJANDRO FRANCISCO:** No genera costo y depende. Es muy difícil medirlo cuantitativamente, pero sí te puede generar mucho lo que se conoce como roce político. No porque, por ejemplo, yo le puedo bloquear la operación a un desarrollador y ese desarrollador tiene que sacar un feature para hoy que está comprometido con cliente y yo de seguridad lo bloqueo. y por ahí no le di tiempo, o no le di bola, no le di bolilla a esa resolución. Eso sería un costo político, ¿por qué? Porque se escala. Me dicen "no, yo no puedo trabajar porque a mi seguridad me bloqueó". Entonces, en el mejor de los casos, que todo funciona bien, Si seguridad tiene un SLA de 2 horas, está dentro del SLA, y vos por ahí retrasaste a ese desarrollador que quería lanzar, no sé, un PR, por ejemplo, por así decirlo, o no puede probar algún feature y lo estás demorando, y el negocio quiere salir y generalmente seguridad se. Se vuelve un bloque, ¿no? Entonces es no pasa tanto por costo monetario, sino más por costo político, que termina siendo monetario en deflectivo, no a la larga. genera mucho ruido siempre eso por eso siempre hay que tener mucho cuidado y por eso cuando ustedes al principio me dijeron esto toma acción automática se me asusta entendés porque Che Qué tipo de acción primero siempre el sistema tiene modo monitoreo y muy gradualmente ir Ajustando Las acciones que toman de manera autónoma. Si bien, obviamente, yo voy a querer el cero trans, etcétera, primero quiero que la empresa continúe. Trabajando y no. Y no que me llame el sitio o me llame. el c level para explicaciones de Por qué estamos bloqueando a todos los usuarios no O por qué se hizo un bloqueo masivo por un falso positivo que esa gente detectó Sí eso sería mucho más grave que bloquear por bloquear o sea Generalmente seguridad es visto como una como un área que hace poco no aporta valor y que encima bloquea. Esa es la visualización que generalmente se tiene de seguridad hasta que pasa un incidente y se acuerdan de seguridad. O sea, es bastante complejo mostrar al directorio el valor que tiene seguridad. ¿Por qué? Porque obviamente El dolor de seguridad lo vas a ver lamentablemente.
+
+**MUNTAABSKI FEDERICO:** Sí, muy bueno ese análisis, escasez del tema de del valor que aporta la seguridad, que claramente, como mencionas, o sea, no lo ves hasta que te pasa.
+
+**PEÑA ALEJANDRO FRANCISCO:** Thank you.
+
+**MUNTAABSKI FEDERICO:** Con todos los problemas que lleva una filtración de datos o cosas por el estilo. Y. La pregunta, la siguiente, estaba muy relacionada justo con la duda que tenías vos de tipo que nosotros habíamos mencionado de que nuestra aplicación iba a bloquear de forma automática las sesiones De alto riesgo. Y la pregunta dice literalmente, si se presentas una herramienta que actúas de forma automática sobre sesiones de riesgo tomando acciones, como por ejemplo, te niega el acceso a una carpeta, termina un proceso. ¿O aísla la conexión de red de ese equipo? ¿O sea, qué condiciones vos pensás que deberían ser para que esas acciones se den de forma automática y qué nivel de severidad? ¿Vos necesitarías conocer antes de exigir que una persona, por ejemplo, del SOC, confirme que se ejecuta una acción?
+
+**PEÑA ALEJANDRO FRANCISCO:** Eso va a depender mucho de del contexto y del contexto. No te puedo dar la respuesta. Tajante porque va a depender mucho del modo de gerenciamiento que vos tengas del área. Va a depender mucho de la organización, del tiempo organizacional, porque las organizaciones obviamente no son siempre estáticas. Entonces, por ahí hay veces que vas a requerir si bloquea todo durante primeros meses y después viene. Otros aires políticos y te dicen, no, dejame permitir todo. Entonces nada, vas de alguna manera adaptando, sí, siempre con un criterio lógico, las políticas, no, y va a depender mucho también del tipo de rol que tenga esa persona. No es lo mismo bloquearle a un desarrollador, nada de. De hecho, algo de un de un sistema interno a bloquearle, no sé el acceso a su código fuente a un desarrollador que tiene mi hoy tiene mi producto estrella, no este hay que tener muy en cuenta todo el contexto organizacional, no antes de tomar cualquier política. Lo mismo pasó, por ejemplo, esto también un análisis. Similar. ¿Cuando la compañía se implementó el sistema de DLP, no? Entonces, bueno, ¿quién puede cambiar la etiqueta de confidencialidad? ¿Quién puede bajarla si no está el owner, quién desempata, etcétera, no? O sea, se dieron muchos casos particulares y hasta que la organización. Logró en su cultura entender el sistema del LP e incorporarlo pasaron más o menos 1 año. Y hablo algo totalmente sencillo, como un DLP configurado casi mínimo, sí, para cumplir una norma. Nada, además a mí, como estando en el área de seguridad, como ustedes me dicen, todo lo que toma acción a mí me da miedo. O sea, en el sentido de ojo, soy cauteloso con todo lo que toma acción automática. Sí, ¿por qué? Porque generalmente las acciones automáticas justamente. Por una reina ínfima, por ahí te te hizo una te hizo peor el remedio de la enfermedad, no, porque por ahí te bloqueo en cadena a toda un área entera. Sí, y después tenés que dar vos darle explicaciones de che, ¿qué pasó acá? Entonces hay que ser muy cauteloso en eso. y. o por ahí mismo peor todavía decís "che, mirá, el SOC es un área crítica" ok y entramos en un autobloqueo, o sea, yo soy SOC o yo soy analista de seguridad pero me está autobloqueando la misma herramienta, ¿no? ¿Qué pasaría en esos loop, en esos casos también? Planteo que son totalmente válidos, ¿no? Por eso no vio una respuesta única a esa pregunta, pero nada, si yo pusiera un ejemplo, bueno, no sé, debería ser. Hay que analizar también qué tipo de comportamiento, qué tipo de features. Etcétera, va a depender mucho del rol. No es lo mismo, por ejemplo, bloquearle a un C level, no que C level es más complicado. ¿Por qué? Porque es la persona que más libertad quiere y es la persona que más debo proteger, porque es la que quizás más una de las personas que más información confidencial quizá pueda llegar a tener, no entonces. ¿Es ahí bastante complejo, no? Y me imagino bloqueándole que este no sé que la herramienta de ustedes por comportamiento lo bloquea el CEO de la empresa y yo no lo primero que va a decir sácame esto, sí, este. Y vos vas y no tenés, no te quedé otra que decís, o k, me aceptas el riesgo, sí, y cara. partido es un poco niñas generales no va a depender mucho también de imagínense que este armado los armados este tipo de políticas lo hacen equipo de gobierno de seguridad de la información se tiene que hacer un análisis que puede llevar seis meses como mínimo para implementarlo En una empresa mediana, no de mediana a grande. Si hagamos una pyme, bueno, sería un poco más sencillo, sí, y un poco más amigable, y ahí sería otro. Yeah.
+
+**MOCIULSKY SANTIAGO BERNARDO:** genial bueno pasamos a la última pregunta había una más pero literalmente la respondiste la respondiste que era con respecto a los roles y había que tomar mucho en cuenta eso pero ya nos lo dijiste y con
+
+**PEÑA ALEJANDRO FRANCISCO:** Okay. Sí. He hecho lo más importante.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Yeah.
+
+**PEÑA ALEJANDRO FRANCISCO:** Es uno de los puntos más importantes que tenga distintos tipos de perfiles la herramienta, no, o sea, que yo pueda crear mi propio perfil, sí, y que actúe y no se puede subir o bajar el perfil, no de riesgo, por ejemplo. Es importante también que tenga métricas, que tenga herramientas de monitoreo, la herramienta.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Sí.
+
+**PEÑA ALEJANDRO FRANCISCO:** eso es muy importante las auditorías a mí el auditor me solicita me dice Ah vos no tenés métricas de esta herramienta Mostrame Ah mostrame que hizo toda la plaza Lucero Pepito pero después tu herramienta sí me va a servir por ejemplo para un análisis forense entendés ahí sí la voy a valorar mucho por ahí
+
+**MOCIULSKY SANTIAGO BERNARDO:** Y.
+
+**PEÑA ALEJANDRO FRANCISCO:** Este para un forense, para ver todas las plazas que hizo la persona, etcétera, como un complemento quizá de todos los logs que tenga, porque yo lo que tengo que hacer después es una correlación de eventos. Sí, por ejemplo, si yo quiero, no sé, decir que tal persona robó información de manera. Deliberada para la competencia que, de hecho, es un caso real que nos sucede a nosotros en la compañía. Estamos en un juicio de por espionaje industrial justamente por eso. Eh. Y bueno, nada se sospechó de una persona que sí, efectivamente vendía datos en la competencia, este vendía código fuente, básicamente.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Okay. Sí, nuestro sistema un poco, te comento, justamente tiene planeado eso de que se vaya adaptando al comportamiento normal de cada usuario. Para eso está el modelo de Inteligencia artificial que se va a entrenar con actividades que vayan haciéndose de cada usuario o de cada rol para ser más abarcativo.
+
+**PEÑA ALEJANDRO FRANCISCO:** Think. So. Yeah.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Y en base a eso va a definir lo que es. Raro o no, okey. Pero como última pregunta, un poco es saber si sentís que no te preguntamos algo y que es importante que sepamos o que entendamos para nuestro proyecto sobre lo que te contamos.
+
+**PEÑA ALEJANDRO FRANCISCO:** Bien. Sí, todo lo que lleva a gente también me genera cierta cuestión. ¿Por qué? Porque yo me imaginé si que tengo el antivirus, tengo el proxy, tengo fulano, tengo Sultano. Cada vez le sumo más cosas a las máquinas, a los cenpoint, esas cositas que voy sumando, me van consumiendo RAM, me van consumiendo cómputo. Sí, y cada vez como que le agrego más capas. Entonces es como digo, bueno, ¿cómo tienen planeado ustedes hacer ese agente? ¿Le valoran el impacto? ¿Pensar en los dispositivos multidispositivo está pensado para Windows o la mente? ¿Cuéntenme ahí un poco al revés la pregunta, no? Por ejemplo, en la compañía nosotros tenemos varios desarrolladores que trabajamos Mac, por ejemplo, y siempre es un gran problema Mac, porque la mayoría de las.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Okay, en un copy.
+
+**PEÑA ALEJANDRO FRANCISCO:** De justamente este tipo de agentes, por ejemplo, el Fortinet, por ejemplo, de nuestra VPN, el Trelix, que es el antivirus, el otro agente del proxy y demás, no funcionan de la misma forma como funcionan en Windows de manera totalmente transparente y legítima. No, entonces siempre tenés que buscar. Algún tipo de work around para que funcione en MAC y seguramente hay poco soporte. Entonces siempre se vuelve como una especie de dolor de cabeza. Obviamente que si es compatible con Windows se compra la herramienta, no es un no-go que no tenga para soporte para MAC, pero es indeseable, sí que che. también soporta Mac y lo soporto y y ahí te ganaste todos los premios por ejemplo de MercadoLibre que también usa Mac y un montón de organizaciones medianas a grandes hoy en día con la al bajar un poco los cuartos de las Mac y los usuarios sentirse valorados porque le das Mac es un Es un plus muy importante, también el desarrollador que vos le hace una match, se siente muy valorado y a veces la compañía lo suele tratar como un incentivo. But...
+
+**MUNTAABSKI FEDERICO:** No.
+
+**PEÑA ALEJANDRO FRANCISCO:** Somos atentos. O. Okay.
+
+**MOCIULSKY SANTIAGO BERNARDO:** En un comienzo lo pensamos para Windows, pues yo según mi opinión, o según lo que tenía entendido, la mayoría de las computadoras corporativas son de Windows, muy pocos casos hay de Mac. Entonces sentimos que era lo que era más abarcativo.
+
+**MUNTAABSKI FEDERICO:** Sí, pues. Sí.
+
+**PEÑA ALEJANDRO FRANCISCO:** Otra de cuenta. Say it. La milandia.
+
+**MOCIULSKY SANTIAGO BERNARDO:** pero sí está bueno y para más adelante lo podríamos ver tema adaptarlo para Ninuts
+
+**MUNTAABSKI FEDERICO:** Sí.
+
+**PEÑA ALEJANDRO FRANCISCO:** O sea, imbestiable en el proyecto, juegos exploratorio, Ustedes me dicen, no, mira, en las próximas versiones va a salir la listo, yo les puedo llegar a comprar.
+
+**MUNTAABSKI FEDERICO:** Hmm.
+
+**PEÑA ALEJANDRO FRANCISCO:** Pero la pregunta acá como líder se las había, le digo, che, y esto para MAC porque automáticamente pienso en, es más, se viene a la cabeza 5 o 6 desarrolladores que tienen MAC, varios jefes de seguridad tienen MAC.
+
+**MUNTAABSKI FEDERICO:** Sí. Sí. Y. Sí.
+
+**PEÑA ALEJANDRO FRANCISCO:** Okay.
+
+**MUNTAABSKI FEDERICO:** Sí, los puntos que planteaste son reváleos y más, sobre todo el que mencionaste, el de la performance de los agentes cuando cuando les vayamos agregando cosas, es un punto.
+
+**PEÑA ALEJANDRO FRANCISCO:** Yo pregunto, ustedes elevado, pensaron al revés, ¿qué pasa si un atacante toma posesión de la gente? Pensaron la postura de tu producto.
+
+**MUNTAABSKI FEDERICO:** En.
+
+**PEÑA ALEJANDRO FRANCISCO:** Desarrollo seguro y demás para este producto, que es un producto de seguridad. Ojo con eso también, o sea, evaluarlo, no digo que lo pongan en el TFI y demás, simplemente de yo a ustedes, digamos, algo así como de cacharla de café, no de si este producto de verdad salía del mercado, tienen que pensar eso. Che, estoy cayendo un producto de seguridad. Imagínense si viene un. un atacante sí y usa mi producto como caballo que todo allá porque encontró una vulnerabilidad y como corre en background con periodos elevados y acceso a todas las computadoras de la red ¿Pueden generarme una catástrofe en cadena? Sí, puede ser realmente los que este tipo de agentes suelen ser un punto interesante para los como vector de ataque. ¿No, cómo se va a comunicar? ¿Cómo va a ser la comunicación entre agente y servidor? La arquitectura va a ser distribuida, centralizada, va a ser en la nube, va a requerir Internet, tiki, tiki, tiki.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Okay.
+
+**MUNTAABSKI FEDERICO:** Claro, sí, esas sí son preguntas que sí.
+
+**PEÑA ALEJANDRO FRANCISCO:** Muy varios.
+
+**MOCIULSKY SANTIAGO BERNARDO:** Sí.
+
+**MUNTAABSKI FEDERICO:** Perfecto. Bueno, yo creo que esto sería todo, ¿no, Santi? Sí. Sí.
