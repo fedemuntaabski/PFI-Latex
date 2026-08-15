@@ -111,7 +111,7 @@ Speaker 1: Es donde se almacenan los logs.
 Speaker 1: Sí, ponele, es un recopilador más que de logs, sí de logs, pero lo que tiene es una herramienta
 Speaker 1: que si bien ingesta logs, lo que tiene es la capacidad de colección, o sea, recolectar
 Speaker 1: y correlación.
-Speaker 1: Por ejemplo, nosotros tenemos un CIEM muy grande que colecciona los eventos de las 15
+Speaker 1: Por ejemplo, nosotros tenemos un SIEM muy grande que colecciona los eventos de las 15
 Speaker 1: .000 estaciones de trabajo, 2.000 servidores que tenemos acá, y por ejemplo, si...
 Speaker 1: tu credencial está siendo usada en Buenos Aires y en La Rioja, automáticamente te bloquea
 Speaker 1: el usuario.
@@ -377,7 +377,7 @@ Speaker 1: Las preguntas, yo creo que sé a dónde van, pero tal vez no están d
 Speaker 1: Tomar acción.
 Speaker 1: En el caso de que se requiera, voy y busco qué se hizo.
 Speaker 1: Y sí, particularmente te decía al principio, antes de que llegue, perdón que estoy un poco
-Speaker 1: con carraspera, Santiago, tenemos un CIEM muy grande, Machazo, una bestia,
+Speaker 1: con carraspera, Santiago, tenemos un SIEM muy grande, Machazo, una bestia,
 Speaker 1: que colecciona y correlaciona los eventos que consideramos más importantes que lo que hablamos
 Speaker 1: al principio, para poder tener trazabilidad de la actividad.
 Speaker 1: O sea, la respuesta sería sí, pero obviamente siempre colocando en el tamiz qué evento estoy
@@ -399,7 +399,7 @@ Speaker 2: Por ejemplo, ¿a vos qué tan difícil es con las herramientas
 Speaker 2: que tenés?
 Speaker 2: que obviamente revisan los movimientos críticos, detectar un
 Speaker 2: comportamiento legítimo y distinguirlo de uno que sea, por ejemplo, inusual.
-Speaker 2: O sea, eso yo entiendo que vos mencionaste lo del CIEM, que es el que habías mencionado, que
+Speaker 2: O sea, eso yo entiendo que vos mencionaste lo del SIEM, que es el que habías mencionado, que
 Speaker 2: es el agente, no el agente, donde se recolectan la gran mayoría de los logs que llegan y ahí
 Speaker 2: se hace la correlación.
 Speaker 2: Correcto.
@@ -426,10 +426,10 @@ Speaker 1: Básicamente el disparador es el caso de uso.
 Speaker 1: Claro.
 Speaker 1: Consulta que no relacionado con...
 Speaker 1: ¿Eso no sería algo parecido a un Exoar o algo así?
-Speaker 1: No, ¿un CIEM?
+Speaker 1: No, ¿un SIEM?
 Speaker 1: No, es la respuesta automática por casos de uso.
-Speaker 1: Sí, podría ser, pero es la naturaleza de un CIEM.
-Speaker 1: CIEM, ya te digo, colecciona y correlaciona, y tiene, si no sería una gran caja coleccionadora,
+Speaker 1: Sí, podría ser, pero es la naturaleza de un SIEM.
+Speaker 1: SIEM, ya te digo, colecciona y correlaciona, y tiene, si no sería una gran caja coleccionadora,
 Speaker 1: y no tendría el sentido de la correlación.
 Speaker 1: El sentido de correlación es el caso de uso que te analiza la correlación.
 Speaker 1: Claro.
