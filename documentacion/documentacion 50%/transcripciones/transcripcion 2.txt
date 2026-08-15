@@ -225,16 +225,16 @@ Speaker 1: voy y consulto y tengo la evidencia de lo que sucedía anteriormente 
 Speaker 1: Y es eso, se cierra con el informe.
 Speaker 1: Y muchas veces dentro de ese informe lo que se incluye son
 Speaker 1: mejoras, posibles mejoras que podemos tener también dentro, por ejemplo, de la herramienta
-Speaker 1: del CIEM, decir, no, pará, che, me está alertando esto, que en realidad es cualquier cosa,
+Speaker 1: del SIEM, decir, no, pará, che, me está alertando esto, que en realidad es cualquier cosa,
 Speaker 1: ¿no?
 Speaker 1: Mejoremos.
 Speaker 1: Entonces, ahí haces otra correlación de eventos que sea mejor.
 Speaker 1: O, uy, pará, este usuario ahora sí tenía que tener estos permisos de administrar de base de
 Speaker 1: datos porque...
-Speaker 1: Pasó de rol y no actualizamos en nuestras reglas del CIEM que esta persona ahora
+Speaker 1: Pasó de rol y no actualizamos en nuestras reglas del SIEM que esta persona ahora
 Speaker 1: tenía que tener estos permisos y esto no es ningún incidente, simplemente se pone como un
 Speaker 1: falso positivo y se avanza, pero se deja registrado como mejora que hay que cambiar
-Speaker 1: las reglas de la consola del CIEM.
+Speaker 1: las reglas de la consola del SIEM.
 Speaker 1: Perfecto.
 Speaker 2: Bueno, pasamos a la siguiente pregunta, un poco también relacionada con las mejoras
 Speaker 2: que vos decís, de tipo, che, esto ya no sirve, o quizás el usuario ahora sí
@@ -408,7 +408,7 @@ Speaker 1: A veces es, sucede este evento, más este evento, más este evento, o
 Speaker 1: a ese.
 Speaker 1: Si tengo que ir a buscar si previamente sucedió el otro evento, y si no, te lo alerto.
 Speaker 1: Todo eso es, nada, horas de configuración del
-Speaker 1: CIEM, y bueno, habrá mucho de inteligencia artificial también meterle ahí.
+Speaker 1: SIEM, y bueno, habrá mucho de inteligencia artificial también meterle ahí.
 Speaker 2: cosas de la gente o cosas como las que están pensando en desarrollar ustedes también es
 Speaker 2: parte puede ser parte puede ser parte bueno perfecto
 Speaker 2: ya vamos a ir dándole un cierre a esto ya hicimos creo
