@@ -1,9 +1,9 @@
 \chapter{Requerimientos, Casos de Uso e Historias de Usuario}
 
 \section{Alcance del relevamiento}
-El sistema se compone de tres partes que interactúan entre sí: un Agente instalado en el \emph{endpoint} (\emph{Policy Enforcement Point}), una API de \emph{Scoring} con el motor de IA (\emph{Policy Decision Point}) y un \emph{Dashboard} web de administración. Esta sección describe el alcance funcional completo del sistema a lo largo de sus cuatro casos de uso, con fines de trazabilidad de diseño. De ellos, la entrega del Hito 50\% implementa y demuestra CU-01 y CU-02 en su totalidad. CU-03 (reentrenamiento periódico) y CU-04 (alta de usuario nuevo/\emph{cold-start}) quedan documentados a nivel de requerimientos y casos de uso para dejar registrado el alcance final planificado del PFI, pero no forman parte de la implementación ni de la demo de esta entrega: se abordan en la segunda mitad del proyecto. Por eso los módulos, requerimientos e historias de usuario correspondientes a CU-03/CU-04 se marcan explícitamente como ``Fuera de alcance del 50\%'' en las secciones respectivas.
+Esta sección describe el alcance funcional completo del sistema a lo largo de sus cuatro casos de uso, con fines de trazabilidad de diseño. De ellos, la entrega del Hito 50\% implementa y demuestra CU-01 y CU-02 en su totalidad. CU-03 (reentrenamiento periódico) y CU-04 (alta de usuario nuevo/\emph{cold-start}) quedan documentados a nivel de requerimientos y casos de uso para dejar registrado el alcance final planificado del PFI, pero no forman parte de la implementación ni de la demo de esta entrega: se abordan en la segunda mitad del proyecto. Por eso los módulos, requerimientos e historias de usuario correspondientes a CU-03/CU-04 se marcan explícitamente como ``Fuera de alcance del 50\%'' en las secciones respectivas.
 
-\subsection{Actores del sistema}
+\section{Actores del sistema}
 \begin{longtable}{p{3.8cm}p{2.6cm}p{8.2cm}}
 	\caption{Actores del sistema}
 	\label{tab:actores}\\
@@ -28,7 +28,7 @@ El sistema se compone de tres partes que interactúan entre sí: un Agente insta
 \end{longtable}
 
 \section{Requerimientos Funcionales}
-Los requerimientos funcionales están organizados en seis módulos; cada uno da soporte directo a uno de los cuatro casos de uso definidos en la Sección~\ref{sec:casos-de-uso}.
+Los requerimientos funcionales están organizados en seis módulos; cada uno da soporte directo a uno de los cuatro casos de uso definidos en la seccion ~\ref{sec:casos-de-uso}.
 
 \subsection{Módulo 1: Recolección y envío de eventos (Agente), soporta CU-01}
 \begin{longtable}{p{1.8cm}p{12.8cm}}
@@ -186,9 +186,9 @@ Los requerimientos no funcionales son transversales: no están atados a un únic
 	\hline
 	RNF-02 & Rendimiento & El sondeo de señales locales por parte del agente debe tener una frecuencia configurable, sin generar un consumo de CPU/memoria perceptible en el equipo del usuario. \\
 	\hline
-	RNF-03 & Seguridad & Toda operación de escritura sobre estado o configuración (envío de eventos, cambios de política, disparo de reentrenamiento) debe requerir autenticación mediante clave de API. (Nota de alcance: excluido de la auditoría de cumplimiento de esta entrega, por decisión del autor.) \\
+	RNF-03 & Seguridad & Toda operación de escritura sobre estado o configuración (envío de eventos, cambios de política, disparo de reentrenamiento) debe requerir autenticación mediante clave de API. \\
 	\hline
-	RNF-04 & Seguridad & El agente no debe decidir de forma autónoma qué proceso o recurso restringir más allá de la acción indicada por la API; la decisión de riesgo debe originarse siempre en el motor de \emph{scoring} central. (Nota de alcance: excluido de la auditoría de cumplimiento de esta entrega, por decisión del autor.) \\
+	RNF-04 & Seguridad & El agente no debe decidir de forma autónoma qué proceso o recurso restringir más allá de la acción indicada por la API; la decisión de riesgo debe originarse siempre en el motor de \emph{scoring} central.\\
 	\hline
 	RNF-05 & Confiabilidad & Un evento que no pueda enviarse al motor de \emph{scoring} por una falla transitoria de red no debe interrumpir el monitoreo continuo del agente. \\
 	\hline
@@ -239,7 +239,7 @@ Los requerimientos no funcionales son transversales: no están atados a un únic
 \begin{enumerate}
 	\item El administrador inicia sesión en el \emph{dashboard} y visualiza el listado de usuarios/entidades con su \emph{score} de confianza actual en tiempo real (filtrado por nivel de riesgo).
 	\item Selecciona un umbral existente (ej.\ ``riesgo moderado: 40--60'') y lo modifica, o define una nueva regla: ``si nivel = alto $\rightarrow$ \texttt{terminar\_procesos}; si nivel = crítico $\rightarrow$ \texttt{terminar\_y\_denegar}''.
-	\item El \emph{dashboard} envía la actualización a la API mediante un \emph{endpoint} de configuración (ej.\ \texttt{PUT /policies/thresholds}).
+	\item El \emph{dashboard} envía la actualización a la API mediante un \emph{endpoint} de configuración.
 	\item La API valida la consistencia de la política (rangos no solapados, acciones válidas) y la persiste, aplicándola a partir de ese momento a nuevas evaluaciones de \emph{score}.
 	\item El \emph{dashboard} confirma visualmente el cambio y muestra un historial de versiones de política (para trazabilidad/auditoría).
 \end{enumerate}
@@ -256,13 +256,13 @@ Los requerimientos no funcionales son transversales: no están atados a un únic
 \noindent\textbf{Flujo principal:}
 \begin{enumerate}
 	\item Desde el \emph{dashboard}, el administrador configura la periodicidad de reentrenamiento y una ventana horaria de bajo impacto (ej.\ madrugada).
-	\item Llegado el momento, la API recopila los eventos acumulados desde el último entrenamiento (respetando la anonimización de identificadores, similar al criterio usado en CLUE-LDS) y reconstruye/actualiza la línea base de comportamiento por usuario.
+	\item Llegado el momento, la API recopila los eventos acumulados desde el último entrenamiento y reconstruye/actualiza la línea base de comportamiento por usuario.
 	\item El motor de IA se reentrena en un proceso paralelo/aislado del que sirve las predicciones en producción, para no introducir latencia en la evaluación de eventos en curso.
 	\item Al finalizar, la API valida el nuevo modelo (ej.\ comparando métricas de falsos positivos contra el modelo anterior) antes de promoverlo a producción.
 	\item El \emph{dashboard} muestra un log del reentrenamiento: fecha, cantidad de eventos usados, variación de métricas.
 \end{enumerate}
 
-\noindent\textbf{Postcondición:} El modelo se actualiza incorporando comportamientos nuevos (cambios de rol, nuevas herramientas), mitigando la degradación del modelo mencionada como limitación reportada por otros autores, sin interrumpir el monitoreo activo.
+\noindent\textbf{Postcondición:} El modelo se actualiza incorporando comportamientos nuevos (cambios de rol, nuevas herramientas), mitigando la degradación del modelo mencionada como limitación reportada por otros autores referenciados, sin interrumpir el monitoreo activo.
 
 \noindent\textbf{Valor diferencial:} Aborda explícitamente el problema de ``degradación del modelo ante cambios de comportamiento'' documentado en el estado del arte, con un mecanismo configurable y controlado desde el \emph{dashboard}.
 
@@ -390,24 +390,23 @@ Como sistema, quiero validar la autenticidad de toda petición que modifique dat
 	\item Si una petición para enviar eventos, actualizar reglas o iniciar un reentrenamiento no adjunta una clave válida, la API la rechaza de inmediato.
 \end{itemize}
  
-\section{Justificación de Diseño y Mockups}
+\chapter{Justificación de Diseño y Mockups}
 El \emph{dashboard} es uno de los tres componentes del sistema (junto al agente PEP local y la API PDP) y es el punto de interacción directa del administrador de seguridad con el motor de \emph{scoring} híbrido (Isolation Forest + LSTM Autoencoder). Su función no es cosmética: es la interfaz mediante la cual se cumplen CU-02 (ajuste de umbrales y políticas de respuesta) y se da visibilidad operativa a CU-01 (detección y mitigación automática).
 
 El relevamiento cubre las 6 pantallas navegables del \emph{dashboard} (Usuarios, Con historial, Alertas, Umbrales, Auditoría y Estado del sistema), la pantalla de acceso (\emph{Login}) y la vista de detalle de usuario, a la que se llega haciendo clic sobre una fila del listado de Usuarios.
 
-\subsection{Metodología de diseño}
-El diseño de este \emph{dashboard} no partió de un \emph{wireframe} estático dibujado antes de escribir código: se construyó de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-08, RNF-09) y refinando la presentación visual en varias rondas sucesivas de revisión, hasta llegar al estado actual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
+\section{Metodología de diseño}
+El diseño de este \emph{dashboard} no partió de un \emph{wireframe} estático, sino que se construyó de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-08, RNF-09) y refinando la presentación visual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
 
-Cada \emph{wireframe} de este documento representa la estructura de esa pantalla ya validada: agrupación de información, jerarquía visual y controles disponibles. Se dibujaron siguiendo la convención estándar de \emph{wireframe} de baja-media fidelidad, sin el detalle de estilo final que sí se justifica por separado en la Sección~\ref{sec:decisiones-transversales-mockups} y que se puede contrastar directamente contra la pantalla real que acompaña a cada \emph{wireframe}.
+Cada \emph{wireframe} de este documento representa la estructura de esa pantalla ya validada(agrupación de información, jerarquía visual y controles disponibles). Se dibujaron en fromato de un \emph{wireframe} de baja-media fidelidad, sin el detalle de estilo final que sí se justifica por separado en el Capítulo~\ref{sec:decisiones-transversales-mockups} y que se puede contrastar directamente contra la pantalla real.
 
-\subsection{Arquitectura de navegación}
+\section{Arquitectura de navegación}
 Todas las pantallas comparten una barra superior fija con: el nombre del sistema, 6 accesos directos a las secciones (Usuarios, Con historial, Alertas, Umbrales, Auditoría, Estado del sistema), un indicador de alertas activas y un selector de tema claro/oscuro. Esta estructura común reduce la carga cognitiva del administrador al moverse entre las distintas vistas operativas: es la misma decisión de \emph{layout} en las 6 pantallas, solo cambia el contenido central.
 
-\subsection{Catálogo de pantallas}
+\section{Catálogo de pantallas}
 Para cada pantalla se presenta el \emph{wireframe} estructural de baja fidelidad, la captura real del \emph{frontend} implementado, y una tabla de justificación de diseño que ata cada decisión visual a un requerimiento funcional, no funcional o caso de uso concreto.
 
-\subsubsection{Acceso (Login)}
-
+\subsection{Acceso (Login)}
 Pantalla previa a cualquier vista operativa. Permite el acceso a la configuración del sistema (umbrales, acciones, notificaciones) mediante credencial de administrador, sin introducir roles nuevos ni afectar la autorización real de escritura de la API. El diseño es mínimo: una sola tarjeta centrada, sin distracciones, ya que su única función es autenticar antes de continuar.
 
 \begin{figure}[t]
@@ -440,8 +439,8 @@ Pantalla previa a cualquier vista operativa. Permite el acceso a la configuraci�
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Usuarios (listado)}
-Vista de aterrizaje del \emph{dashboard}: lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y su última actividad. Es la vista que responde directamente a RF-12: dar visibilidad en tiempo real al administrador antes de que tenga que entrar al detalle de cada usuario.
+\subsection{Usuarios (listado)}
+Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y su última actividad. Es la vista que responde directamente a RF-12: dar visibilidad en tiempo real al administrador antes de que tenga que entrar al detalle de cada usuario.
 
 \begin{figure}[t]
 	\centering
@@ -468,14 +467,14 @@ Vista de aterrizaje del \emph{dashboard}: lista a todos los usuarios monitoreado
 	\endhead
 	RF-12 & El listado muestra \emph{score}/nivel de confianza en tiempo real por usuario, con filtro por nivel de riesgo, tal como pide el requerimiento. \\
 	\hline
-	RNF-09 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver Sección~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
+	RNF-09 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver Capítulo~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
 	\hline
 	CU-01 (postcondición) & La acción de mitigación decidida por la API queda visible por usuario, sin que el administrador tenga que consultar \emph{logs} por separado. \\
 	\hline
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Detalle de usuario}
+\subsection{Detalle de usuario}
 Se accede haciendo clic sobre una fila del listado de Usuarios. Profundiza el mismo registro que ya aparece en la tabla (\texttt{uid}, nivel, cobertura) y agrega lo que la vista de lista no puede mostrar sin saturarse: el \emph{score} exacto, la acción sugerida en texto completo, un gráfico de evolución temporal del \emph{score} y el detalle evento por evento que lo originó.
 
 La tarjeta superior repite el mismo par de \emph{badges} (nivel de riesgo y cobertura) que la fila de origen en el listado, para que el administrador reconozca que sigue viendo al mismo usuario y no pierda el contexto al navegar. El \emph{score} se destaca en tipografía grande, por ser el dato que responde más directamente a ``¿qué tan grave es esto ahora?''.
@@ -518,7 +517,7 @@ La tabla de Eventos recientes está acotada a 20 filas (RF-09) y se aclara que e
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Alertas}
+\subsection{Alertas}
 Subconjunto operativo del listado de usuarios: solo los que están en nivel alto o crítico en este momento, pensado para uso durante un incidente activo (no requiere filtrar manualmente el listado completo). El texto bajo el título explicita una limitación de diseño consciente y comunicada al usuario del sistema: no hay historial persistente de alertas ni notificaciones \emph{push}: ``reconocer'' solo oculta el resaltado durante la sesión del navegador. La captura muestra el estado vacío, que es el estado normal del sistema en operación sana.
 
 \begin{figure}[t]
@@ -551,7 +550,7 @@ Subconjunto operativo del listado de usuarios: solo los que están en nivel alto
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Configuración de umbrales}
+\subsection{Configuración de umbrales}
 Es la pantalla de mayor densidad funcional del \emph{dashboard}: concentra los 4 sub-formularios que dan cumplimiento a CU-02 completo (RF-13 a RF-17). Se organiza en secciones apiladas con jerarquía clara (Umbrales por nivel arriba, luego una grilla de dos columnas con Acción por nivel y Periodicidad de reentrenamiento, y Notificaciones al final), cada una con su propio botón de guardado independiente, lo que evita que un cambio de umbral dispare accidentalmente un guardado de notificaciones.
 
 El bloque de Notificaciones usa \emph{chips} tipo \emph{toggle} (uno por nivel de riesgo) en vez de \emph{checkboxes} sueltos: permite seleccionar varios niveles a la vez con el mismo patrón visual que los \emph{badges} de riesgo del resto del sistema, en lugar de un control de formulario genérico sin relación visual con el dominio.
@@ -594,7 +593,7 @@ El bloque de Notificaciones usa \emph{chips} tipo \emph{toggle} (uno por nivel d
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Auditoría}
+\subsection{Auditoría}
 Traduce directamente a RF-17 (historial de versiones de política, visible desde el \emph{dashboard}, para trazabilidad). Cada entrada es una tarjeta con el tipo de cambio (Acción por nivel, Periodicidad, Notificaciones), el valor anterior y el nuevo en formato monoespaciado tipo \emph{diff}, más fecha/hora y actor. El formato \emph{diff} (\texttt{valor\_viejo} $\rightarrow$ \texttt{valor\_nuevo}) se eligió en vez de mostrar solo el estado final, porque el propósito de esta pantalla es auditar cambios, no solo consultar configuración actual: para eso ya está \texttt{/umbrales}.
 
 \begin{figure}[t]
@@ -627,7 +626,7 @@ Traduce directamente a RF-17 (historial de versiones de política, visible desde
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Estado del sistema}
+\subsection{Estado del sistema}
 Pantalla de verificación técnica: expone el resultado de \texttt{/health} de la API (estado agregado, artefactos del modelo cargados, conectividad a Redis y Postgres) y el detalle de cada artefacto individual (\texttt{isolation\_forest}, \texttt{lstm\_autoencoder}, \emph{scalers}, \emph{encoding}, umbrales del modelo, referencias de entrenamiento). No es una pantalla pensada para uso operativo diario del administrador de seguridad, sino como herramienta de verificación rápida de que el sistema está sano. Por eso se decidió incluirla en este relevamiento pese a no derivar de un requerimiento funcional puntual: documenta una decisión de diseño real (visibilidad de salud técnica del sistema) aunque su alcance sea acotado y esté sujeta a revisión.
 
 \begin{figure}[t]
@@ -658,7 +657,7 @@ Pantalla de verificación técnica: expone el resultado de \texttt{/health} de l
 \end{longtable}
 \FloatBarrier
 
-\subsubsection{Con historial}
+\subsection{Con historial}
 Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \texttt{historial\_scores} (Postgres), como acceso rápido a usuarios con evolución temporal registrada. Es una vista deliberadamente angosta (una sola columna, UID) frente al listado general de Usuarios: no repite \emph{score}/nivel/acción porque esos datos ya cambiaron desde que se cerró ese día: mostrarlos aquí induciría a leerlos como estado actual cuando son historial. El texto bajo el título aclara explícitamente que esta lista (Postgres) puede diferir del listado operacional (Redis): un \texttt{uid} reseteado en Redis conserva igual su historial aquí, y esa distinción se declara en la propia pantalla en lugar de dejarla implícita.
 
 \begin{figure}[t]
@@ -691,7 +690,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \end{longtable}
 \FloatBarrier
 
-\subsection{Decisiones de diseño transversales}
+\section{Decisiones de diseño transversales}
 \label{sec:decisiones-transversales-mockups}
 \begin{itemize}
 	\item Tema oscuro por defecto (con alternancia a claro): reduce la fatiga visual en un panel pensado para monitoreo prolongado, y es el estándar de facto en herramientas de seguridad/observabilidad (SOC \emph{dashboards}) con las que el administrador ya está familiarizado.
@@ -701,8 +700,8 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \end{itemize}
 
 \clearpage
-\section{Diagramas UML}
-\subsection{Diagrama de flujo de información}
+\chapter{Diagramas UML}
+\section{Diagrama de flujo de información}
 
 \begin{figure}[h]
 	\centering
@@ -713,7 +712,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \FloatBarrier
 
 \clearpage
-\subsection{Diagrama de componentes}
+\section{Diagrama de componentes}
 
 \begin{figure}[h]
 	\centering
@@ -724,7 +723,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \FloatBarrier
 
 \clearpage
-\subsection{Diagrama de clases --- Agente PEP}
+\section{Diagrama de clases --- Agente PEP}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{images/diagramas/diagrama-clases-agente.png}
@@ -734,7 +733,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \FloatBarrier
 
 \clearpage
-\subsection{Diagrama de clases --- API PDP}
+\section{Diagrama de clases --- API PDP}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{images/diagramas/diagrama-clases-api.png}
@@ -744,7 +743,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \FloatBarrier
 
 \clearpage
-\subsection{Diagrama de objetos}
+\section{Diagrama de objetos}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{images/diagramas/diagrama-objetos.png}
@@ -754,11 +753,11 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 \FloatBarrier
 
 \clearpage
-\section{Análisis de Mercado y Competitividad}
+\chapter{Análisis de Mercado y Competitividad}
 
-\subsection{Marketing Mix: Producto, Precio y Plaza}
+\section{Marketing Mix: Producto, Precio y Plaza}
 
-\subsubsection{Producto}
+\subsection{Producto}
 Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), compuesto por un agente liviano local (PEP) que recolecta actividad del usuario, una API central (PDP) que calcula un \emph{score} de riesgo dinámico con un modelo híbrido (Isolation Forest + LSTM Autoencoder) con decaimiento temporal, y un \emph{dashboard} donde el administrador define umbrales y acciones.
 
 \noindent\textbf{¿Cuál es el diferencial?} Las tres soluciones relevadas en el Estado del Arte (Sentinel, Splunk UBA, Exabeam) comparten un mismo punto ciego: detectan y alertan, pero no actúan solas. Cuando identifican una desviación de comportamiento, el paso siguiente (bloquear el acceso, aislar el proceso, exigir una verificación extra) queda en manos de un analista humano, de una plataforma SOAR externa, o directamente no existe de forma nativa. Ese hueco entre ``detecté algo raro'' y ``hice algo al respecto'' es exactamente la ventana de tiempo que un atacante con credenciales robadas necesita para moverse dentro de la red sin ser frenado. El diferencial del producto es que cierra ese hueco: el mismo agente que detecta la anomalía es el que ejecuta la respuesta, directamente en el \emph{endpoint}, en segundos, sin depender de que haya un humano mirando la pantalla en ese momento. No es ``una alerta más clara'' ni ``un \emph{dashboard} más prolijo'', es la diferencia entre un sistema que avisa y un sistema que reacciona.
@@ -772,7 +771,7 @@ Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), 
 
 En síntesis: el diferencial no es una funcionalidad aislada, es un cambio de enfoque completo, de un modelo de ``detectar y avisar'' (las tres soluciones relevadas) a uno de ``detectar y actuar'' (el proyecto), que cierra exactamente la brecha que la propia conclusión del Estado del Arte del proyecto identifica como la carencia principal del mercado actual: la etapa de respuesta ante incidentes.
 
-\subsubsection{Precio}
+\subsection{Precio}
 Rango sugerido de suscripción mensual por \emph{endpoint} monitoreado, deliberadamente bajo porque el segmento elegido (PyME) tiene un presupuesto de seguridad muy inferior al de una empresa grande: un precio pensado ``para PyME'' pero tarifado como si fuera \emph{enterprise} no tendría sentido, invalidaría todo el posicionamiento de Plaza y del mercado objetivo.
 
 \begin{itemize}
@@ -780,10 +779,10 @@ Rango sugerido de suscripción mensual por \emph{endpoint} monitoreado, delibera
 	\item \textbf{Enterprise} (incluye reentrenamiento periódico configurable y soporte prioritario): USD 6 a 10 por \emph{endpoint}/mes. Sobre la misma base de 50-100 equipos, esto da un gasto total de entre USD 300 y 1.000 por mes.
 \end{itemize}
 
-\subsubsection{Plaza}
+\subsection{Plaza}
 Distribución digital directa (alta \emph{self-service}), complementada con un canal de reventa vía integradores/MSSPs que ya atienden PyMEs. Despliegue 100\% \emph{cloud-native} (Redis Upstash, Postgres Supabase), sin infraestructura propia del lado del cliente más allá de instalar el agente, a diferencia de Splunk UBA, cuya implementación inicial el propio Estado del Arte describe como compleja.
 
-\subsection{Análisis FODA}
+\section{Análisis FODA}
 Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas (factores externos) del producto frente al mercado relevado en el Estado del Arte.
 
 \begin{figure}[h]
@@ -794,7 +793,7 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 \end{figure}
 \FloatBarrier
 
-\subsubsection{Fortalezas}
+\subsection{Fortalezas}
 \begin{itemize}
 	\item Arquitectura Zero Trust real (PDP/PEP, NIST SP~800-207), con respuesta ejecutada en el \emph{endpoint} sin \emph{re-login}: cierra el punto ciego que el propio Estado del Arte identifica como carencia común de Sentinel, Splunk UBA y Exabeam.
 	\item Agente liviano y configurable nativo, algo que Exabeam no ofrece de forma nativa.
@@ -803,7 +802,7 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 	\item Notificaciones con explicación generada por IA en el momento de la alerta, atendiendo la falta de transparencia algorítmica que el Estado del Arte señala en Sentinel.
 \end{itemize}
 
-\subsubsection{Debilidades}
+\subsection{Debilidades}
 \begin{itemize}
 	\item Producto nuevo en el mercado, sin trayectoria ni certificaciones (SOC 2, ISO 27001) que sí tienen Sentinel, Splunk UBA y Exabeam: la confianza institucional se construye con tiempo, no solo con buena tecnología.
 	\item No es un SIEM completo: se enfoca en el comportamiento del usuario en el \emph{endpoint}, no reemplaza la correlación multi-fuente de eventos de red/nube que sí ofrecen los tres competidores.
@@ -812,14 +811,14 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 	\item Menor ecosistema de integraciones prearmadas con otras herramientas de seguridad, comparado con plataformas consolidadas con años de desarrollo de \emph{partners}.
 \end{itemize}
 
-\subsubsection{Oportunidades}
+\subsection{Oportunidades}
 \begin{itemize}
 	\item Segmento PyME desatendido: las tres soluciones relevadas están dimensionadas y tarifadas para organizaciones grandes con equipo de seguridad dedicado.
 	\item Mercado de Zero Trust/UEBA en expansión.
 	\item Posibilidad de integrarse como complemento de soluciones IAM existentes en vez de competir por reemplazarlas.
 \end{itemize}
 
-\subsubsection{Amenazas}
+\subsection{Amenazas}
 \begin{itemize}
 	\item Sentinel llega ``gratis'' para quien ya paga Microsoft 365 con Defender: sustituto percibido sin costo adicional.
 	\item Exabeam y Splunk UBA, al integrar SIEM+UEBA+SOAR, pueden ofrecerse como solución ``todo en uno'' frente a un producto que hoy resuelve una sola capa.
@@ -827,7 +826,7 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 	\item Requisitos regulatorios/de \emph{compliance} que una solución nueva sin certificaciones podría no cumplir en una primera etapa.
 \end{itemize}
 
-\subsection{Cruz de Porter: 5 Fuerzas}
+\section{Cruz de Porter: 5 Fuerzas}
 \begin{enumerate}
 	\item \textbf{Rivalidad entre competidores existentes, alta en el segmento \emph{enterprise}, baja en el segmento elegido.} Sentinel, Splunk UBA y Exabeam compiten entre sí por el cliente grande; ninguno de los tres, está diseñado ni tarifado para el segmento PyME, ahí la rivalidad directa es baja.
 	\item \textbf{Amenaza de nuevos competidores, media.} La barrera técnica (modelos de comportamiento confiables) es real, pero la infraestructura \emph{cloud} abarata el costo de entrada. El crecimiento del mercado Zero Trust también atrae nuevos entrantes.
@@ -836,7 +835,7 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 	\item \textbf{Poder de negociación de los proveedores, medio.} Dependencia de servicios \emph{cloud} gestionados (Redis, Postgres, API de Gemini) reemplazables sin bloquear el producto. El \emph{dataset} de entrenamiento (CLUE-LDS) es de acceso definido para el proyecto, no depende de un proveedor comercial de datos.
 \end{enumerate}
 
-\subsection{Matriz Boston Consulting Group (BCG)}
+\section{Matriz Boston Consulting Group (BCG)}
 Con un único producto, la matriz se usa para posicionarlo dentro de su mercado, cruzando crecimiento del mercado vs.\ participación relativa.
 
 \begin{figure}[h]
@@ -855,7 +854,7 @@ Con un único producto, la matriz se usa para posicionarlo dentro de su mercado,
 Clasificación resultante: Interrogante / Dilema (\emph{Question Mark}). Mercado de alto crecimiento donde el producto todavía no tiene participación, por lo que requiere inversión para intentar moverse hacia el cuadrante ``Estrella''. La estrategia recomendada para este cuadrante es la seguida en el posicionamiento: no competir de frente contra Sentinel, Splunk UBA y Exabeam en su propio segmento (\emph{enterprise}), sino ganar tracción rápido en el nicho PyME que esas tres soluciones dejan desatendido por diseño de su propio modelo de costos e implementación.
 
 \clearpage
-\section{Tecnologías}
+\chapter{Tecnologías}
 \label{sec:tecnologias}
 El presente apartado describe y fundamenta el stack tecnológico utilizado en el sistema, según los cuatro ejes establecidos por el criterio de evaluación de la cátedra: lenguajes de programación, \emph{frameworks} y librerías, arquitectura de red y protocolos de comunicación. Para cada tecnología se explica no solo cuál fue utilizada, sino también el motivo de su elección frente a otras alternativas posibles, considerando las necesidades y características concretas del proyecto.
 
@@ -863,7 +862,7 @@ El sistema calcula un \emph{score} de riesgo para cada usuario a partir de disti
 
 Debido a esta distribución de responsabilidades, el proyecto no está planteado como una aplicación monolítica, sino como un sistema compuesto por varios componentes que trabajan de manera conjunta; por eso las tecnologías utilizadas en cada parte fueron seleccionadas teniendo en cuenta la función que cumple cada componente dentro de la arquitectura general. El proyecto está organizado como un \emph{monorepo} que contiene seis subsistemas principales: la API encargada del \emph{scoring} en tiempo real (\texttt{api/}), el agente PEP local (\texttt{agent/}), el \emph{dashboard} web (\texttt{frontend/}), el \emph{pipeline} de entrenamiento offline del modelo (\texttt{ml\_core/}), los \emph{scripts} de demostraciones, reproducción de eventos y validaciones (\texttt{scripts/}) y la documentación de arquitectura (\texttt{docs/}).
 
-\subsection{Lenguajes de programación}
+\section{Lenguajes de programación}
 La elección de lenguajes del proyecto no es uniforme: cada componente utiliza el lenguaje que mejor se ajusta a su función y a su entorno de ejecución.
 
 \begin{longtable}{p{2.4cm}p{4.4cm}p{7.8cm}}
@@ -891,10 +890,10 @@ La elección de lenguajes del proyecto no es uniforme: cada componente utiliza e
 	\item Java / Spring Boot para la API: también se evaluó, pero se decidió no hacerlo, ya que para el alcance de este proyecto implicaba una mayor cantidad de configuración y código adicional.
 \end{itemize}
 
-\subsection{Frameworks y librerías}
+\section{Frameworks y librerías}
 Se detallan a continuación los \emph{frameworks} y librerías utilizados en cada subsistema, agrupados según su función dentro del proyecto: la API de \emph{scoring}, el agente PEP, el \emph{frontend} y el \emph{pipeline} de entrenamiento offline.
 
-\subsubsection{API de Scoring (api/)}
+\subsection{API de Scoring (api/)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Frameworks y librerías: API de \emph{Scoring}}
 	\label{tab:frameworks-api}\\
@@ -924,7 +923,7 @@ Se detallan a continuación los \emph{frameworks} y librerías utilizados en cad
 	\hline
 \end{longtable}
 
-\subsubsection{Agente (agent/)}
+\subsection{Agente (agent/)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Frameworks y librerías: Agente}
 	\label{tab:frameworks-agente}\\
@@ -942,7 +941,7 @@ Se detallan a continuación los \emph{frameworks} y librerías utilizados en cad
 	\hline
 \end{longtable}
 
-\subsubsection{Frontend (frontend/)}
+\subsection{Frontend (frontend/)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Frameworks y librerías: \emph{Frontend}}
 	\label{tab:frameworks-frontend}\\
@@ -972,7 +971,7 @@ Se detallan a continuación los \emph{frameworks} y librerías utilizados en cad
 	\hline
 \end{longtable}
 
-\subsubsection{Pipeline offline (ml\_core/, scripts/)}
+\subsection{Pipeline offline (ml\_core/, scripts/)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Frameworks y librerías: \emph{Pipeline} offline}
 	\label{tab:frameworks-mlcore}\\
@@ -992,9 +991,9 @@ Se detallan a continuación los \emph{frameworks} y librerías utilizados en cad
 	\hline
 \end{longtable}
 
-\subsection{Arquitectura de red}
+\section{Arquitectura de red}
 
-\subsubsection{Topología general}
+\subsection{Topología general}
 El sistema no está diseñado como una aplicación monolítica que se ejecuta en un único entorno, sino compuesto por varios componentes, cada uno con una función específica y con distintas necesidades de despliegue. La API, Redis, el \emph{frontend} y el \emph{pipeline} de entrenamiento (\texttt{ml\_core}) se ejecutan mediante Docker Compose, lo que permite mantener estos servicios organizados dentro de una misma red virtual y facilita su puesta en funcionamiento. Por otro lado, la base de datos utilizada para almacenar el historial se encuentra fuera de esta infraestructura y se utiliza como un servicio gestionado de PostgreSQL mediante Supabase. El agente PEP (\texttt{agent/}) tiene un tratamiento diferente: se ejecuta directamente en el equipo Windows del usuario final y permanece fuera de los contenedores, ya que necesita acceder a recursos del sistema operativo, como procesos y permisos sobre archivos.
 
 \begin{verbatim}
@@ -1024,7 +1023,7 @@ El sistema no está diseñado como una aplicación monolítica que se ejecuta en
 
 Dentro de Docker Compose, el \emph{frontend} se comunica con la API mediante HTTP, con CORS configurado para permitir las solicitudes desde el origen correspondiente. La API, a su vez, se comunica con Redis para mantener información de estado y con los componentes relacionados con el procesamiento y entrenamiento del modelo. La API también se comunica con PostgreSQL/Supabase, que funciona como almacenamiento persistente del historial; esta comunicación se realiza mediante la red externa, ya que se trata de un servicio gestionado que no forma parte de la infraestructura local del proyecto. Por último, el agente PEP se comunica con la API mediante HTTP, enviando principalmente los eventos generados en el \emph{endpoint}. Al ejecutarse directamente sobre Windows, el agente puede recibir las decisiones correspondientes y aplicar las medidas de mitigación sobre el equipo donde está instalado.
 
-\subsubsection{Justificación de cada decisión de red}
+\subsection{Justificación de cada decisión de red}
 \begin{itemize}
 	\item \textbf{API + Redis + Frontend + ml\_core en Docker Compose, sobre un mismo host/red virtual:} estos componentes no dependen directamente del sistema operativo del usuario final, por lo que se decidió ejecutarlos mediante contenedores. Esto permite mantener un entorno reproducible, con las mismas versiones de las librerías y dependencias en las distintas máquinas donde se ejecute el proyecto. Además, Docker Compose facilita el inicio coordinado de los servicios mediante un único comando.
 	\item \textbf{El agente queda deliberadamente fuera de Docker, corriendo nativo en el host Windows:} a diferencia del resto de los componentes, el agente se ejecuta de forma nativa en el sistema operativo del usuario. Esta decisión es especialmente importante porque el agente cumple el rol de \emph{Policy Enforcement Point} (PEP) y necesita interactuar directamente con recursos reales del \emph{endpoint} (entre otras tareas, puede finalizar procesos y modificar permisos mediante \texttt{icacls}). Si el agente estuviera dentro de un contenedor, quedaría aislado del sistema de archivos y de los procesos del host, lo que limitaría justamente las capacidades que necesita para funcionar como PEP; por este motivo, mantenerlo fuera de Docker no es una omisión, sino una decisión de diseño necesaria para este componente.
@@ -1033,7 +1032,7 @@ Dentro de Docker Compose, el \emph{frontend} se comunica con la API mediante HTT
 	\item \textbf{Tres consumidores de red distintos hacia un mismo PDP central (agente, \emph{frontend}, \emph{scripts}), cada uno con su propio nivel de acceso:} el agente, el \emph{frontend} y los \emph{scripts} utilizan la API como punto central para acceder a las funcionalidades del sistema, aunque cada uno tiene permisos diferentes. El agente utiliza el nivel \emph{admin} para enviar eventos y realizar las operaciones que necesita para aplicar las políticas. El \emph{frontend} utiliza el nivel \emph{dashboard}, principalmente para consultar información y realizar algunas modificaciones de configuración específicas. Los \emph{scripts} pueden utilizar distintos modos según su objetivo: por ejemplo, \texttt{simulator.py} realiza comunicaciones HTTP reales, mientras que \texttt{run\_regression\_test.py} y \texttt{ensayo\_demo\_pep.py} pueden utilizar importaciones directas dentro del proceso para pruebas más rápidas, evitando el costo adicional de la comunicación por red.
 \end{itemize}
 
-\subsection{Protocolos de comunicación}
+\section{Protocolos de comunicación}
 Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo más adecuado a la naturaleza de ese enlace: discreto o continuo, transaccional o de alta frecuencia, interno o hacia un servicio externo.
 
 \begin{longtable}{p{3cm}p{3.5cm}p{8.1cm}}
@@ -1062,8 +1061,8 @@ Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo 
 \end{longtable}
 
 \clearpage
-\section{Modelo de Datos}
-\subsection{Diagrama de Bases de Datos}
+\chapter{Modelo de Datos}
+\section{Diagrama de Bases de Datos}
 
 \begin{figure}[h]
 	\centering
@@ -1081,7 +1080,7 @@ Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo 
 \end{figure}
 \FloatBarrier
 
-\subsection{Diagrama de Arquitectura}
+\section{Diagrama de Arquitectura}
 
 \begin{figure}[h]
 	\centering

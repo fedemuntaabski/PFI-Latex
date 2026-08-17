@@ -389,7 +389,7 @@ El agente mantiene conexión con el motor de IA e intercepta la respuesta casi e
 
 Ninguna de las cuatro soluciones comerciales relevadas hace esto: Sentinel y Splunk UBA se detienen en detección/priorización; Exabeam automatiza respuesta pero vía orquestación externa, no vía agente propio; Entra ID Protection actúa solo en el momento de autenticación, no durante el uso continuo de recursos.
 
-\section{Contraste con la Práctica Profesional en Seguridad de la Información}
+\section{Contraste con la Práctica Profesional en Seguridad de la Información: Resultados de las Entrevistas}
 \label{sec:entrevistas-profesionales}
 
 Como complemento al análisis comparativo frente a herramientas comerciales y trabajos académicos, se realizó un relevamiento cualitativo mediante entrevistas semiestructuradas a cinco profesionales vinculados a la seguridad de la información, con el objetivo de contrastar las decisiones de diseño del proyecto con la práctica profesional vigente y de identificar líneas de evolución para etapas posteriores del desarrollo.
@@ -410,3 +410,66 @@ El grupo de entrevistados reúne perfiles con responsabilidad directa sobre segu
 \textbf{Alcance de la recolección de datos.} Guillermo argumenta que el registro exhaustivo de toda la actividad de un usuario no aporta valor proporcional al esfuerzo que implica, y que resulta más eficaz acotar la observación a los objetos considerados sensibles —bases de datos, sitios y recursos críticos— en lugar de monitorear de manera indiscriminada cada acción individual. Esta perspectiva aporta un criterio de priorización útil para definir el alcance de los mecanismos de recolección de datos del proyecto, orientando su extensión progresiva hacia los recursos de mayor criticidad antes que hacia una cobertura total e indiferenciada de la actividad del \emph{endpoint}.
 
 \textbf{Casos de uso correlacionados.} Guillermo, Jacubovich y Ruiz coinciden en que el valor de la detección surge de la correlación entre eventos de distintas fuentes, más que del análisis de un evento aislado. Guillermo ejemplifica esta lógica con el caso de dos inicios de sesión geográficamente distantes en un lapso breve, que en conjunto constituyen una señal de riesgo aunque cada evento por separado resulte válido, y recomienda acotar el diseño a un número reducido de casos de uso críticos antes que abarcar un conjunto extenso y poco priorizado. Jacubovich aporta un ejemplo equivalente al describir la correlación entre el registro de acceso físico de un usuario y su posterior inicio de sesión en un sistema, como control cruzado entre eventos de naturaleza distinta. Estos aportes señalan la definición de un conjunto acotado de casos de uso correlacionados entre colectores como una línea de trabajo a desarrollar en profundidad en las próximas etapas del proyecto.
+
+\section{Contraste con la Percepción de los Usuarios Finales: Resultados de la Encuesta}
+\label{sec:encuesta-usuarios}
+
+Como complemento al contraste con la práctica profesional, se relevó la percepción de los usuarios finales mediante una encuesta. Se obtuvieron 135 respuestas, de las cuales 23 personas (17\%) indicaron no utilizar una computadora provista por su empresa y, por lógica condicional, no respondieron el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a empleados que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (Figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
+
+\subsection{La autenticación como portón, no como control continuo}
+
+Uno de los resultados más relevantes de la encuesta es que, para una parte importante de los empleados, la seguridad se concentra en el inicio de sesión. El 68\% no utiliza MFA de forma obligatoria durante la jornada: un 36\% nunca lo utiliza y un 32\% únicamente al iniciar el día. Solo el 22\% indica que se le solicita reautenticarse de forma aleatoria durante la sesión (Figuras~\ref{fig:encuesta-3} y~\ref{fig:encuesta-4}, Anexo B).
+
+Asimismo, el 54\% afirma que no existen controles adicionales de identidad después del inicio de sesión o desconoce si los hay (Figura~\ref{fig:encuesta-5}, Anexo B). En relación con las computadoras desatendidas, el 46\% deja la sesión abierta o no realiza ninguna acción al alejarse, mientras que el 54\% bloquea la pantalla de forma manual o automática (Figura~\ref{fig:encuesta-6}, Anexo B).
+
+Esta situación también se refleja en la percepción del riesgo: el 69\% considera que, ante el robo de credenciales, no habría forma de detectar la actividad maliciosa una vez que el atacante ingresara, o desconoce si dicha capacidad existe. Solo un tercio confía en que los controles actuales serían suficientes (Figura~\ref{fig:encuesta-7}, Anexo B). Estos resultados respaldan la necesidad de complementar la autenticación inicial con mecanismos de verificación continua y detección de comportamiento anómalo, como los propuestos por el enfoque Zero Trust y el modelo UEBA.
+
+\subsection{Confianza y percepción de protección post-login}
+
+La confianza general en los sistemas de seguridad actuales se encuentra distribuida: el 36\% manifiesta poca confianza (niveles 1-2), mientras que el 46\% expresa una confianza alta (niveles 4-5) (Figura~\ref{fig:encuesta-8}, Anexo B). Sin embargo, al consultar específicamente por la protección posterior al inicio de sesión frente al uso indebido de una cuenta, la percepción es más moderada: el 71\% se ubica entre los niveles 2 y 4 y solo el 15\% alcanza el máximo nivel de confianza (Figura~\ref{fig:encuesta-9}, Anexo B).
+
+Esta diferencia refuerza la idea de que la protección post-autenticación constituye uno de los puntos más débiles percibidos por los usuarios y, por lo tanto, uno de los aspectos que el sistema busca fortalecer.
+
+\subsection{Gobernanza y visibilidad de los controles existentes}
+
+Solo el 27\% de los encuestados afirma conocer y seguir activamente la política de seguridad informática de su empresa. El resto no la conoce en detalle, considera que existe pero no fue comunicada o afirma que no existe (Figura~\ref{fig:encuesta-10}, Anexo B).
+
+Una situación similar se observa respecto de la detección de comportamientos inusuales: apenas el 30\% confirma que su empresa dispone de un mecanismo activo para detectar accesos anómalos a información, mientras que el 70\% restante no está seguro o considera que no existe (Figura~\ref{fig:encuesta-11}, Anexo B). Esto evidencia no solo posibles limitaciones en los controles existentes, sino también un déficit de comunicación y visibilidad que debería ser considerado en la adopción de nuevas herramientas de seguridad.
+
+\subsection{La respuesta preferida es la menos disruptiva, no la más agresiva}
+
+La importancia asignada a que las herramientas actúen preventivamente mediante bloqueos, en lugar de limitarse a generar alertas, se encuentra distribuida entre niveles bajos, medios y altos, sin un predominio claro (Figura~\ref{fig:encuesta-12}, Anexo B).
+
+Sin embargo, ante un escenario de riesgo moderado, el 40\% considera que una notificación push para confirmar la identidad sería la respuesta menos disruptiva, seguida por el bloqueo temporal de la aplicación (31\%) y la reautenticación biométrica (29\%) (Figura~\ref{fig:encuesta-13}, Anexo B). Este resultado respalda el esquema de respuesta graduada implementado en el sistema, con niveles de riesgo bajo, medio, alto y crítico que desencadenan acciones diferenciadas. La preferencia de los usuarios sugiere que la respuesta debería ajustarse al nivel de riesgo en lugar de aplicar siempre la máxima restricción.
+
+\subsection{Las funcionalidades priorizadas coinciden con lo implementado}
+
+Al consultar las funcionalidades prioritarias de un sistema de monitoreo de comportamiento, los resultados fueron relativamente equilibrados: detección de procesos no habituales (66\%), horarios anómalos (61\%), restricción automática de acceso (59\%), accesos inusuales a archivos (54\%), historial de auditoría completo (54\%) y alertas inmediatas a IT (53\%) (Figura~\ref{fig:encuesta-14}, Anexo B).
+
+La ausencia de una funcionalidad claramente dominante sugiere que los usuarios valoran un sistema integral. Esto coincide con el alcance funcional del agente implementado, que incorpora \texttt{ProcessCollector}, \texttt{FileSystemCollector}, detección de horarios mediante \texttt{avg\_hour}/\texttt{off\_hours\_ratio}, \texttt{denegar\_carpeta}, \texttt{historial\_scores} y \texttt{notificar\_admin}. En este sentido, las funcionalidades definidas para el PFI encuentran respaldo en las prioridades expresadas por la población objetivo.
+
+\subsection{Privacidad: una preocupación real y heterogénea}
+
+Respecto de la información que los usuarios considerarían intrusiva o inaceptable, las seis categorías consultadas (ubicación/IP, contenido de correos, rutas de archivos, capturas de pantalla, \emph{keylogging} y nombre de procesos) se ubicaron entre el 54\% y el 66\%. A su vez, el 57\% indicó que ninguna de las categorías le parecía intrusiva (Figura~\ref{fig:encuesta-15}, Anexo B).
+
+Dado que cada participante podía seleccionar distintas opciones, estos resultados muestran una percepción de la privacidad heterogénea: mientras un grupo rechaza determinados tipos de recolección, otro no considera problemática ninguna de las categorías consultadas. Para el proyecto, esto refuerza la importancia de comunicar qué información se recolecta y con qué finalidad. En este sentido, la explicabilidad proporcionada por \texttt{explicar\_features} constituye un elemento relevante para la adopción del sistema.
+
+En cuanto a los factores que podrían determinar la adopción del sistema, la garantía de privacidad y legalidad fue seleccionada por el 9\%, por debajo de la recomendación de proveedores (20\%), reacción de los empleados (19\%), facilidad de integración (18\%), eficacia demostrada (18\%) y costo (17\%) (Figura~\ref{fig:encuesta-16}, Anexo B). Esto no implica que la privacidad sea poco relevante, sino que podría funcionar como un requisito previo, mientras que otros factores tienen mayor peso en la decisión final.
+
+\subsection{Un mercado dividido, no un terreno ganado de antemano}
+
+La percepción sobre la probabilidad de adopción del sistema por parte de la propia empresa se encuentra prácticamente dividida: el 43\% la considera probable (niveles 4-5), mientras que el 41\% la considera improbable (niveles 1-2) (Figura~\ref{fig:encuesta-17}, Anexo B).
+
+Por lo tanto, los resultados no muestran un consenso favorable, sino una oportunidad acompañada de una resistencia significativa. Esto coincide con lo observado en las entrevistas a expertos (Sección~\ref{sec:entrevistas-profesionales}) y con el análisis FODA/Porter de la sección de Competencias, donde se identificó un mercado con potencial de crecimiento, pero con una adopción condicionada por factores como la reacción de los empleados y la confianza en el proveedor.
+
+\subsection{El costo de la detección tardía}
+
+En relación con incidentes de seguridad ocurridos previamente, solo el 42\% de quienes poseen información al respecto estima que fueron detectados durante las primeras 24 horas. El resto señala períodos de días, semanas o meses, o incluso casos en los que la detección ocurrió únicamente cuando el daño ya era visible (16\%) (Figura~\ref{fig:encuesta-18}, Anexo B).
+
+Este resultado aporta evidencia cuantitativa sobre el problema que motiva el proyecto: la distancia temporal entre el compromiso de una cuenta y su detección puede ser considerable. El scoring continuo con decaimiento temporal busca precisamente reducir esta ventana de exposición.
+
+\subsection{Síntesis}
+
+En conjunto, la encuesta respalda la premisa central del PFI: la autenticación continúa siendo percibida principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también respaldan varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los usuarios, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante frente a una percepción de privacidad heterogénea.
+
+Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen mayor peso que la garantía de privacidad como criterio de decisión, y la percepción sobre una posible adopción se encuentra prácticamente dividida. Por lo tanto, existe una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.

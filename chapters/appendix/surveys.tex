@@ -1,7 +1,6 @@
 \anexo{Resultados de la encuesta}
 
-\section{Nota metodológica}
-La encuesta recibió 135 respuestas, pero 23 personas (17\%) indicaron no usar una computadora provista por su empresa, y el formulario les saltó el resto de las preguntas por lógica condicional. La base de análisis efectiva queda entonces en 112 respuestas (83\% de la muestra): empleados que trabajan sobre infraestructura corporativa, que es exactamente el público que el sistema busca proteger. Casi la mitad de ese grupo (47\%, niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta a alta, así que la muestra representa bien al usuario que un agente de UEBA/Zero Trust tiene que cuidar.
+Las figuras siguientes corresponden a los resultados de la encuesta desarrollada; el análisis completo se encuentra en el Capítulo 4, Sección~\ref{sec:encuesta-usuarios}.
 
 \begin{figure}[htbp]
     \centering
@@ -17,9 +16,6 @@ La encuesta recibió 135 respuestas, pero 23 personas (17\%) indicaron no usar u
     \label{fig:encuesta-2}
 \end{figure}
 \FloatBarrier
-
-\section{Hallazgo central: la autenticación funciona como un portón, no como un control continuo}
-El resultado más consistente de toda la encuesta, y el que más directamente valida la premisa del proyecto, es que para la mayoría de los empleados la seguridad se agota en el login. El 68\% no tiene MFA exigido durante la jornada (36\% nunca lo usa, 32\% solo al iniciar el día), y apenas un 22\% confirma que se le pide re-autenticarse de forma aleatoria durante la sesión. Cuando se les pregunta directamente si existen más controles de identidad después de iniciar sesión correctamente, más de la mitad (54\%) responde que no los hay o que ni siquiera lo sabe. El comportamiento frente a la computadora desatendida cuenta la misma historia: un 46\% deja la sesión abierta o no hace nada al alejarse, casi empatado con el 54\% que sí bloquea la pantalla, manual o automáticamente.
 
 \begin{figure}[htbp]
     \centering
@@ -49,8 +45,6 @@ El resultado más consistente de toda la encuesta, y el que más directamente va
     \label{fig:encuesta-6}
 \end{figure}
 
-Esa brecha se traduce en una percepción de riesgo muy concreta. El 69\% de los encuestados cree que, si un tercero le robara las credenciales, no habría forma de detectar la actividad maliciosa una vez adentro (35\%) o directamente no sabe si esa capacidad existe (34\%). Solo un tercio confía en que los controles actuales alcanzan. Este es, en términos de nuestro problema, el dato que más pesa: el modelo de ``autenticar una vez y confiar después'' es el estado real que percibe la gente en las organizaciones, exactamente el supuesto que Zero Trust (verificación continua) y el scoring UEBA (detección de comportamiento anómalo post-login) buscan reemplazar.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/7.png}
@@ -58,9 +52,6 @@ Esa brecha se traduce en una percepción de riesgo muy concreta. El 69\% de los 
     \label{fig:encuesta-7}
 \end{figure}
 \FloatBarrier
-
-\section{Confianza y percepción de protección post-login}
-La confianza general en los sistemas de seguridad actuales aparece bastante repartida: 36\% confía poco (niveles 1-2), 46\% confía bastante (niveles 4-5). Pero cuando se pregunta puntualmente por la protección después del login frente a un uso indebido de la cuenta, la percepción se corre hacia el rango medio-bajo: el 71\% se ubica entre los niveles 2 y 4, y solo un 15\% marca el nivel máximo de confianza. Esa diferencia entre la confianza general y la confianza específica en el tramo post-autenticación es justamente la que más importa acá: confirma que ese es el eslabón que la gente percibe como más débil, y es el que el sistema busca cubrir.
 
 \begin{figure}[htbp]
     \centering
@@ -77,9 +68,6 @@ La confianza general en los sistemas de seguridad actuales aparece bastante repa
 \end{figure}
 \FloatBarrier
 
-\section{Gobernanza y visibilidad de los controles existentes}
-La política de seguridad informática de la empresa la conoce y sigue activamente solo el 27\% de los encuestados; el resto o no la conoce en detalle, cree que existe sin que se la hayan comunicado, o directamente afirma que no existe. Algo parecido pasa con la detección de comportamiento: apenas un 30\% confirma que su empresa tiene un mecanismo activo para detectar accesos a información inusual, y el 70\% restante no está seguro o cree que no existe. Estos dos números importan más allá de la anécdota: muestran que, aunque probablemente existan controles técnicos en varios de estos casos, hay un déficit de comunicación y de percepción que cualquier sistema nuevo, incluido el que propone este proyecto, va a tener que resolver con transparencia y no solo con tecnología.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/10.png}
@@ -94,9 +82,6 @@ La política de seguridad informática de la empresa la conoce y sigue activamen
     \label{fig:encuesta-11}
 \end{figure}
 \FloatBarrier
-
-\section{La respuesta preferida es la menos disruptiva, no la más agresiva}
-La importancia que le asignan a que las herramientas actúen de forma preventiva (bloqueo) en vez de solo alertar después del incidente está bastante repartida entre niveles bajos, medios y altos, sin que ningún extremo se imponga con claridad. Pero al preguntar directamente qué método de respuesta resulta menos disruptivo ante una detección de riesgo moderado, el 40\% eligió la notificación push para confirmar identidad, por encima del bloqueo temporal de la aplicación (31\%) y de la re-autenticación biométrica (29\%). Este dato respalda el diseño de respuesta graduada que ya tiene el sistema, con niveles bajo, medio, alto y crítico que disparan acciones diferenciadas (desde alertar hasta terminar y denegar), frente a una alternativa de bloqueo binario: el usuario final prefiere que el sistema escale la fricción según el riesgo real, y no que reaccione siempre con la máxima severidad.
 
 \begin{figure}[htbp]
     \centering
@@ -113,9 +98,6 @@ La importancia que le asignan a que las herramientas actúen de forma preventiva
 \end{figure}
 \FloatBarrier
 
-\section{Las funcionalidades que la gente prioriza coinciden con lo que ya construimos}
-Al preguntar qué funcionalidades consideraban más prioritarias en un sistema de monitoreo de comportamiento (podían elegir más de una), los encuestados marcaron de forma bastante pareja: detección de procesos no habituales (66\%), horarios anómalos (61\%), restricción automática de acceso (59\%), accesos a archivos inusuales (54\%), historial de auditoría completo (54\%) y alertas inmediatas a IT (53\%). Ninguna opción quedó muy por debajo de las demás, lo que sugiere que el usuario final no busca una funcionalidad ``estrella'' sino un sistema integral. Acá aparece un paralelismo directo con lo que ya está construido en el agente, que incluye \texttt{ProcessCollector}, \texttt{FileSystemCollector}, detección de horarios vía \texttt{avg\_hour}/\texttt{off\_hours\_ratio}, \texttt{denegar\_carpeta}, \texttt{historial\_scores} y \texttt{notificar\_admin}: el alcance funcional definido para el PFI no fue una apuesta arbitraria, sino que coincide con lo que la propia población objetivo identifica como prioritario.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/14.png}
@@ -124,17 +106,12 @@ Al preguntar qué funcionalidades consideraban más prioritarias en un sistema d
 \end{figure}
 \FloatBarrier
 
-\section{Privacidad: una preocupación real, pero no unánime ni concentrada}
-Al consultar qué tipo de información recolectada por un agente de monitoreo les parecería intrusiva o inaceptable, todas las categorías consultadas (ubicación/IP, contenido de correos, rutas de archivos, capturas de pantalla, \emph{keylogging} y nombre de procesos) quedaron en un rango angosto, entre 54\% y 66\%. Llama la atención que la opción ``ninguna de las anteriores me parece intrusiva'' también la marcó un 57\%, casi al mismo nivel que las categorías consideradas invasivas. No es necesariamente contradictorio, ya que cada respondiente marca su propia combinación, pero sí muestra que la actitud hacia la privacidad está polarizada más que distribuida de forma pareja: hay un segmento que rechaza cualquier recolección de datos y otro al que ninguna le genera problema. Para el proyecto, esto tiene una consecuencia práctica: la transparencia sobre qué se recolecta y por qué, algo ya parcialmente cubierto por el XAI de \texttt{explicar\_features}, es un requisito de adopción y no un detalle accesorio.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/15.png}
     \caption{¿Qué tipo de información recolectada por un agente de monitoreo te parecería intrusiva o inaceptable? (elegí una o más)}
     \label{fig:encuesta-15}
 \end{figure}
-
-En línea con esto, cuando se pregunta qué factor sería más determinante para que la empresa adopte o rechace un sistema de este tipo, la garantía de privacidad y legalidad queda última (9\%), bien por debajo de recomendación de proveedores (20\%), reacción de los empleados (19\%), facilidad de integración (18\%), eficacia demostrada (18\%) y costo (17\%). Esto no quiere decir que la privacidad no importe: probablemente funcione como un requisito de base, algo que tiene que estar resuelto de antemano, más que como el criterio que termina inclinando la decisión de compra, que pesa más sobre factores operativos y de confianza en el proveedor.
 
 \begin{figure}[htbp]
     \centering
@@ -144,9 +121,6 @@ En línea con esto, cuando se pregunta qué factor sería más determinante para
 \end{figure}
 \FloatBarrier
 
-\section{Un mercado dividido, no un terreno ganado de antemano}
-La probabilidad percibida de que la propia empresa adopte un sistema de este tipo queda casi empatada: 43\% lo considera probable (niveles 4-5) y 41\% improbable (niveles 1-2). No hay un consenso de mercado a favor; hay una oportunidad real, pero también resistencia significativa, algo consistente con lo que ya surgió de las entrevistas a expertos y con el análisis FODA/Porter de la sección de Competencias: un mercado de alto crecimiento pero de adopción no garantizada, donde la reacción de los empleados y la confianza en el proveedor terminan siendo variables críticas.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/17.png}
@@ -155,9 +129,6 @@ La probabilidad percibida de que la propia empresa adopte un sistema de este tip
 \end{figure}
 \FloatBarrier
 
-\section{El costo de la detección tardía, en boca de los propios usuarios}
-Sobre incidentes de seguridad ya ocurridos, solo el 42\% de quienes tienen información al respecto estima que se detectaron dentro de las primeras 24 horas. El resto habla de días, semanas o meses, o directamente no detección hasta que el daño ya era visible (16\%). Este dato funciona como respaldo cuantitativo al problema que motiva el proyecto: la ventana entre el compromiso de una cuenta y su detección es, para quienes viven estas organizaciones día a día, demasiado amplia. Es exactamente el intervalo que un scoring continuo con decaimiento temporal busca acortar.
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{images/Imagenes_encuestas/18.png}
@@ -165,6 +136,3 @@ Sobre incidentes de seguridad ya ocurridos, solo el 42\% de quienes tienen infor
     \label{fig:encuesta-18}
 \end{figure}
 \FloatBarrier
-
-\section{Síntesis}
-La encuesta confirma la premisa de partida del PFI: que la autenticación es un evento puntual y no una garantía sostenida en el tiempo, y que esa brecha la percibe como real la propia gente que trabaja en estas empresas. Además, valida en gran medida las decisiones de diseño que ya se tomaron: el catálogo de funcionalidades implementado coincide con lo que los usuarios priorizan, la respuesta graduada por niveles de riesgo coincide con la preferencia declarada por mecanismos menos disruptivos, y la necesidad de explicabilidad frente a la recolección de datos queda respaldada por una actitud hacia la privacidad que es real pero heterogénea, y no un rechazo generalizado. Al mismo tiempo, deja dos advertencias concretas para la estrategia de adopción: la decisión de compra pesa más los factores de confianza en el proveedor y de reacción interna de los empleados que la garantía de privacidad en sí misma, y el mercado está dividido casi a la mitad entre quienes ven la adopción como probable y quienes no. La oportunidad existe, pero no es un terreno ganado de antemano.
