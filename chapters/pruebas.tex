@@ -1,0 +1,368 @@
+\chapter{Pruebas y resultados}
+\label{chap:pruebas}
+
+Este capítulo describe la estrategia de pruebas aplicada al sistema, las técnicas y herramientas utilizadas en cada nivel, los resultados obtenidos y las decisiones que se tomaron a partir de ellos. Se abordan cinco frentes: las pruebas automatizadas del código, las pruebas funcionales de extremo a extremo contra la infraestructura real, las pruebas de rendimiento asociadas a los requerimientos no funcionales, la evaluación del modelo de detección y la evaluación de usabilidad del \emph{dashboard}. Los resultados se presentan con las condiciones en que fueron obtenidos, y se distingue lo medido de lo inferido.
+
+\section{Estrategia de pruebas}
+\label{sec:estrategia-pruebas}
+La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del código, con verificaciones manuales y mediciones puntuales para los aspectos que dependen del sistema operativo, de los servicios externos o del comportamiento del modelo sobre datos reales. La tabla~\ref{tab:tecnicas-prueba} resume las técnicas aplicadas, la herramienta utilizada y el alcance de cada una.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{6.6cm}}
+	\caption{Técnicas de prueba, herramientas y alcance}
+	\label{tab:tecnicas-prueba}\\
+	\hline
+	\textbf{Técnica} & \textbf{Herramienta} & \textbf{Alcance} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Técnica} & \textbf{Herramienta} & \textbf{Alcance} \\
+	\hline
+	\endhead
+	Pruebas unitarias & pytest & Reglas del motor de \emph{scoring} (decaimiento, niveles, regla de piso), proveedores IAM, notificaciones, respaldo de modelos y componentes del agente (colectores, \emph{buffer}, \emph{circuit breaker}, reversión), con las dependencias del sistema operativo simuladas. \\
+	\hline
+	Pruebas de integración de la API & pytest, cliente de pruebas de FastAPI y Redis simulado en memoria & Endpoints de configuración, autenticación, auditoría, integración IAM y salud del servicio, sin servicios externos. \\
+	\hline
+	Pruebas de extremo a extremo del \emph{scoring} & pytest con los modelos entrenados & Evaluación de eventos completos con los modelos reales: período de aprendizaje, persistencia de la explicación y recarga de modelos sin reinicio. \\
+	\hline
+	Pruebas de contrato & pytest & Estructura del evento que el agente envía a la API, contrato de los endpoints de salud y validación de rangos de configuración. \\
+	\hline
+	Pruebas de regresión & Script propio de regresión & Comparación del puntaje calculado en línea contra el cálculo fuera de línea sobre historiales reales del conjunto de datos. \\
+	\hline
+	Análisis estático y compilación & oxlint, compilador de TypeScript, Vite y npm audit & Calidad, tipado, construcción y dependencias vulnerables del \emph{frontend}. \\
+	\hline
+	Integración continua & GitHub Actions & Ejecución automática de las suites, del análisis estático y de la validación de la infraestructura en cada \emph{push}. \\
+	\hline
+	Pruebas funcionales manuales & Scripts de demostración y ensayo & Escenarios de extremo a extremo contra Redis y PostgreSQL reales, incluida la ejecución de mitigaciones en el \emph{endpoint}. \\
+	\hline
+	Pruebas de rendimiento & Scripts de medición con requests y psutil & Latencia de evaluación de eventos (RNF-01) y consumo de recursos del agente (RNF-02). \\
+	\hline
+	Evaluación del modelo & Métricas no supervisadas y escenarios inyectados & Comportamiento del modelo híbrido sobre el conjunto de datos y sensibilidad ante escenarios de ataque simulados. \\
+	\hline
+	Evaluación de usabilidad & Evaluación heurística & Interfaz del \emph{dashboard} contra las diez heurísticas de usabilidad de Nielsen. \\
+	\hline
+\end{longtable}
+
+\section{Pruebas automatizadas}
+\label{sec:pruebas-automatizadas}
+
+\subsection{Inventario}
+El repositorio contiene 306 pruebas automatizadas, que corresponden a 204 funciones de prueba (algunas se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{7.5cm}}
+	\caption{Inventario de pruebas automatizadas por componente}
+	\label{tab:inventario-pruebas}\\
+	\hline
+	\textbf{Componente} & \textbf{Archivos} & \textbf{Pruebas} & \textbf{Tipos y foco} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Componente} & \textbf{Archivos} & \textbf{Pruebas} & \textbf{Tipos y foco} \\
+	\hline
+	\endhead
+	API de \emph{scoring} & 25 & 220 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones y reentrenamiento. \\
+	\hline
+	Agente local & 10 & 86 & Unitarias con el sistema operativo simulado: colectores, filtro de procesos, \emph{buffer} local, \emph{circuit breaker}, confirmación de acciones, reversión y contrato del evento. \\
+	\hline
+	\emph{Frontend} & -- & -- & Sin pruebas unitarias; se valida con análisis estático, verificación de tipos y compilación. \\
+	\hline
+\end{longtable}
+
+\subsection{Resultados de la ejecución}
+La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución completa realizada el 4 de octubre de 2026 sobre Windows~10 con Python~3.12.3, sin servicios externos configurados y sin ejecución real de mitigaciones.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}p{6.4cm}>{\raggedright\arraybackslash}p{2.0cm}}
+	\caption{Resultados de la ejecución de las pruebas automatizadas}
+	\label{tab:ejecucion-pruebas}\\
+	\hline
+	\textbf{Suite} & \textbf{Resultado} & \textbf{Duración} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Suite} & \textbf{Resultado} & \textbf{Duración} \\
+	\hline
+	\endhead
+	API, suite completa & 220 aprobadas, 0 fallidas, 0 omitidas & 18,1~s \\
+	\hline
+	API, configuración de integración continua & 211 aprobadas, 0 fallidas & 21,4~s \\
+	\hline
+	Agente, suite completa & 86 aprobadas, 0 fallidas & 1,0~s \\
+	\hline
+	\emph{Frontend}, análisis estático & Sin hallazgos & 2~s \\
+	\hline
+	\emph{Frontend}, compilación & Correcta, con una advertencia por el tamaño del paquete de la biblioteca de gráficos & 11~s \\
+	\hline
+\end{longtable}
+
+No se midió la cobertura de código: la herramienta correspondiente no forma parte de las dependencias del proyecto. Esta ausencia se declara entre las limitaciones de la sección~\ref{sec:limitaciones-pruebas}.
+
+\subsection{Integración continua}
+El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por tres trabajos independientes:
+\begin{itemize}
+	\item \textbf{\emph{Frontend}:} instalación de dependencias, análisis estático y compilación.
+	\item \textbf{API:} ejecución de la suite de la API sin los modelos entrenados, que se reemplazan por artefactos simulados, y de las pruebas del agente que no dependen de Windows.
+	\item \textbf{Infraestructura:} verificación de formato y validación sintáctica de la configuración de Terraform, sin aplicar cambios.
+\end{itemize}
+
+La integración continua no ejecuta las pruebas que requieren los modelos entrenados (nueve pruebas en cuatro archivos), las pruebas del agente que dependen del sistema operativo ni la prueba de regresión. Esas suites se ejecutan localmente.
+
+\subsection{Cobertura de los requerimientos}
+La tabla~\ref{tab:cobertura-requerimientos} relaciona los requerimientos del capítulo~\ref{chap:requerimientos} con el tipo de evidencia de prueba disponible.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{9.7cm}}
+	\caption{Evidencia de prueba por requerimiento}
+	\label{tab:cobertura-requerimientos}\\
+	\hline
+	\textbf{Evidencia} & \textbf{Requerimientos} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Evidencia} & \textbf{Requerimientos} \\
+	\hline
+	\endhead
+	Prueba automatizada & RF-01 a RF-07, RF-09 a RF-17, RF-20, RF-21, RF-23 a RF-25, RF-27 a RF-30; RNF-03 a RNF-08 y RNF-11 \\
+	\hline
+	Verificación manual o medición & RF-08 (ejecución real de acciones en el \emph{endpoint}); RNF-01 y RNF-02 (mediciones de la sección~\ref{sec:pruebas-rendimiento}); RNF-09 (verificación de la cadena de \emph{hashes}); RNF-10 (corrida real de reentrenamiento); RNF-12 (ejecución en Windows); RNF-14 (ensayos de concurrencia); RNF-15 (evaluación heurística) \\
+	\hline
+	Sin prueba registrada & RF-18 (ventana horaria del reentrenamiento), RF-19 (captura de eventos crudos), RF-22 (registro de reentrenamientos) y RF-26 (indicador de aprendizaje en el \emph{dashboard}) \\
+	\hline
+	No implementado & RNF-13 (cifrado TLS entre agente y API) \\
+	\hline
+\end{longtable}
+
+Los requerimientos sin prueba registrada se encuentran implementados y fueron verificados durante el desarrollo, pero no cuentan con una prueba automatizada ni con una ejecución documentada que pueda repetirse.
+
+\section{Pruebas funcionales de extremo a extremo}
+\label{sec:pruebas-e2e}
+Las pruebas automatizadas se ejecutan con Redis simulado y sin base de datos. Para verificar el sistema contra la infraestructura real se realizaron pruebas funcionales manuales, documentadas con su fecha y resultado:
+
+\begin{itemize}
+	\item \textbf{Demostración de seis escenas (agosto de 2026).} Se ejecutaron contra Redis y PostgreSQL reales seis escenarios que recorren el caso de uso CU-01 y el CU-02: un usuario de bajo riesgo, una exfiltración de archivos con mitigación en el \emph{endpoint}, una aplicación no monitoreada, el catálogo de acciones de mitigación, una conexión de red y la configuración de umbrales con un rechazo por validación. Cada corrida generó un reporte de auditoría automático.
+	\item \textbf{Ensayo de la cadena de decisión.} Un script envía una secuencia de eventos de exfiltración y registra la evolución del nivel. En la última ejecución, el primer evento quedó en nivel medio, el nivel alto se alcanzó en el evento 15 y el crítico en el evento 44, con la acción correspondiente devuelta al agente en cada caso.
+	\item \textbf{Período de aprendizaje (agosto y septiembre de 2026).} Contra la API conectada a los servicios reales, se verificó la lectura y modificación del umbral de aprendizaje, el rechazo de valores fuera de rango y la exigencia de la clave de administrador.
+	\item \textbf{Reentrenamiento y promoción (agosto de 2026).} Se verificó en vivo el reemplazo del modelo sin reiniciar la API cuando el modelo nuevo iguala al vigente y el rechazo cuando empeora. Además, una corrida real disparada por el planificador completó el \emph{pipeline} en aproximadamente 1~h~50~min y no promovió el modelo, porque el error de reconstrucción del LSTM empeoró de 0,1155 a 0,1175.
+	\item \textbf{Integridad de los eventos crudos (agosto de 2026).} La verificación de la cadena de \emph{hashes} sobre la tabla de eventos crudos resultó correcta en el 100\,\% de las filas, antes y después de registrar un evento nuevo.
+	\item \textbf{Concurrencia (septiembre de 2026).} Con hasta 50 escrituras concurrentes sobre PostgreSQL no se produjeron errores, y el disparador que calcula la cadena de \emph{hashes} agregó en promedio 0,042~ms por inserción.
+\end{itemize}
+
+Como complemento, el código del agente, de la API y del \emph{frontend} fue sometido a revisiones estáticas de seguridad y mantenibilidad, con rondas de correcciones posteriores. La auditoría de dependencias del \emph{frontend} finalizó sin vulnerabilidades reportadas.
+
+\section{Pruebas de rendimiento}
+\label{sec:pruebas-rendimiento}
+
+\subsection{Latencia de evaluación de eventos (RNF-01)}
+Se midió la latencia de extremo a extremo de la evaluación de eventos desde el lado del cliente: 1000 eventos medidos, precedidos por 50 de calentamiento que se descartaron, enviados en secuencia y distribuidos entre cinco usuarios con una mezcla de tipos representativa de la actividad que captura el agente. La API se ejecutó en el mismo equipo, con Redis en memoria y sin base de datos. La tabla~\ref{tab:rnf01} presenta los resultados.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{6.0cm}>{\raggedright\arraybackslash}p{4.0cm}}
+	\caption{Latencia de evaluación de eventos (RNF-01)}
+	\label{tab:rnf01}\\
+	\hline
+	\textbf{Métrica} & \textbf{Valor} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Métrica} & \textbf{Valor} \\
+	\hline
+	\endhead
+	Media & 16,96~ms \\
+	\hline
+	Mediana & 13,35~ms \\
+	\hline
+	Percentil 95 & 14,91~ms \\
+	\hline
+	Percentil 99 & 148,87~ms \\
+	\hline
+	Máximo & 880,26~ms \\
+	\hline
+	Errores & 0 de 1000 \\
+	\hline
+	Rendimiento secuencial & 59 eventos por segundo \\
+	\hline
+\end{longtable}
+
+El umbral fijado para RNF-01 es un percentil 95 menor o igual a 500~ms y un percentil 99 menor o igual a 1~s. El criterio se justifica porque el \emph{dashboard} consulta el estado cada 2~s y el agente captura actividad con una frecuencia del orden de un segundo: un evento evaluado en menos de medio segundo no se acumula. El resultado cumple el umbral con amplio margen.
+
+Las latencias más altas coinciden con los eventos que completan una secuencia de 50 eventos de un usuario, que es cuando se ejecuta la inferencia del LSTM. Esta relación se infiere de la posición de los valores extremos y no fue instrumentada. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se enviaron de forma secuencial, sin carga concurrente de varios agentes.
+
+\subsection{Consumo de recursos del agente (RNF-02)}
+Para RNF-02 se registró, cada 5~s durante 30 minutos de uso normal del equipo, el consumo de CPU del proceso del agente, normalizado sobre el total de núcleos lógicos, y su memoria residente. El agente se ejecutó en modo de simulación de mitigaciones, de modo que la medición refleja la captura y el envío de eventos sin efectos sobre el equipo. El umbral es un consumo medio de CPU menor o igual al 5\,\% de la máquina y una memoria residente menor o igual a 150~MB.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.0cm}}
+	\caption{Consumo de recursos del agente (RNF-02)}
+	\label{tab:rnf02}\\
+	\hline
+	\textbf{Métrica} & \textbf{Media} & \textbf{Percentil 95} & \textbf{Máximo} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Métrica} & \textbf{Media} & \textbf{Percentil 95} & \textbf{Máximo} \\
+	\hline
+	\endhead
+	CPU (\% de la máquina) & [[CPU MEDIA]] & [[CPU P95]] & [[CPU MÁX]] \\
+	\hline
+	Memoria residente (MB) & [[RSS MEDIA]] & [[RSS P95]] & [[RSS MÁX]] \\
+	\hline
+\end{longtable}
+
+[[INTERPRETACIÓN DE RNF-02 SEGÚN EL RESULTADO]]
+
+\section{Evaluación del modelo sin etiquetas}
+\label{sec:evaluacion-modelo}
+El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}. Por lo tanto, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evaluó con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{5.5cm}}
+	\caption{Métricas no supervisadas del modelo híbrido}
+	\label{tab:metricas-modelo}\\
+	\hline
+	\textbf{Métrica} & \textbf{Valor} & \textbf{Lectura} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Métrica} & \textbf{Valor} & \textbf{Lectura} \\
+	\hline
+	\endhead
+	Tasa de anomalías de Isolation Forest en prueba & 0,79\,\% (97 de 12\,235 usuario-días) & Inferior a la proporción de contaminación fijada en el entrenamiento (2\,\%). \\
+	\hline
+	Tasa de anomalías del LSTM Autoencoder en prueba & 3,99\,\% (1\,487 de 37\,254 secuencias) & Cercana al 5\,\% esperable por usar el percentil 95 del error como umbral. \\
+	\hline
+	Error de reconstrucción del LSTM & Media 0,1248; umbral 0,1368 & Umbral definido como el percentil 95 del error en entrenamiento. \\
+	\hline
+	Distribución del puntaje híbrido & Mediana 41,6; percentil 95 70,2; percentil 99 82,6 & La mayor parte de la actividad queda por debajo del umbral del nivel alto (70). \\
+	\hline
+	Correlación entre modelos & Pearson $-0{,}20$ (234 usuarios) & Los modelos capturan aspectos distintos del comportamiento. \\
+	\hline
+	Coincidencia de anomalías & Índice de Jaccard 0,111 (15 usuarios en común) & Las anomalías que marca cada modelo casi no se superponen. \\
+	\hline
+\end{longtable}
+
+La correlación negativa y la baja coincidencia indican que los dos modelos no son redundantes, lo que es consistente con la decisión de combinarlos. Sin embargo, estas métricas no demuestran que la combinación detecte mejor que cada modelo por separado, y el peso de 0,5 asignado a cada uno no tiene un respaldo cuantitativo. Además, los conjuntos de prueba de los dos modelos se construyeron con criterios distintos (partición temporal para Isolation Forest y por usuario para el LSTM), por lo que la comparación entre ambos es limitada.
+
+\section{Validación por escenarios inyectados}
+\label{sec:validacion-escenarios}
+
+\subsection{Método}
+Para obtener una medida de la capacidad de detección sin etiquetas, se inyectaron escenarios de ataque sintéticos sobre historiales reales. Se seleccionaron al azar, con semilla fija, 15 usuarios del período de prueba con entre 50 y 4000 eventos y al menos cinco días de actividad. Para cada usuario se reprodujo su historial completo a través de la API, se tomó una instantánea del estado y, a partir de ella, se inyectó cada escenario por separado, restaurando el estado entre uno y otro:
+\begin{itemize}
+	\item \textbf{E1, exfiltración:} entre 30 y 60 eventos de creación y escritura de archivos, uno cada 5~s, en horario laboral y desde el país habitual.
+	\item \textbf{E2, fuera de horario:} hasta 40 eventos reales del último día de actividad, reubicados entre las 2 y las 5 de la mañana.
+	\item \textbf{E3, cambio de país:} los mismos eventos, en su horario original, informados desde otro país.
+	\item \textbf{E4, combinado:} la exfiltración de E1 en horario nocturno y desde otro país.
+\end{itemize}
+
+Se considera \emph{detección atribuible} a la inyección que lleva el nivel del usuario a alto o crítico cuando antes de inyectar estaba por debajo de alto. Así se descartan los usuarios que ya se encontraban en nivel alto por el riesgo acumulado. Como referencia de alertas sobre actividad presuntamente legítima, se registró el nivel de cierre de cada día del período de prueba sin inyección (650 usuario-días).
+
+\subsection{Resultados}
+La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, en la que el nivel alto comienza en un puntaje de 70 y el crítico en 90.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.0cm}}
+	\caption{Resultados de la validación por escenarios (15 usuarios por escenario)}
+	\label{tab:escenarios}\\
+	\hline
+	\textbf{Escenario} & \textbf{Alto o crítico} & \textbf{Ya en alto antes} & \textbf{Atribuibles} & \textbf{Crítico} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Escenario} & \textbf{Alto o crítico} & \textbf{Ya en alto antes} & \textbf{Atribuibles} & \textbf{Crítico} \\
+	\hline
+	\endhead
+	E1, exfiltración & 3 & 2 & 1 & 0 \\
+	\hline
+	E2, fuera de horario & 3 & 2 & 1 & 0 \\
+	\hline
+	E3, cambio de país & 2 & 2 & 0 & 0 \\
+	\hline
+	E4, combinado & 4 & 2 & 2 & 0 \\
+	\hline
+\end{longtable}
+
+Sobre los días sin inyección, el 16,8\,\% de los usuario-días terminó en nivel alto y ninguno en crítico. La proporción fue del 14,6\,\% para los días con cobertura completa de ambos modelos y del 28,9\,\% para los días con cobertura parcial, y se concentró en los usuarios con pocos días de historial.
+
+Las inyecciones elevaron la mediana del puntaje entre 3,9 y 5,6 puntos respecto del valor previo, pero el puntaje máximo mediano de cada escenario quedó entre 63,7 y 65,8, por debajo del umbral del nivel alto. Las cuatro detecciones atribuibles corresponden a dos usuarios con cobertura completa. Todas las explicaciones generadas provinieron de las variables de Isolation Forest (proporción de actividad fuera de horario, hora promedio y entropía de tipos de evento); en 7 de los 60 casos ninguna variable superó el umbral de explicación.
+
+\subsection{Sensibilidad según el umbral}
+Para analizar el compromiso entre sensibilidad y alertas sobre actividad normal sin modificar la configuración del sistema, se recalculó la detección atribuible para umbrales entre 40 y 90. La figura~\ref{fig:curva-umbral} muestra el resultado.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{images/pruebas/curva_umbral.pdf}
+	\caption{Detección atribuible por escenario según el umbral, y tasa de alertas sobre días sin inyección (porcentaje de usuario-días) en los dos umbrales disponibles}
+	\label{fig:curva-umbral}
+\end{figure}
+
+La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un 33,3\,\% para el escenario combinado en el umbral de 55, y nunca supera un tercio de los usuarios. La curva no es monótona porque, al bajar el umbral, una proporción creciente de usuarios ya lo supera antes de la inyección: en el umbral de 40, el 93,3\,\% de los usuarios parte por encima, mientras que en el de 70 lo hace solo el 13,3\,\%. La tasa de alertas sobre días normales se pudo calcular únicamente en los umbrales de 70 y 90, porque los resultados registrados contienen el nivel de cierre de cada día y no su puntaje numérico. Por eso no es posible estimar cuántas alertas adicionales produciría un umbral en la zona de 55 a 65.
+
+\subsection{Interpretación}
+Con la política vigente, el sistema detecta pocos de los escenarios inyectados y ninguno alcanza el nivel crítico, de modo que la mitigación más severa no se dispara ante estos ataques simulados. Esto es consistente con una política conservadora, que reserva la terminación de procesos y la denegación de acceso para el nivel crítico, pero también indica una sensibilidad baja ante ataques de corta duración.
+
+Entre las causas, una está verificada: el 99,946\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte. Las demás causas son inferidas y no se aislaron experimentalmente:
+\begin{itemize}
+	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable.
+	\item El LSTM evalúa secuencias de 50 eventos, por lo que una inyección corta completa a lo sumo una secuencia y su señal se diluye.
+	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales.
+\end{itemize}
+
+La alta proporción de alertas en usuarios con pocos días de historial es consistente con el sesgo conocido del componente de riesgo personal en usuarios con historial escaso. Los resultados deben leerse con cautela: se trata de 15 usuarios por escenario, con una sola inyección por caso, escenarios diseñados por el propio equipo y una referencia de normalidad sin verificación. Una diferencia de un usuario equivale a 6,7 puntos porcentuales.
+
+\section{Evaluación de usabilidad}
+\label{sec:evaluacion-usabilidad}
+La usabilidad del \emph{dashboard} se evaluó mediante una evaluación heurística, una técnica de inspección en la que evaluadores revisan la interfaz contra un conjunto de principios reconocidos. Se utilizaron las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}. Cada una de las ocho pantallas del \emph{dashboard} se revisó contra cada heurística, y los problemas encontrados se clasificaron según una escala de severidad de 0 (no es un problema) a 4 (problema grave que debe corregirse antes de la entrega). Esta evaluación aporta la evidencia del requerimiento RNF-15.
+
+[[RESULTADOS DE LA EVALUACIÓN HEURÍSTICA: cantidad de problemas por severidad, heurísticas más afectadas y correcciones aplicadas]]
+
+\section{Decisiones tomadas a partir de los resultados}
+\label{sec:decisiones-pruebas}
+La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e implementación que se tomaron a partir de los resultados de las pruebas y los análisis realizados durante el desarrollo.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{7.0cm}>{\raggedright\arraybackslash}p{7.1cm}}
+	\caption{Decisiones tomadas a partir de los resultados de las pruebas}
+	\label{tab:decisiones-pruebas}\\
+	\hline
+	\textbf{Resultado observado} & \textbf{Decisión} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Resultado observado} & \textbf{Decisión} \\
+	\hline
+	\endhead
+	El tiempo que tarda un usuario en acumular 20 eventos varía entre 35 minutos (percentil 25) y unos 93 días (percentil 90); el 59,5\,\% no llega a 20 eventos en su primer día. & Mantener 20 eventos como umbral de aprendizaje por defecto y volverlo configurable en tiempo de ejecución, en un rango de 1 a 1000. \\
+	\hline
+	El componente de riesgo personal presenta un sesgo en usuarios con historial escaso; se evaluaron cinco alternativas de cálculo y ninguna lo corrigió sin degradar otros casos. & Mantener el cálculo vigente y documentar el sesgo como limitación conocida. \\
+	\hline
+	En una corrida real de reentrenamiento el error del LSTM empeoró (de 0,1155 a 0,1175). & Conservar el modelo vigente; el ciclo automático de reentrenamiento quedó verificado de punta a punta, sin una promoción real. \\
+	\hline
+	Diferencias de redondeo del orden de $10^{-16}$ hacían fallar la comparación de métricas en casos de empate. & Redondear las métricas a seis decimales antes de comparar, manteniendo el criterio de que el modelo nuevo debe igualar o mejorar al vigente. \\
+	\hline
+	Un modelo rechazado quedaba guardado en disco y se cargaba al reiniciar la API. & Respaldar los modelos vigentes antes del reentrenamiento y restaurarlos si el modelo nuevo no se promueve. \\
+	\hline
+	La resolución del nombre \texttt{localhost} en Windows agregaba unos 2~s por conexión. & Utilizar la dirección 127.0.0.1 en los clientes, lo que redujo la latencia de 2067~ms a 16,7~ms por solicitud. \\
+	\hline
+	Los navegadores generaban la mayor parte de los eventos de procesos y agotaban el período de aprendizaje en pocos minutos. & Agrupar los eventos de procesos de navegadores, lo que redujo un 80\,\% los eventos que generan. \\
+	\hline
+	La prueba de regresión del puntaje presenta seis diferencias contra el cálculo fuera de línea; cinco se explican por la incorporación de la línea base personal. & Aceptar las cinco diferencias como divergencia esperada del diseño y declarar como limitación la sexta, que no tiene causa identificada. \\
+	\hline
+	La integración continua fallaba en un entorno limpio porque las pruebas requerían los modelos entrenados. & Incorporar artefactos simulados para la integración continua y ejecutar localmente las pruebas que necesitan los modelos reales. \\
+	\hline
+	El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos para el LSTM. & Mantener el puntaje con Isolation Forest para esos usuarios (cobertura parcial) y declararlo como limitación. \\
+	\hline
+	El disparador de la cadena de \emph{hashes} agrega 0,042~ms por inserción y no produce errores con hasta 50 escrituras concurrentes. & Mantener la configuración del grupo de conexiones a la base de datos sin ampliarla. \\
+	\hline
+	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas no supervisadas y escenarios inyectados, sin informar precisión ni exhaustividad. \\
+	\hline
+	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
+	\hline
+\end{longtable}
+
+\section{Limitaciones de las pruebas}
+\label{sec:limitaciones-pruebas}
+\begin{itemize}
+	\item La prueba de regresión del puntaje no se encuentra en verde: presenta seis diferencias contra el cálculo fuera de línea, y una de ellas no tiene causa atribuida.
+	\item No se midió la cobertura de código y el \emph{frontend} no tiene pruebas automatizadas.
+	\item Cuatro requerimientos funcionales (RF-18, RF-19, RF-22 y RF-26) no tienen una prueba registrada.
+	\item La ejecución real de las mitigaciones en el \emph{endpoint} se verificó en forma manual y no tiene pruebas automatizadas.
+	\item La latencia se midió con Redis en memoria y sin carga concurrente; no representa el desempeño con un Redis gestionado ni con varios agentes simultáneos.
+	\item La evaluación del modelo carece de etiquetas, y la validación por escenarios usa una muestra de 15 usuarios con ataques diseñados por el equipo.
+	\item La integración con Keycloak no fue validada contra un servidor real.
+\end{itemize}
+
+\section{Síntesis}
+\label{sec:sintesis-pruebas}
+Las 306 pruebas automatizadas se ejecutan sin fallas, y la integración continua verifica la API, el subconjunto del agente independiente del sistema operativo, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación cumple holgadamente el umbral de RNF-01. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, calibración de umbrales con escenarios etiquetados y explicabilidad del LSTM.
