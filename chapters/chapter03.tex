@@ -1,402 +1,12 @@
-\chapter{Requerimientos, Casos de Uso e Historias de Usuario}
+\input{chapters/requerimientos}
 
-\section{Alcance del relevamiento}
-Esta sección describe el alcance funcional completo del sistema a lo largo de sus cuatro casos de uso, con fines de trazabilidad de diseño. De ellos, la entrega del Hito 50\% implementa y demuestra CU-01 y CU-02 en su totalidad. CU-03 (reentrenamiento periódico) y CU-04 (alta de usuario nuevo/\emph{cold-start}) quedan documentados a nivel de requerimientos y casos de uso para dejar registrado el alcance final planificado del PFI, pero no forman parte de la implementación ni de la demo de esta entrega: se abordan en la segunda mitad del proyecto. Por eso los módulos, requerimientos e historias de usuario correspondientes a CU-03/CU-04 se marcan explícitamente como ``Fuera de alcance del 50\%'' en las secciones respectivas.
-
-\section{Actores del sistema}
-\begin{longtable}{p{3.8cm}p{2.6cm}p{8.2cm}}
-	\caption{Actores del sistema}
-	\label{tab:actores}\\
-	\hline
-	\textbf{Actor} & \textbf{Tipo} & \textbf{Rol} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Actor} & \textbf{Tipo} & \textbf{Rol} \\
-	\hline
-	\endhead
-	Administrador de Seguridad & Humano & Opera el \emph{dashboard}: monitorea usuarios, ajusta umbrales/políticas y configura el reentrenamiento. \\
-	\hline
-	Usuario Monitoreado & Humano (indirecto) & Genera actividad en su \emph{endpoint}; es el sujeto de la observación, no interactúa directamente con el sistema. \\
-	\hline
-	Agente (PEP) & Sistema & Recolecta eventos y ejecuta/confirma las acciones de mitigación en el \emph{endpoint}. \\
-	\hline
-	Motor de \emph{Scoring} / IA (PDP) & Sistema & Calcula el \emph{score} dinámico de riesgo, aplica el decaimiento temporal, decide acciones y gestiona el reentrenamiento del modelo. \\
-	\hline
-	Dashboard & Sistema & Interfaz web de administración y visualización. \\
-	\hline
-\end{longtable}
-
-\section{Requerimientos Funcionales}
-Los requerimientos funcionales están organizados en seis módulos; cada uno da soporte directo a uno de los cuatro casos de uso definidos en la seccion ~\ref{sec:casos-de-uso}.
-
-\subsection{Módulo 1: Recolección y envío de eventos (Agente), soporta CU-01}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 1}
-	\label{tab:rf-modulo1}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-01 & El agente debe capturar los eventos de actividad del usuario en su \emph{endpoint} (procesos ejecutados, rutas de archivo accedidas) junto con metadatos de contexto (hora, IP local/externa, si la conexión ocurre dentro de la red corporativa). \\
-	\hline
-	RF-02 & El agente debe enviar cada evento capturado a la API mediante un canal seguro y de baja latencia, sin acumularlo en una cola local. \\
-	\hline
-	RF-03 & El agente debe continuar monitoreando sin interrupción cuando el envío de un evento falla por un problema de comunicación. \\
-	\hline
-\end{longtable}
-
-\subsection{Módulo 2: Cálculo de score dinámico y decisión de riesgo (API / PDP), soporta CU-01}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 2}
-	\label{tab:rf-modulo2}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-04 & La API debe recuperar el historial y la línea base de comportamiento del usuario al recibir cada evento. \\
-	\hline
-	RF-05 & La API debe calcular un \emph{score} dinámico de confianza aplicando el modelo de IA entrenado sobre el evento recibido y su contexto. \\
-	\hline
-	RF-06 & La API debe aplicar un decaimiento temporal sobre el riesgo acumulado previo del usuario, de forma que el comportamiento pasado pierda peso de forma gradual frente al reciente. \\
-	\hline
-	RF-07 & La API debe comparar el \emph{score} resultante contra los umbrales de riesgo configurados (bajo/medio/alto/crítico) para determinar el nivel correspondiente y si corresponde una acción de mitigación. \\
-	\hline
-	RF-08 & La API debe responder al agente con una acción concreta de mitigación (catálogo implementado: \texttt{alertar}, \texttt{notificar\_admin}, \texttt{terminar\_procesos}, \texttt{denegar\_carpeta}, \texttt{terminar\_y\_denegar}, \texttt{suspender\_proceso}), mapeada por nivel de riesgo (bajo/medio/alto/crítico) mediante una política configurable, en lugar de un único umbral binario de ``alto riesgo''. \\
-	\hline
-	RF-09 & La API debe registrar cada evento evaluado junto con su \emph{score} y la acción decidida, para su posterior visualización en el \emph{dashboard}. \\
-	\hline
-\end{longtable}
-
-\subsection{Módulo 3: Ejecución de la mitigación en el endpoint (Agente), soporta CU-01}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 3}
-	\label{tab:rf-modulo3}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-10 & El agente debe ejecutar localmente la acción de mitigación indicada por la API, sin requerir re-autenticación del usuario ni depender de un sistema externo (ej.\ SOAR). \\
-	\hline
-	RF-11 & El agente debe notificar a la API la confirmación de ejecución (o el motivo de falla) de la acción de mitigación aplicada. \\
-	\hline
-\end{longtable}
-
-\subsection{Módulo 4: Configuración de umbrales y políticas (Dashboard + API), soporta CU-02}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 4}
-	\label{tab:rf-modulo4}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-12 & El \emph{dashboard} debe mostrar al administrador el listado de usuarios/entidades con su \emph{score} de confianza actual en tiempo real, filtrable por nivel de riesgo. (Nota de alcance: la dimensión ``rol''/``departamento'' fue evaluada y descartada para esta entrega, por no existir esa información en el \emph{dataset} CLUE-LDS ni en el contrato de evento; queda como extensión futura.) \\
-	\hline
-	RF-13 & El \emph{dashboard} debe permitir al administrador modificar un umbral de riesgo existente o definir una nueva regla de política (condición de nivel de riesgo $\rightarrow$ acción). (Misma nota de alcance que RF-12: sin dimensión ``rol'' en esta entrega.) \\
-	\hline
-	RF-14 & El \emph{dashboard} debe enviar la actualización de política a la API mediante un \emph{endpoint} de configuración dedicado. \\
-	\hline
-	RF-15 & La API debe validar la consistencia de toda política recibida (rangos no solapados, acciones reconocidas) antes de persistirla, rechazando configuraciones inválidas. \\
-	\hline
-	RF-16 & La API debe aplicar la política actualizada a las evaluaciones de \emph{score} siguientes sin requerir reinicio del agente ni de la API. \\
-	\hline
-	RF-17 & El sistema debe mantener un historial de versiones de las políticas de umbral/acción, visible desde el \emph{dashboard}, para su trazabilidad y auditoría. \\
-	\hline
-\end{longtable}
-
-\subsection{Módulo 5: Reentrenamiento periódico del modelo (API + Dashboard), soporta CU-03 (fuera de alcance del 50\%)}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 5}
-	\label{tab:rf-modulo5}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-18 & El \emph{dashboard} debe permitir al administrador configurar la periodicidad de reentrenamiento del modelo y una ventana horaria de bajo impacto. \\
-	\hline
-	RF-19 & La API debe recopilar, al cumplirse el disparador de reentrenamiento (automático o manual), los eventos acumulados desde el último entrenamiento, respetando criterios de anonimización de identificadores. \\
-	\hline
-	RF-20 & La API debe reentrenar el modelo de IA en un proceso aislado del que sirve las predicciones en producción, sin introducir latencia adicional en la evaluación de eventos en curso. \\
-	\hline
-	RF-21 & La API debe validar el nuevo modelo entrenado, comparando sus métricas (ej.\ tasa de falsos positivos) contra el modelo vigente, antes de promoverlo a producción. \\
-	\hline
-	RF-22 & El sistema debe registrar un log de cada reentrenamiento (fecha, cantidad de eventos usados, variación de métricas), visible desde el \emph{dashboard}. \\
-	\hline
-\end{longtable}
-
-\subsection{Módulo 6: Alta de usuario nuevo y cold-start (Agente + API + Dashboard), soporta CU-04 (fuera de alcance del 50\%)}
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Requerimientos funcionales del Módulo 6}
-	\label{tab:rf-modulo6}\\
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RF-23 & El agente debe comenzar a recolectar y reportar eventos del usuario desde el momento en que se instala/activa en su equipo. \\
-	\hline
-	RF-24 & La API debe identificar cuándo un usuario no cuenta con línea base suficiente (por debajo de un umbral mínimo configurable de días/eventos) y marcarlo en un estado ``en período de aprendizaje''. \\
-	\hline
-	RF-25 & La API debe aplicar, durante el período de aprendizaje, una política más permisiva/informativa configurable (por ejemplo, solo generar alertas sin bloquear). \\
-	\hline
-	RF-26 & El \emph{dashboard} debe mostrar a los usuarios en período de aprendizaje en una vista diferenciada, con un indicador de progreso hacia la línea base mínima. \\
-	\hline
-	RF-27 & La API debe transicionar automáticamente al usuario del estado ``en período de aprendizaje'' al modo de evaluación normal al alcanzar el umbral mínimo de datos, y el \emph{dashboard} debe reflejarlo. \\
-	\hline
-\end{longtable}
-
-\section{Requerimientos No Funcionales}
-Los requerimientos no funcionales son transversales: no están atados a un único caso de uso, sino que constituyen criterios de calidad aplicables a varios de ellos a la vez.
-
-\begin{longtable}{p{1.8cm}p{2.6cm}p{10.2cm}}
-	\caption{Requerimientos no funcionales}
-	\label{tab:rnf}\\
-	\hline
-	\textbf{ID} & \textbf{Categoría} & \textbf{Requerimiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Categoría} & \textbf{Requerimiento} \\
-	\hline
-	\endhead
-	RNF-01 & Rendimiento & El cálculo del \emph{score} de riesgo para un evento individual debe completarse en un tiempo que no introduzca demora perceptible en el flujo de trabajo del usuario monitoreado. \\
-	\hline
-	RNF-02 & Rendimiento & El sondeo de señales locales por parte del agente debe tener una frecuencia configurable, sin generar un consumo de CPU/memoria perceptible en el equipo del usuario. \\
-	\hline
-	RNF-03 & Seguridad & Toda operación de escritura sobre estado o configuración (envío de eventos, cambios de política, disparo de reentrenamiento) debe requerir autenticación mediante clave de API. \\
-	\hline
-	RNF-04 & Seguridad & El agente no debe decidir de forma autónoma qué proceso o recurso restringir más allá de la acción indicada por la API; la decisión de riesgo debe originarse siempre en el motor de \emph{scoring} central.\\
-	\hline
-	RNF-05 & Confiabilidad & Un evento que no pueda enviarse al motor de \emph{scoring} por una falla transitoria de red no debe interrumpir el monitoreo continuo del agente. \\
-	\hline
-	RNF-06 & Confiabilidad & Las acciones de mitigación que restringen el acceso a un recurso (ej.\ \texttt{denegar\_carpeta}) o suspenden un proceso (\texttt{suspender\_proceso}) deben poder revertirse mediante un procedimiento definido, sin dejar el equipo restringido de forma permanente. Las acciones que finalizan un proceso (\texttt{terminar\_procesos}) no son reversibles en ese mismo sentido, por tratarse de una operación irreversible a nivel de sistema operativo; en ese caso el requisito aplica al componente reversible de la acción combinada (\texttt{terminar\_y\_denegar} $\rightarrow$ la restricción de carpeta sí debe poder revertirse). \\
-	\hline
-	RNF-07 & Escalabilidad & El motor de \emph{scoring} debe soportar múltiples usuarios de forma concurrente, manteniendo el estado y la línea base de cada uno de forma independiente. \\
-	\hline
-	RNF-08 & Mantenibilidad & Los umbrales de riesgo, las reglas de política y la periodicidad de reentrenamiento deben poder modificarse desde el \emph{dashboard} sin reiniciar ni redesplegar ningún componente del sistema. \\
-	\hline
-	RNF-09 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario mediante indicadores visuales (color/ícono) que permitan priorizar de un vistazo. \\
-	\hline
-	RNF-10 & Disponibilidad & El reentrenamiento del modelo debe ejecutarse en un proceso aislado del que sirve las predicciones en producción, de forma que una falla o demora en el entrenamiento no degrade la evaluación de eventos en curso. \\
-	\hline
-	RNF-11 & Explicabilidad & Las decisiones de riesgo alto que derivan en una acción de mitigación deben poder acompañarse de una justificación legible (qué factores/comportamiento la motivaron), no solo un número de \emph{score}. \\
-	\hline
-	RNF-12 & Portabilidad & El agente debe ser compatible con el sistema operativo Windows, dado que el escenario de despliegue objetivo son \emph{endpoints} corporativos Windows. \\
-	\hline
-\end{longtable}
-
-\section{Casos de Uso}
-\label{sec:casos-de-uso}
-
-\subsection{CU-01: Detección de desviación conductual y aislamiento automático del proceso}
-\noindent\textbf{Actor principal:} Agente local (PEP) + API (PDP)
-
-\noindent\textbf{Disparador:} El usuario ejecuta una acción que se aparta significativamente de su línea base de comportamiento (ej.\ accede a una carpeta de archivos que nunca había tocado, en un horario atípico).
-
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El agente instalado en el \emph{endpoint} captura el evento (proceso ejecutado, ruta de archivo accedida) junto con metadatos de contexto (hora, IP local/externa, si es red corporativa).
-	\item El agente envía el evento a la API mediante un canal seguro y de baja latencia.
-	\item La API recupera el historial y la línea base del usuario, calcula el \emph{score} dinámico de confianza aplicando el modelo de IA (ej.\ Isolation Forest u otro algoritmo entrenado) y aplica el decaimiento temporal correspondiente al riesgo acumulado previo.
-	\item Según el nivel de riesgo resultante (bajo/medio/alto/crítico) frente a los umbrales configurados, la API responde al agente con la acción concreta mapeada a ese nivel (ej.\ \texttt{terminar\_procesos}, \texttt{terminar\_y\_denegar} para los niveles alto/crítico).
-	\item El agente ejecuta la restricción localmente (sin \emph{re-login}, sin depender de un tercero como SOAR) y notifica a la API la confirmación de ejecución.
-	\item El evento y la acción tomada quedan registrados para el \emph{dashboard}.
-\end{enumerate}
-
-\noindent\textbf{Postcondición:} El \emph{score} del usuario queda actualizado; el incidente aparece en el \emph{dashboard} con severidad y acción aplicada.
-
-\noindent\textbf{Valor diferencial:} A diferencia de Sentinel, Splunk UBA o Exabeam, que detectan y alertan pero delegan la respuesta, aquí el cierre del ciclo detección$\rightarrow$decisión$\rightarrow$acción es autónomo y ocurre en el propio \emph{endpoint}.
-
-\subsection{CU-02: Ajuste de umbrales y políticas de respuesta desde el dashboard}
-\noindent\textbf{Actor principal:} Administrador de seguridad (vía \emph{Dashboard}) $\rightarrow$ API
-
-\noindent\textbf{Disparador:} El administrador quiere adaptar la sensibilidad del sistema a un contexto específico (ej.\ un área con datos más sensibles, o para reducir falsos positivos reportados).
-
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El administrador inicia sesión en el \emph{dashboard} y visualiza el listado de usuarios/entidades con su \emph{score} de confianza actual en tiempo real (filtrado por nivel de riesgo).
-	\item Selecciona un umbral existente (ej.\ ``riesgo moderado: 40--60'') y lo modifica, o define una nueva regla: ``si nivel = alto $\rightarrow$ \texttt{terminar\_procesos}; si nivel = crítico $\rightarrow$ \texttt{terminar\_y\_denegar}''.
-	\item El \emph{dashboard} envía la actualización a la API mediante un \emph{endpoint} de configuración.
-	\item La API valida la consistencia de la política (rangos no solapados, acciones válidas) y la persiste, aplicándola a partir de ese momento a nuevas evaluaciones de \emph{score}.
-	\item El \emph{dashboard} confirma visualmente el cambio y muestra un historial de versiones de política (para trazabilidad/auditoría).
-\end{enumerate}
-
-\noindent\textbf{Postcondición:} Las próximas evaluaciones de riesgo usan la política actualizada sin necesidad de reiniciar el agente ni la API.
-
-\noindent\textbf{Valor diferencial:} Resuelve directamente lo relevado en la encuesta (``¿su API debe ser agresiva o informativa?'') permitiendo calibrar el sistema sin intervención de desarrollo, cerrando la brecha de ``falta de explicabilidad/personalización'' mencionada en las limitaciones del estado del arte.
-
-\subsection{CU-03: Reentrenamiento periódico del modelo de IA sin afectar el entorno productivo (fuera de alcance del 50\%)}
-\noindent\textbf{Actor principal:} API (motor de IA) + \emph{Dashboard} (configuración)
-
-\noindent\textbf{Disparador:} Se cumple el período de reentrenamiento configurado (ej.\ cada 7 días) o el administrador lo dispara manualmente.
-
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item Desde el \emph{dashboard}, el administrador configura la periodicidad de reentrenamiento y una ventana horaria de bajo impacto (ej.\ madrugada).
-	\item Llegado el momento, la API recopila los eventos acumulados desde el último entrenamiento y reconstruye/actualiza la línea base de comportamiento por usuario.
-	\item El motor de IA se reentrena en un proceso paralelo/aislado del que sirve las predicciones en producción, para no introducir latencia en la evaluación de eventos en curso.
-	\item Al finalizar, la API valida el nuevo modelo (ej.\ comparando métricas de falsos positivos contra el modelo anterior) antes de promoverlo a producción.
-	\item El \emph{dashboard} muestra un log del reentrenamiento: fecha, cantidad de eventos usados, variación de métricas.
-\end{enumerate}
-
-\noindent\textbf{Postcondición:} El modelo se actualiza incorporando comportamientos nuevos (cambios de rol, nuevas herramientas), mitigando la degradación del modelo mencionada como limitación reportada por otros autores referenciados, sin interrumpir el monitoreo activo.
-
-\noindent\textbf{Valor diferencial:} Aborda explícitamente el problema de ``degradación del modelo ante cambios de comportamiento'' documentado en el estado del arte, con un mecanismo configurable y controlado desde el \emph{dashboard}.
-
-\subsection{CU-04: Alta de un usuario nuevo y manejo del período de cold-start (fuera de alcance del 50\%)}
-\noindent\textbf{Actor principal:} Agente (recolección) + API (modelo) + \emph{Dashboard} (visibilidad)
-
-\noindent\textbf{Disparador:} Se detecta actividad de un \texttt{uid} sin historial previo en el sistema (usuario nuevo o que cambió de rol).
-
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El agente comienza a reportar eventos del usuario apenas se instala/activa en su equipo.
-	\item La API identifica que no existe línea base suficiente (por ejemplo, menos de X días/eventos acumulados) y marca al usuario con un estado especial ``en período de aprendizaje'' en lugar de aplicarle directamente el \emph{score} de riesgo estándar.
-	\item Durante ese período, la API aplica una política más permisiva/informativa configurable (ej.\ solo generar alertas, sin bloquear), evitando los falsos positivos típicos del \emph{cold-start} señalados en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
-	\item El \emph{dashboard} muestra a estos usuarios en una vista diferenciada (ej.\ ``en calibración'') con una barra de progreso o indicador de cuántos eventos/días faltan para tener una línea base confiable.
-	\item Al completarse el umbral mínimo de datos, la API transiciona automáticamente al usuario al modo de evaluación normal, y el \emph{dashboard} lo refleja.
-\end{enumerate}
-
-\noindent\textbf{Postcondición:} El usuario nuevo queda bajo monitoreo estándar sin haber generado fricción/bloqueos injustificados durante su etapa inicial.
-
-\noindent\textbf{Valor diferencial:} Traduce en un mecanismo concreto del sistema una de las limitaciones más citadas en el estado del arte (\emph{cold-start}), algo que ni Sentinel, Splunk UBA ni Exabeam resuelven de forma nativa y configurable por el administrador.
-
-\section{Historias de Usuario}
-\subsection{Módulo 1: Agente Local y Telemetría en Tiempo Real (CU-01)}
-
-\subsubsection{HU-01: Captura de eventos y contexto del endpoint}
-Como agente instalado en el endpoint, quiero registrar las acciones del usuario (procesos ejecutados, archivos abiertos) y capturar el contexto del entorno (hora, dirección IP y tipo de red), para enviarlos al motor de riesgo.
-\begin{itemize}
-	\item Si el usuario realiza una acción monitoreada, el agente genera inmediatamente el evento adjuntando los metadatos de contexto.
-	\item Si el evento ocurre fuera de la red corporativa, el agente marca la bandera de red como externa.
-\end{itemize}
-
-\subsubsection{HU-02: Envío seguro e ininterrumpido de eventos a la API}
-Como agente local, quiero transmitir los eventos detectados hacia la API de forma continua mediante un canal seguro, para que los fallos de red no bloqueen el monitoreo del endpoint.
-\begin{itemize}
-	\item Si se genera un evento, el agente lo envía a la API mediante una conexión autenticada de baja latencia.
-	\item Si la conexión con la API se interrumpe por problemas de red, el agente sigue registrando eventos locales sin detenerse ni fallar.
-\end{itemize}
-
-\subsubsection{HU-03: Evaluación de riesgo dinámico y decaimiento temporal}
-Como motor de análisis de riesgo, quiero procesar las métricas de comportamiento con el modelo entrenado y calcular un \emph{score} dinámico que contemple la tendencia reciente del usuario, para determinar la acción correctiva que corresponde en cada caso.
-\begin{itemize}
-	\item Al recibir un nuevo evento, el sistema recupera el historial del usuario y calcula el \emph{score} actual contra el modelo de IA.
-	\item Si el usuario traía un riesgo acumulado de sesiones anteriores, el sistema le aplica la tasa de decaimiento temporal correspondiente antes de actualizar la nota final.
-	\item Una vez obtenido el nivel de riesgo final, el motor mapea la acción correctiva configurada para ese rango y la devuelve al agente.
-\end{itemize}
-
-\subsubsection{HU-04: Aplicación inmediata de restricciones locales}
-Como agente local, quiero aplicar de inmediato en el equipo las restricciones que ordena la API, para no depender de un reinicio de sesión ni de servidores externos.
-\begin{itemize}
-	\item Si la API ordena una acción de mitigación, el agente la ejecuta en el \emph{endpoint} de manera transparente para el usuario.
-	\item Tras aplicar la restricción, el agente confirma la ejecución a la API para registrar el evento en el historial.
-\end{itemize}
-
-\subsection{Módulo 2: Panel de Control y Gestión de Políticas (CU-02)}
-
-\subsubsection{HU-05: Monitoreo de scores en tiempo real}
-Como administrador de seguridad, quiero visualizar el listado de usuarios activos junto con sus niveles de riesgo actuales y filtrar por rango, para priorizar la revisión de incidentes.
-\begin{itemize}
-	\item Al abrir la consola principal, se lista el nivel de riesgo actualizado de cada usuario monitoreado.
-	\item Al seleccionar un filtro por nivel de riesgo, la pantalla muestra únicamente los usuarios dentro de ese rango.
-\end{itemize}
-
-\subsubsection{HU-06: Definición e inserción de reglas de seguridad}
-Como administrador de seguridad, quiero modificar umbrales y crear reglas de acción (mapeo entre rango de riesgo y restricción), para ajustar la respuesta del sistema sin interrumpir el servicio.
-\begin{itemize}
-	\item Al modificar un umbral, la API verifica la consistencia de los rangos antes de guardar los cambios.
-	\item Si se intenta guardar una regla con rangos superpuestos o incoherentes, la API rechaza la solicitud y el panel muestra el detalle del error.
-	\item Una vez validada y guardada, la nueva regla entra en vigencia de inmediato sin necesidad de reiniciar la API ni los agentes locales.
-\end{itemize}
-
-\subsubsection{HU-07: Auditoría e historial de políticas}
-Como administrador de seguridad, quiero contar con un registro cronológico de todas las modificaciones aplicadas a las reglas de seguridad, para poder auditar los cambios realizados.
-\begin{itemize}
-	\item Al consultar el módulo de auditoría, el administrador puede revisar la versión previa, la nueva regla y la fecha exacta del cambio.
-\end{itemize}
-
-\subsection{Módulo 3: Ciclo de Vida y Reentrenamiento del Modelo (CU-03), fuera de alcance del 50\%}
-
-\subsubsection{HU-08: Planificación de reentrenamientos}
-Como administrador, quiero programar los rangos horarios y la frecuencia con que el modelo vuelve a entrenarse, para no sobrecargar el sistema en horas de alto uso.
-\begin{itemize}
-	\item Al ingresar una periodicidad y ventana horaria válidas, el sistema guarda la programación para ejecuciones futuras.
-\end{itemize}
-
-\subsubsection{HU-09: Entrenamiento aislado y promoción de versiones}
-Como pipeline de IA, quiero reentrenar en un entorno independiente del de producción y comparar el rendimiento del nuevo modelo contra el actual, para asegurar que solo se despliega si iguala o supera la precisión vigente.
-\begin{itemize}
-	\item Cuando se dispara el proceso, el sistema compila de forma anónima los eventos acumulados desde la última versión.
-	\item Al finalizar el entrenamiento, el nuevo modelo solo se despliega a producción si sus métricas igualan o superan la precisión del modelo actual.
-\end{itemize}
-
-\subsubsection{HU-10: Registro y métricas del entrenamiento}
-Como administrador, quiero disponer de una bitácora detallada de cada sesión de entrenamiento procesada por la plataforma, para hacer seguimiento del proceso y sus resultados.
-\begin{itemize}
-	\item Una vez completado el entrenamiento, la consola muestra la fecha de ejecución, la cantidad de datos procesados y la variación de métricas resultantes.
-\end{itemize}
-
-\subsection{Módulo 4: Enrolamiento y Calibración Inicial / Cold-Start (CU-04), fuera de alcance del 50\%}
-
-\subsubsection{HU-11: Modo de aprendizaje para usuarios nuevos}
-Como motor de riesgo, quiero identificar a los usuarios sin historial suficiente y aplicarles una política permisiva temporal mientras construyen su perfil de comportamiento base, para evitar falsos positivos durante esa etapa.
-\begin{itemize}
-	\item Si un usuario no suma la cantidad mínima de días o eventos configurados, el sistema lo asigna automáticamente al estado ``en período de aprendizaje''.
-	\item Durante este periodo, las anomalías detectadas solo generan alertas informativas sin aplicar bloqueos ni restricciones en el equipo.
-\end{itemize}
-
-\subsubsection{HU-12: Seguimiento de usuarios en calibración}
-Como administrador, quiero visualizar de forma diferenciada qué usuarios están construyendo su perfil base y cuánto les falta para completar la fase de aprendizaje, para hacer seguimiento del proceso de calibración.
-\begin{itemize}
-	\item El panel dispone de una sección dedicada donde los usuarios en fase inicial se agrupan con una barra de progreso basada en el volumen de datos recopilados.
-\end{itemize}
-
-\subsubsection{HU-13: Graduación automática a monitoreo estándar}
-Como sistema, quiero cambiar el estado del usuario de modo aprendizaje a monitoreo activo una vez alcanzada la masa de datos necesaria, para que la transición no requiera intervención manual.
-\begin{itemize}
-	\item Cuando el usuario alcanza el umbral mínimo de datos, el siguiente evento se evalúa bajo el régimen estándar y el cambio se refleja en la consola.
-\end{itemize}
-
-
-\subsection{Módulo 5: Seguridad y Autenticación Transversal}
-
-\subsubsection{HU-14: Control de acceso por API Key}
-Como sistema, quiero validar la autenticidad de toda petición que modifique datos, altere configuraciones o ejecute tareas críticas mediante una clave de API autorizada, para proteger la plataforma frente a llamadas no autorizadas. (Nota de alcance: excluida de la auditoría de cumplimiento de esta entrega, por decisión del autor; ver RNF-03.)
-\begin{itemize}
-	\item Si una petición para enviar eventos, actualizar reglas o iniciar un reentrenamiento no adjunta una clave válida, la API la rechaza de inmediato.
-\end{itemize}
- 
 \chapter{Justificación de Diseño y Mockups}
 El \emph{dashboard} es uno de los tres componentes del sistema (junto al agente PEP local y la API PDP) y es el punto de interacción directa del administrador de seguridad con el motor de \emph{scoring} híbrido (Isolation Forest + LSTM Autoencoder). Su función no es cosmética: es la interfaz mediante la cual se cumplen CU-02 (ajuste de umbrales y políticas de respuesta) y se da visibilidad operativa a CU-01 (detección y mitigación automática).
 
 El relevamiento cubre las 6 pantallas navegables del \emph{dashboard} (Usuarios, Con historial, Alertas, Umbrales, Auditoría y Estado del sistema), la pantalla de acceso (\emph{Login}) y la vista de detalle de usuario, a la que se llega haciendo clic sobre una fila del listado de Usuarios.
 
 \section{Metodología de diseño}
-El diseño de este \emph{dashboard} no partió de un \emph{wireframe} estático, sino que se construyó de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-08, RNF-09) y refinando la presentación visual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
+El diseño de este \emph{dashboard} no partió de un \emph{wireframe} estático, sino que se construyó de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-07, RNF-15) y refinando la presentación visual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
 
 Cada \emph{wireframe} de este documento representa la estructura de esa pantalla ya validada(agrupación de información, jerarquía visual y controles disponibles). Se dibujaron en fromato de un \emph{wireframe} de baja-media fidelidad, sin el detalle de estilo final que sí se justifica por separado en el Capítulo~\ref{sec:decisiones-transversales-mockups} y que se puede contrastar directamente contra la pantalla real.
 
@@ -432,7 +42,9 @@ Pantalla previa a cualquier vista operativa. Permite el acceso a la configuraci�
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RNF-09 & El formulario centrado sobre fondo oscuro con un único punto de foco (usuario/contraseña/botón) prioriza claridad inmediata sobre densidad de información, no hay nada más que decidir en esta pantalla. \\
+	RNF-15 & El formulario centrado sobre fondo oscuro con un único punto de foco (usuario/contraseña/botón) prioriza claridad inmediata sobre densidad de información, no hay nada más que decidir en esta pantalla. \\
+	\hline
+	HU-14 / RNF-03 & Pantalla de inicio de sesión que restringe el acceso al \emph{dashboard}; la autorización efectiva de las operaciones de configuración la valida la API mediante la clave. \\
 	\hline
 	CU-02 & Es el punto de entrada obligatorio antes de que el administrador pueda ajustar umbrales o políticas de respuesta, cerrando el flujo descrito en el caso de uso. \\
 	\hline
@@ -440,7 +52,7 @@ Pantalla previa a cualquier vista operativa. Permite el acceso a la configuraci�
 \FloatBarrier
 
 \subsection{Usuarios (listado)}
-Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y su última actividad. Es la vista que responde directamente a RF-12: dar visibilidad en tiempo real al administrador antes de que tenga que entrar al detalle de cada usuario.
+Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y su última actividad. Es la vista que responde directamente a RF-16: dar visibilidad en tiempo real al administrador antes de que tenga que entrar al detalle de cada usuario.
 
 \begin{figure}[t]
 	\centering
@@ -465,9 +77,9 @@ Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acció
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RF-12 & El listado muestra \emph{score}/nivel de confianza en tiempo real por usuario, con filtro por nivel de riesgo, tal como pide el requerimiento. \\
+	RF-16 & El listado muestra \emph{score}/nivel de confianza en tiempo real por usuario, con filtro por nivel de riesgo, tal como pide el requerimiento. \\
 	\hline
-	RNF-09 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver Capítulo~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
+	RNF-15 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver Capítulo~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
 	\hline
 	CU-01 (postcondición) & La acción de mitigación decidida por la API queda visible por usuario, sin que el administrador tenga que consultar \emph{logs} por separado. \\
 	\hline
@@ -508,9 +120,9 @@ La tabla de Eventos recientes está acotada a 20 filas (RF-09) y se aclara que e
 	\endhead
 	RF-09 & El límite de 20 eventos evaluados por usuario, con el más reciente primero, está impuesto por requerimiento y comunicado en el propio texto de la sección. \\
 	\hline
-	RF-12 & Expone el detalle completo de \emph{score} y confianza que el listado general resume en un \emph{badge}, cerrando el flujo ``ver todos'' $\rightarrow$ ``investigar uno''. \\
+	RF-16 & Expone el detalle completo de \emph{score} y confianza que el listado general resume en un \emph{badge}, cerrando el flujo ``ver todos'' $\rightarrow$ ``investigar uno''. \\
 	\hline
-	RNF-09 & Reutiliza los mismos \emph{badges} de nivel de riesgo y el mismo color de acento para el \emph{score} que en Usuarios y Alertas, y lo aplica también al punto del gráfico. \\
+	RNF-15 & Reutiliza los mismos \emph{badges} de nivel de riesgo y el mismo color de acento para el \emph{score} que en Usuarios y Alertas, y lo aplica también al punto del gráfico. \\
 	\hline
 	RNF-11 (explicabilidad) & El detalle evento por evento (tipo, \emph{score}, nivel, acción, proceso) da trazabilidad de qué generó el \emph{score} actual, no solo el número final. \\
 	\hline
@@ -543,7 +155,7 @@ Subconjunto operativo del listado de usuarios: solo los que están en nivel alto
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RNF-09 & Reutiliza el mismo patrón visual de \emph{badges} de nivel que el listado general, manteniendo consistencia y evitando que el administrador tenga que reaprender la codificación de color. \\
+	RNF-15 & Reutiliza el mismo patrón visual de \emph{badges} de nivel que el listado general, manteniendo consistencia y evitando que el administrador tenga que reaprender la codificación de color. \\
 	\hline
 	Transparencia de diseño & El límite del mecanismo (sin persistencia, sin \emph{push}) se declara en la propia pantalla en vez de dar a entender una capacidad de alertado que el sistema no tiene: es una decisión deliberada para no sobre-prometer funcionalidad. \\
 	\hline
@@ -551,7 +163,7 @@ Subconjunto operativo del listado de usuarios: solo los que están en nivel alto
 \FloatBarrier
 
 \subsection{Configuración de umbrales}
-Es la pantalla de mayor densidad funcional del \emph{dashboard}: concentra los 4 sub-formularios que dan cumplimiento a CU-02 completo (RF-13 a RF-17). Se organiza en secciones apiladas con jerarquía clara (Umbrales por nivel arriba, luego una grilla de dos columnas con Acción por nivel y Periodicidad de reentrenamiento, y Notificaciones al final), cada una con su propio botón de guardado independiente, lo que evita que un cambio de umbral dispare accidentalmente un guardado de notificaciones.
+Es la pantalla de mayor densidad funcional del \emph{dashboard}: concentra los 4 sub-formularios que dan cumplimiento a CU-02 completo (RF-12 a RF-15 y RF-17; la periodicidad corresponde a RF-18). Se organiza en secciones apiladas con jerarquía clara (Umbrales por nivel arriba, luego una grilla de dos columnas con Acción por nivel y Periodicidad de reentrenamiento, y Notificaciones al final), cada una con su propio botón de guardado independiente, lo que evita que un cambio de umbral dispare accidentalmente un guardado de notificaciones.
 
 El bloque de Notificaciones usa \emph{chips} tipo \emph{toggle} (uno por nivel de riesgo) en vez de \emph{checkboxes} sueltos: permite seleccionar varios niveles a la vez con el mismo patrón visual que los \emph{badges} de riesgo del resto del sistema, en lugar de un control de formulario genérico sin relación visual con el dominio.
 
@@ -582,13 +194,13 @@ El bloque de Notificaciones usa \emph{chips} tipo \emph{toggle} (uno por nivel d
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RF-13, RF-14 & Cada sub-formulario (umbrales, acciones, periodicidad, notificaciones) envía su propio \texttt{PUT} independiente al \emph{endpoint} de configuración correspondiente, reflejado en la separación visual de secciones con su propio botón. \\
+	RF-12, RF-14, RF-15, RF-18 & Cada sub-formulario (umbrales, acciones, periodicidad, notificaciones) envía su propio \texttt{PUT} independiente al \emph{endpoint} de configuración correspondiente, reflejado en la separación visual de secciones con su propio botón. \\
 	\hline
-	RF-15 & Los campos de umbral están dispuestos en pares desde/hasta contiguos por nivel, facilitando detectar visualmente un solapamiento antes de guardar (aunque la validación real ocurre del lado de la API). \\
+	RF-12 & Los campos de umbral están dispuestos en pares desde/hasta contiguos por nivel, facilitando detectar visualmente un solapamiento antes de guardar (aunque la validación real ocurre del lado de la API). \\
 	\hline
-	RNF-08 & Todo el formulario opera en caliente contra la API, sin ningún paso de reinicio: el diseño no incluye ninguna acción de tipo ``aplicar y reiniciar''. \\
+	RNF-07 & Todo el formulario opera en caliente contra la API, sin ningún paso de reinicio: el diseño no incluye ninguna acción de tipo ``aplicar y reiniciar''. \\
 	\hline
-	RNF-09 / consistencia & Los \emph{chips} de Notificaciones reutilizan la misma forma visual (\emph{badge} redondeado, color por nivel) que el resto de las pantallas usa para representar niveles de riesgo. \\
+	RNF-15 / consistencia & Los \emph{chips} de Notificaciones reutilizan la misma forma visual (\emph{badge} redondeado, color por nivel) que el resto de las pantallas usa para representar niveles de riesgo. \\
 	\hline
 \end{longtable}
 \FloatBarrier
@@ -652,7 +264,7 @@ Pantalla de verificación técnica: expone el resultado de \texttt{/health} de l
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RNF-09 (aplicado a estado técnico) & Mismo lenguaje visual de \emph{badges} de estado (OK / \emph{healthy}) que el resto del sistema usa para nivel de riesgo, aplicado aquí a salud de infraestructura en vez de riesgo de usuario. \\
+	RNF-15 (aplicado a estado técnico) & Mismo lenguaje visual de \emph{badges} de estado (OK / \emph{healthy}) que el resto del sistema usa para nivel de riesgo, aplicado aquí a salud de infraestructura en vez de riesgo de usuario. \\
 	\hline
 \end{longtable}
 \FloatBarrier
@@ -683,7 +295,7 @@ Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \t
 	\textbf{ID} & \textbf{Justificación de diseño} \\
 	\hline
 	\endhead
-	RF-12 (complementario) & Extiende la visibilidad en tiempo real del listado operacional con una vista de acceso a datos persistidos, sin mezclar ambas fuentes en una sola tabla. \\
+	RF-16 (complementario) & Extiende la visibilidad en tiempo real del listado operacional con una vista de acceso a datos persistidos, sin mezclar ambas fuentes en una sola tabla. \\
 	\hline
 	Transparencia de diseño & La nota aclaratoria sobre la posible divergencia Redis/Postgres es una decisión de diseño explícita para que el administrador no interprete una ausencia en esta lista como ``sin historial real''. \\
 	\hline
