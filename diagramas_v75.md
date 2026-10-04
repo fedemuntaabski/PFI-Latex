@@ -1,49 +1,40 @@
-# Diagramas v75 (Mermaid -> PDF/PNG)
+# Diagramas v75 — renders Mermaid
 
-Fuente: `modelo_datos_pfi75.md` del repo PFI (no está en este repo; leído desde `G:\pfi\Agente-Aut-...\`, sin modificar). Render: `npx @mermaid-js/mermaid-cli` (sin dependencias nuevas), PDF vectorial + PNG (escala 4, >= 530 dpi a 15 cm de ancho). Salida: `images/diagramas/v75/`. No se tocó ningún `.tex`; no hay commit.
+Fuente: `modelo_datos_pfi75.md` (en la raíz del repo, no en `documentacion/`). Rama `feature/diagramas-v75`. Los renders ya existían en `images/diagramas/v75/` y están commiteados en `27e8167`; en esta pasada solo se verificaron (sin re-renderizar, sin nuevos commits, sin tocar `.tex`).
 
-## Archivos (14 PDF + 14 PNG)
+Origen: 9 bloques `mermaid` (1 erDiagram, 7 classDiagram, 1 flowchart) → 14 diagramas, cada uno en PDF + PNG (3136 px de ancho = escala 4, ≈300 dpi a ~26 cm). Cuatro bloques se partieron para legibilidad: ER en 2, §4.3 (schemas) en 3, §4.5 (scoring) en 2 y despliegue en 2 (aws / local).
 
-Original 9 diagramas -> 14 archivos, porque 4 se partieron (ver abajo).
+## Archivos y dimensiones
+Factor = 13,5 cm / ancho PDF (21,2 cm); el texto base ronda 12 pt en el PDF.
 
-| Archivo (.pdf/.png) | Ancho natural x alto (px CSS) | PNG (px) | Fuente a 15 cm | Fuente a 12 cm |
-|---|---|---|---|---|
-| `clases_agente_collectors` | 1133 x 400 | 3136 x 1108 | 6.0 pt | 4.8 pt |
-| `clases_agente_enforcement` | 1011 x 588 | 3136 x 1824 | 6.7 pt | 5.4 pt |
-| `clases_api_iam_auth_config` | 1218 x 586 | 3136 x 1512 | 5.6 pt | 4.5 pt |
-| `clases_api_persistencia` | 828 x 598 | 3136 x 2268 | 8.2 pt | 6.6 pt |
-| `clases_api_redis` | 1066 x 676 | 3136 x 1992 | 6.4 pt | 5.1 pt |
-| `clases_api_schemas_accion_health` | 552 x 118 | 2212 x 472 | 12.3 pt | 9.9 pt |
-| `clases_api_schemas_config` | 735 x 260 | 2944 x 1040 | 9.3 pt | 7.4 pt |
-| `clases_api_schemas_eventos` | 815 x 339 | 3136 x 1308 | 8.3 pt | 6.7 pt |
-| `clases_api_scoring_modelos` | 1169 x 434 | 3136 x 1168 | 5.8 pt | 4.7 pt |
-| `clases_api_scoring_orquestacion` | 670 x 414 | 2680 x 1656 | 10.2 pt | 8.1 pt |
-| `despliegue_aws` | 968 x 900 | 3136 x 2916 | 7.0 pt | 5.6 pt |
-| `despliegue_local` | 968 x 742 | 3136 x 2404 | 7.0 pt | 5.6 pt |
-| `er_postgres_config_modelos` | 1047 x 694 | 3136 x 2084 | 6.5 pt | 5.2 pt |
-| `er_postgres_scoring_eventos` | 820 x 952 | 3136 x 3644 | 8.3 pt | 6.6 pt |
+| Archivo (.pdf / .png) | PDF (pt) | PNG (px) | Tamaño a 13,5 cm de ancho |
+|---|---|---|---|
+| er_postgres_config_modelos | 600 × 403 | 3136 × 2084 | 13,5 × 9,1 cm |
+| er_postgres_scoring_eventos | 600 × 696 | 3136 × 3644 | 13,5 × 15,7 cm |
+| clases_agente_collectors | 600 × 220 | 3136 × 1108 | 13,5 × 5,0 cm |
+| clases_agente_enforcement | 600 × 354 | 3136 × 1824 | 13,5 × 8,0 cm |
+| clases_api_schemas_eventos | 600 × 258 | 3136 × 1308 | 13,5 × 5,8 cm |
+| clases_api_schemas_config | 564 × 207 | 2944 × 1040 | 13,5 × 5,0 cm (ancho natural 19,9 cm) |
+| clases_api_schemas_accion_health | 427 × 101 | 2212 × 472 | 13,5 × 3,2 cm (ancho natural 15,1 cm) |
+| clases_api_redis | 600 × 386 | 3136 × 1992 | 13,5 × 8,7 cm |
+| clases_api_scoring_orquestacion | 515 × 323 | 2680 × 1656 | 13,5 × 8,5 cm (ancho natural 18,2 cm) |
+| clases_api_scoring_modelos | 600 × 231 | 3136 × 1168 | 13,5 × 5,2 cm |
+| clases_api_iam_auth_config | 600 × 296 | 3136 × 1512 | 13,5 × 6,7 cm |
+| clases_api_persistencia | 600 × 438 | 3136 × 2268 | 13,5 × 9,9 cm |
+| despliegue_aws | 600 × 559 | 3136 × 2916 | 13,5 × 12,6 cm |
+| despliegue_local | 600 × 463 | 3136 × 2404 | 13,5 × 10,4 cm |
 
-"Fuente a 15/12 cm" = tamaño efectivo del texto base de Mermaid (16 px) al insertar el PDF con ese ancho. Criterio usado: >= ~6 pt a 15 cm.
+## Verificación de legibilidad (12–15 cm)
+- A 13,5 cm el texto base queda en ≈7,7 pt; a 12 cm ≈6,8 pt; a 15 cm ≈8,5 pt. Legible, pero justo en el extremo de 12 cm.
+- Revisados visualmente (rasterizados): `er_postgres_scoring_eventos` (el más alto) y `despliegue_aws` (el más denso): se leen todos los nodos, columnas y etiquetas de aristas. Los demás son menos densos y de ancho igual o menor.
+- Ninguno quedó ilegible, así que no hizo falta partir más.
 
-## Cambios de contenido
+## Despliegue sin emojis
+Los PDF de `despliegue_aws` y `despliegue_local` no tienen emojis (`pdftotext` sin glifos pictográficos). Se usan `[desplegado]`, `[no creado]`, `[a verificar]` y `solo local`. Contenido de nodos y aristas conservado.
 
-- **Despliegue**: emojis reemplazados por texto entre corchetes: ✅ `[desplegado]`, ❌ `[no creado]`, ⚠️ `[a verificar]`, 🖥️ `[solo local]`, 🧪 `[solo tests]`. Se quitaron palabras que quedaban duplicadas ("no creada", "tests,"), nada más. La leyenda con emojis (L334 del .md) está fuera del bloque Mermaid y no se renderiza.
-- `clases_api_iam_auth_config`: **el diagrama original no compila** en Mermaid (`Parse error ... Expecting 'NEWLINE', 'EOF', got 'LABEL'`) por la etiqueta `agent_key:{hash}`. Para renderizar se cambió a `agent_key (hash)` y `config:*` a `config (prefijo)`. El `.md` fuente sigue con el error.
-
-## Diagramas partidos (no se leían a 12–15 cm: 3,2–4,2 pt)
-
-| Original | Partes | Criterio |
-|---|---|---|
-| `er_postgres` (3,9 pt) | `er_postgres_scoring_eventos` (historial_scores, eventos_crudos, drift_alerts) · `er_postgres_config_modelos` (politicas, reentrenamientos, metricas_modelo, agent_keys) | Cada parte conserva sus relaciones |
-| `clases_api_schemas` (3,2 pt) | `_eventos` · `_config` · `_accion_health` | Clases sueltas en una sola fila ancha |
-| `clases_api_scoring` (4,2 pt) | `_orquestacion` · `_modelos` | `hybrid_service` aparece en ambas para conservar sus relaciones |
-| `despliegue` (4,0 pt) | `despliegue_local` · `despliegue_aws` | Los servicios externos se repiten en cada parte; ambos con layout `TB` y `%%{init}%%` de espaciado (no cambia contenido) |
-
-Los PDF/PNG de los originales sin partir se eliminaron para que no se use por error una versión ilegible.
-
-## Problemas pendientes
-
-- Por debajo de 6 pt a 15 cm: `clases_api_iam_auth_config` (5,6), `clases_api_scoring_modelos` (5,8). A 12 cm, bajo 5 pt: `clases_agente_collectors` (4,8), `clases_api_iam_auth_config` (4,5), `clases_api_scoring_modelos` (4,7). Se recomienda insertarlos a 15 cm; si deben ir más chicos, partirlos.
-- `hybrid_service` se dibuja con `<> process_event`: en el `.md` está escrito `{ <<module>> process_event }` en una línea y Mermaid pierde el estereotipo. Es de la fuente, no del render.
-- Los PNG y PDF salen con el ancho ya escalado por Mermaid (800 px fijo); el tamaño real de texto depende del ancho natural de la tabla.
-- Verificación visual hecha sobre `er_postgres` (previo al split), `clases_api_scoring` (previo), `despliegue_aws`, `despliegue_local` y `clases_api_scoring_modelos`; el resto se juzgó por la métrica de fuente, no a ojo.
+## Problemas / observaciones
+1. `modelo_datos_pfi75.md` está en la raíz, no en `documentacion/` como indicaba el pedido.
+2. En `modelo_datos_pfi75.md` §5 la leyenda en prosa (línea ~334) todavía usa emojis (✅ ❌ ⚠️ 🖥️ 🧪) y el bloque mermaid fuente también: el reemplazo por texto está solo en los renders. Si se vuelve a renderizar desde el `.md`, reaparecerían.
+3. `[desplegado]` reemplaza ✅ también en nodos que dicen "probado/verificado desde local" (Upstash, Supabase, Gemini): el matiz queda en el texto del nodo. 🧪 (SMTP) quedó como `[solo tests]`.
+4. Los nombres difieren del esquema del pedido (`er_postgres.pdf`, `despliegue.pdf` únicos) porque ER y despliegue se partieron en dos cada uno.
+5. Tres PDF (`clases_api_schemas_config`, `clases_api_schemas_accion_health`, `clases_api_scoring_orquestacion`) son más angostos que 21,2 cm (15–20 cm); a ancho 13,5 cm en LaTeX el texto queda algo más grande que en el resto. Sin problema.
