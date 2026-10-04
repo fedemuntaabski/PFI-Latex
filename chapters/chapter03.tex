@@ -275,7 +275,7 @@ Los requerimientos no funcionales son transversales: no están atados a un únic
 \begin{enumerate}
 	\item El agente comienza a reportar eventos del usuario apenas se instala/activa en su equipo.
 	\item La API identifica que no existe línea base suficiente (por ejemplo, menos de X días/eventos acumulados) y marca al usuario con un estado especial ``en período de aprendizaje'' en lugar de aplicarle directamente el \emph{score} de riesgo estándar.
-	\item Durante ese período, la API aplica una política más permisiva/informativa configurable (ej.\ solo generar alertas, sin bloquear), evitando los falsos positivos típicos del \emph{cold-start} señalados en la literatura (Villarreal-Vásquez et al., Benova \& Hudec).
+	\item Durante ese período, la API aplica una política más permisiva/informativa configurable (ej.\ solo generar alertas, sin bloquear), evitando los falsos positivos típicos del \emph{cold-start} señalados en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
 	\item El \emph{dashboard} muestra a estos usuarios en una vista diferenciada (ej.\ ``en calibración'') con una barra de progreso o indicador de cuántos eventos/días faltan para tener una línea base confiable.
 	\item Al completarse el umbral mínimo de datos, la API transiciona automáticamente al usuario al modo de evaluación normal, y el \emph{dashboard} lo refleja.
 \end{enumerate}
@@ -1066,7 +1066,7 @@ Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\textwidth]{images/diagramas/Redis.png}
+	\includegraphics[width=\textwidth]{images/diagramas/redis.png}
 	\caption{Diagrama de Bases de Datos.}
 	\label{fig:diagrama-bases-de-datos-redis}
 \end{figure}
@@ -1074,7 +1074,7 @@ Cada enlace de comunicación entre componentes utiliza el protocolo o mecanismo 
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=\textwidth]{images/diagramas/Supabase.png}
+	\includegraphics[width=\textwidth]{images/diagramas/supabase.png}
 	\caption{Diagrama de Bases de Datos.}
 	\label{fig:diagrama-bases-de-datos-supabase}
 \end{figure}
