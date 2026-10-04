@@ -11,7 +11,7 @@ Cada requerimiento indica su prioridad y su estado de implementación según la 
 
 \section{Actores del sistema}
 \label{sec:actores}
-\begin{longtable}{p{3.8cm}p{2.6cm}p{8.2cm}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{7.8cm}}
 	\caption{Actores del sistema}
 	\label{tab:actores}\\
 	\hline
@@ -43,7 +43,7 @@ Cada requerimiento indica su prioridad y su estado de implementación según la 
 Los requerimientos funcionales se organizan en siete módulos. Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal.
 
 \subsection{Módulo 1: Agente local y recolección de telemetría (CU-01)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 1}
 	\label{tab:rf-modulo1}\\
 	\hline
@@ -61,7 +61,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 \end{longtable}
 
 \subsection{Módulo 2: Motor de scoring y decisión (CU-01)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 2}
 	\label{tab:rf-modulo2}\\
 	\hline
@@ -80,12 +80,12 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-06 & La API debe aplicar una regla de piso que eleve el nivel mínimo cuando al menos uno de los dos modelos marca anomalía, evitando que la combinación diluya una señal fuerte. & Media & Implementado \\
 	\hline
-	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel$\rightarrow$acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
+	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel\,$\rightarrow$\,acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
 	\hline
 \end{longtable}
 
 \subsection{Módulo 3: Respuesta adaptativa y mitigación (CU-01)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 3}
 	\label{tab:rf-modulo3}\\
 	\hline
@@ -102,12 +102,12 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-10 & El agente debe ejecutar localmente la acción recibida, sin requerir un nuevo inicio de sesión del usuario, y confirmar a la API el resultado de la ejecución. & Alta & Implementado \\
 	\hline
-	RF-11 & El agente debe permitir revertir las acciones de mitigación aplicadas (restitución de permisos de carpeta y reanudación de procesos suspendidos). & Media & Implementado; \texttt{terminar\_procesos} no es reversible (ver RNF-06) \\
+	RF-11 & El agente debe permitir revertir las acciones de mitigación aplicadas (restitución de permisos de carpeta y reanudación de procesos suspendidos). & Media & Implementado; la terminación de procesos no es reversible (ver RNF-06) \\
 	\hline
 \end{longtable}
 
 \subsection{Módulo 4: Panel de administración y gestión de políticas (CU-02)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 4}
 	\label{tab:rf-modulo4}\\
 	\hline
@@ -133,7 +133,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 \end{longtable}
 
 \subsection{Módulo 5: Ciclo de vida del modelo y reentrenamiento (CU-03)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 5}
 	\label{tab:rf-modulo5}\\
 	\hline
@@ -157,7 +157,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 \end{longtable}
 
 \subsection{Módulo 6: Alta de usuario nuevo y cold-start (CU-04)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 6}
 	\label{tab:rf-modulo6}\\
 	\hline
@@ -181,7 +181,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 \end{longtable}
 
 \subsection{Módulo 7: Integración con sistemas IAM (transversal)}
-\begin{longtable}{p{1.6cm}p{8.6cm}p{1.6cm}p{2.8cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
 	\caption{Requerimientos funcionales del Módulo 7}
 	\label{tab:rf-modulo7}\\
 	\hline
@@ -204,7 +204,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 \label{sec:requerimientos-no-funcionales}
 Los requerimientos no funcionales son transversales a los casos de uso y definen criterios de calidad del sistema en su conjunto.
 
-\begin{longtable}{p{1.6cm}p{2.4cm}p{7.4cm}p{3.2cm}}
+\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{6.9cm}>{\raggedright\arraybackslash}p{3.3cm}}
 	\caption{Requerimientos no funcionales}
 	\label{tab:rnf}\\
 	\hline
@@ -215,9 +215,9 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\textbf{ID} & \textbf{Categoría} & \textbf{Requerimiento} & \textbf{Estado} \\
 	\hline
 	\endhead
-	RNF-01 & Rendimiento & La evaluación de un evento debe completarse en tiempo casi real, sin demora perceptible para la toma de decisión. & [[ESTADO SEGÚN P-C6]] \\
+	RNF-01 & Rendimiento & La evaluación de un evento debe completarse en tiempo casi real: percentil 95 de la latencia extremo a extremo menor o igual a 500~ms y percentil 99 menor o igual a 1~s, en red local. & Implementado: p95 de 14,9~ms y p99 de 148,9~ms en entorno local \\
 	\hline
-	RNF-02 & Eficiencia & El agente debe ser liviano y no degradar el uso normal del equipo. & [[ESTADO SEGÚN P-C6]] \\
+	RNF-02 & Eficiencia & El agente debe ser liviano y no degradar el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & [[ESTADO SEGÚN RNF-02]] \\
 	\hline
 	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Parcial: credenciales fijas por rol \\
 	\hline
@@ -225,13 +225,13 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-05 & Disponibilidad & Ante una caída de la API o errores de autenticación, el agente no debe detenerse: los eventos no enviados se conservan en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos) y se reenvían al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
-	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Parcial: \texttt{terminar\_procesos} no es reversible \\
+	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Parcial: la terminación de procesos no es reversible \\
 	\hline
 	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
 	RNF-08 & Privacidad & El agente recolecta solo metadatos de actividad; no captura contenido de archivos, mensajes, pantallas ni teclado. & Implementado \\
 	\hline
-	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & [[ESTADO SEGÚN P-C10]] \\
+	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & Parcial: cadena verificada manualmente, sin test automatizado ni inmutabilidad; esquema no estricto \\
 	\hline
 	RNF-10 & Aislamiento & El reentrenamiento no debe afectar la disponibilidad ni la latencia del servicio de \emph{scoring} en producción. & Implementado por diseño (proceso separado); sin medición de impacto \\
 	\hline
@@ -243,7 +243,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado \\
 	\hline
-	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado \\
+	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado; evaluación heurística en el capítulo de pruebas \\
 	\hline
 \end{longtable}
 
@@ -263,7 +263,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\item El agente captura el evento y lo envía a la API.
 	\item La API valida el esquema, descarta reenvíos duplicados, actualiza el estado del usuario y persiste el evento crudo.
 	\item La API calcula el puntaje híbrido, lo combina con la línea base personal del usuario, aplica el decaimiento temporal y asigna el nivel según los umbrales y la regla de piso.
-	\item La API genera la explicación del puntaje y determina la acción según el mapeo nivel$\rightarrow$acción. Si hay un proveedor IAM configurado (por defecto, ninguno), resuelve el rol y el departamento del usuario con caché y tolerancia a fallas; este dato se muestra en el \emph{dashboard} y no interviene en el modelo.
+	\item La API genera la explicación del puntaje y determina la acción según el mapeo nivel\,$\rightarrow$\,acción. Si hay un proveedor IAM configurado (por defecto, ninguno), resuelve el rol y el departamento del usuario con caché y tolerancia a fallas; este dato se muestra en el \emph{dashboard} y no interviene en el modelo.
 	\item La API responde al agente con el puntaje, el nivel y la acción.
 	\item El agente ejecuta la acción localmente y confirma el resultado.
 	\item Si el nivel está configurado para notificar, la API envía un correo al administrador; una falla en el envío no afecta la respuesta al agente.
@@ -281,7 +281,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 
 \noindent\textbf{Requerimientos asociados:} RF-01 a RF-11 y RF-28 a RF-30. \textbf{Historias de usuario:} HU-01 a HU-04, HU-15 y HU-16.
 
-\noindent\textbf{Valor diferencial:} Cierra el ciclo detección$\rightarrow$decisión$\rightarrow$acción en el propio \emph{endpoint}, sin intermediarios ni nuevo inicio de sesión, a diferencia de las soluciones relevadas en el estado del arte, que detectan y alertan pero delegan la respuesta.
+\noindent\textbf{Valor diferencial:} Cierra el ciclo detección\,$\rightarrow$\,decisión\,$\rightarrow$\,acción en el propio \emph{endpoint}, sin intermediarios ni nuevo inicio de sesión, a diferencia de las soluciones relevadas en el estado del arte, que detectan y alertan pero delegan la respuesta.
 
 \subsection{CU-02: Ajuste de umbrales y políticas de respuesta}
 \label{sec:cu02}
