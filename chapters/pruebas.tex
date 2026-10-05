@@ -304,9 +304,50 @@ La alta proporción de alertas en usuarios con pocos días de historial es consi
 
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
-La usabilidad del \emph{dashboard} se evaluó mediante una evaluación heurística, una técnica de inspección en la que evaluadores revisan la interfaz contra un conjunto de principios reconocidos. Se utilizaron las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}. Cada una de las ocho pantallas del \emph{dashboard} se revisó contra cada heurística, y los problemas encontrados se clasificaron según una escala de severidad de 0 (no es un problema) a 4 (problema grave que debe corregirse antes de la entrega). Esta evaluación aporta la evidencia del requerimiento RNF-15.
+La usabilidad del \emph{dashboard} se evaluó mediante una evaluación heurística, una técnica de inspección en la que se revisa la interfaz contra un conjunto de principios reconocidos. Se utilizaron las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}: visibilidad del estado del sistema (H1), correspondencia entre el sistema y el mundo real (H2), control y libertad del usuario (H3), consistencia y estándares (H4), prevención de errores (H5), reconocimiento antes que recuerdo (H6), flexibilidad y eficiencia de uso (H7), diseño estético y minimalista (H8), ayuda para reconocer, diagnosticar y recuperarse de errores (H9) y ayuda y documentación (H10).
 
-[[RESULTADOS DE LA EVALUACIÓN HEURÍSTICA: cantidad de problemas por severidad, heurísticas más afectadas y correcciones aplicadas]]
+El equipo revisó las ocho pantallas del \emph{dashboard} contra cada heurística. Los comportamientos que no se observan en las capturas, como la confirmación de borrado y los mensajes de error al guardar la configuración, se verificaron en el código. Cada problema se clasificó con la escala de severidad de Nielsen: 0 (no es un problema de usabilidad), 1 (cosmético), 2 (menor), 3 (mayor, conviene corregirlo antes de la entrega) y 4 (catastrófico). Esta evaluación aporta la evidencia del requerimiento RNF-15.
+
+\subsection{Resultados}
+Se identificaron 15 problemas: 4 de severidad mayor, 5 menores y 6 cosméticos. No se encontraron problemas catastróficos. La tabla~\ref{tab:heuristica} detalla los problemas de severidad mayor y menor.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{4.3cm}}
+	\caption{Problemas de usabilidad de severidad mayor y menor}
+	\label{tab:heuristica}\\
+	\hline
+	\textbf{Problema} & \textbf{Heurística} & \textbf{Severidad} & \textbf{Tratamiento} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Problema} & \textbf{Heurística} & \textbf{Severidad} & \textbf{Tratamiento} \\
+	\hline
+	\endhead
+	Textos visibles sin tildes y nombres de nivel escritos de dos formas distintas según la pantalla & H4 & 3 & Corregido \\
+	\hline
+	Fechas en formato técnico en el listado de usuarios y en las alertas, distinto del formato usado en el detalle & H4 & 3 & Corregido: formato único de fecha y hora local \\
+	\hline
+	Textos con términos internos del desarrollo: identificadores de requerimientos, nombres de bases de datos, rutas de la API y variables de configuración & H2, H8 & 3 & Corregido: redactados en lenguaje de operador \\
+	\hline
+	Los rechazos de validación de la API se mostraban como un mensaje ilegible, y el error de autorización indicaba una variable de configuración & H9 & 3 & Corregido: se muestra el motivo del rechazo y un mensaje comprensible \\
+	\hline
+	La explicación del puntaje mostraba nombres internos de variables y valores $z$ & H2 & 2 & Corregido: etiquetas en lenguaje natural \\
+	\hline
+	La descripción de los eventos recientes indicaba una cantidad fija, aunque el límite es configurable & H4 & 2 & Corregido \\
+	\hline
+	El nivel mostrado no se recalcula cuando cambian los umbrales, de modo que un puntaje puede verse con un nivel que ya no corresponde a los rangos vigentes & H1 & 2 & Se mantiene: es el comportamiento especificado en RF-12 (la política nueva rige desde el evento siguiente); se documenta \\
+	\hline
+	La configuración del reentrenamiento no muestra si el modo automático está activo & H1, H3 & 2 & Pendiente \\
+	\hline
+	La auditoría presenta los valores anteriores y nuevos en formato técnico & H2 & 2 & Pendiente; aceptable para el perfil administrador \\
+	\hline
+\end{longtable}
+
+Los problemas cosméticos fueron: el límite superior del nivel crítico mostrado con decimales; la mezcla de términos en inglés y en español, de los cuales se corrigió el estado del sistema; los identificadores técnicos de las acciones en las tablas; el reconocimiento de alertas limitado a la sesión del navegador; la ausencia de ayuda integrada; y la visualización de registros de prueba en el historial de reentrenamientos.
+
+Como fortalezas, el \emph{dashboard} representa el nivel de cada usuario con color y etiqueta en todas las vistas, muestra el progreso del período de aprendizaje y la cobertura del puntaje, y describe en palabras la acción asociada a cada nivel. El borrado de un usuario solicita confirmación, y los rangos de umbrales se validan antes de enviarse a la API.
+
+\subsection{Correcciones aplicadas}
+Los cuatro problemas de severidad mayor y dos de los menores se corrigieron solo en el \emph{frontend}, sin modificar la API ni la lógica de negocio. Se unificó el formato de fechas, se corrigieron los textos y las tildes, se tradujeron las variables de la explicación a lenguaje natural y se mejoró la presentación de los errores de validación. Después de los cambios, el análisis estático y la compilación del \emph{frontend} finalizaron sin errores. Los problemas pendientes se registran como mejoras de la interfaz.
 
 \section{Decisiones tomadas a partir de los resultados}
 \label{sec:decisiones-pruebas}
@@ -346,6 +387,8 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	El disparador de la cadena de \emph{hashes} agrega 0,042~ms por inserción y no produce errores con hasta 50 escrituras concurrentes. & Mantener la configuración del grupo de conexiones a la base de datos sin ampliarla. \\
 	\hline
 	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas no supervisadas y escenarios inyectados, sin informar precisión ni exhaustividad. \\
+	\hline
+	La evaluación heurística identificó cuatro problemas de usabilidad de severidad mayor en el \emph{dashboard}. & Corregir los cuatro antes de la entrega, junto con dos de severidad menor, modificando solo la interfaz. \\
 	\hline
 	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
 	\hline
