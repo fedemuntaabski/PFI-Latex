@@ -1,0 +1,182 @@
+\chapter{Producto implementado}
+\label{chap:producto}
+
+Este capítulo describe el producto tal como se encuentra implementado: sus componentes, las funcionalidades de cada uno, el grado de cumplimiento de los requerimientos del capítulo~\ref{chap:requerimientos}, el estado de su despliegue y las limitaciones conocidas. Las pruebas que respaldan este estado se presentan en el capítulo~\ref{chap:pruebas}.
+
+\section{Visión general}
+\label{sec:vision-producto}
+El producto se compone de tres piezas de software y de un proceso de mantenimiento del modelo. El agente local recolecta metadatos de actividad en cada equipo y ejecuta las mitigaciones. La API central evalúa cada evento, decide la respuesta y conserva el estado y el historial. El \emph{dashboard} permite monitorear a los usuarios y administrar las políticas. El reentrenamiento periódico, disparado por la propia API, actualiza el modelo sin interrumpir el servicio. La tabla~\ref{tab:componentes-producto} resume cada componente.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{7.1cm}}
+	\caption{Componentes del producto}
+	\label{tab:componentes-producto}\\
+	\hline
+	\textbf{Componente} & \textbf{Tecnología principal} & \textbf{Responsabilidad} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Componente} & \textbf{Tecnología principal} & \textbf{Responsabilidad} \\
+	\hline
+	\endhead
+	Agente local (PEP) & Python, psutil, icacls & Captura de actividad en Windows, envío de eventos, ejecución, confirmación y reversión de mitigaciones. \\
+	\hline
+	API de \emph{scoring} (PDP) & Python, FastAPI, scikit-learn, TensorFlow & Validación de eventos, cálculo del puntaje de riesgo, asignación de nivel y acción, explicación, notificaciones y configuración. \\
+	\hline
+	Almacenamiento & Redis y PostgreSQL & Estado vigente de cada usuario y configuración en Redis; historial diario, eventos crudos, auditoría y métricas del modelo en PostgreSQL. \\
+	\hline
+	\emph{Dashboard} & React, TypeScript, Vite & Monitoreo de usuarios, alertas, configuración de políticas, auditoría y estado del sistema. \\
+	\hline
+	Reentrenamiento & Planificador de la API y \emph{notebooks} del \emph{pipeline} & Reentrenamiento periódico en un proceso aislado, comparación de métricas y promoción del modelo sin reinicio. \\
+	\hline
+\end{longtable}
+
+\section{Funcionalidades}
+\label{sec:funcionalidades}
+
+\subsection{Agente local}
+El agente se ejecuta como un proceso nativo en cada equipo Windows y consulta periódicamente el estado del sistema operativo. Genera eventos a partir de cuatro fuentes:
+\begin{itemize}
+	\item \textbf{Archivos:} creación, modificación, renombrado y borrado dentro de las carpetas vigiladas.
+	\item \textbf{Procesos:} inicio y finalización de procesos. Los procesos de los navegadores se agrupan para que su actividad de fondo no domine la telemetría.
+	\item \textbf{Aplicaciones sensibles:} inicio y finalización de aplicaciones de compresión, almacenamiento en la nube, transferencia de archivos y correo electrónico, marcadas como aplicaciones vigiladas.
+	\item \textbf{Red:} conexiones salientes, con la dirección y el puerto remotos.
+\end{itemize}
+
+Cada evento incluye solo metadatos: nombre del archivo o del proceso, dirección y puerto remotos, marca temporal e identificador del par equipo-usuario. El agente no captura contenido de archivos, pantallas ni pulsaciones de teclado.
+
+Los eventos se envían a la API autenticados con una clave propia de cada agente. Si la API no está disponible, se conservan en un \emph{buffer} local con una vigencia de 3 horas y un tope de 20\,000 eventos, y se reenvían al restablecerse la conexión. Un \emph{circuit breaker} distingue los rechazos de autenticación, que suspenden el envío y lo reintentan cada 5 minutos, de las fallas transitorias del servidor, que se reintentan normalmente.
+
+La respuesta de la API indica la acción de mitigación. El agente la ejecuta y confirma el resultado:
+\begin{itemize}
+	\item \texttt{alertar}: no realiza ninguna acción local.
+	\item \texttt{terminar\_procesos}: finaliza los procesos del usuario relacionados con la actividad evaluada.
+	\item \texttt{denegar\_carpeta}: agrega una entrada de denegación en los permisos de la carpeta sensible.
+	\item \texttt{terminar\_y\_denegar}: combina las dos anteriores.
+	\item \texttt{suspender\_proceso}: suspende el proceso de forma reversible.
+\end{itemize}
+
+Las acciones pueden revertirse con un comando del agente que restituye los permisos y reanuda los procesos suspendidos. La terminación de procesos no es reversible. El agente dispone además de un modo de simulación, que registra las acciones sin aplicarlas y se utilizó en las pruebas y demostraciones.
+
+\subsection{Motor de \emph{scoring}}
+La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 días en el pasado y 5 minutos en el futuro), descarta reenvíos duplicados durante 6 horas y lo evalúa en los siguientes pasos:
+\begin{enumerate}
+	\item Isolation Forest evalúa el día en curso del usuario a partir de ocho variables agregadas (cantidad y variedad de eventos, actividad sobre archivos y de autenticación, hora promedio, proporción fuera de horario y entropía de los tipos de evento).
+	\item El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos del usuario a partir del error de reconstrucción.
+	\item Con ambos modelos disponibles (cobertura completa), los puntajes se combinan en partes iguales; mientras el usuario no completa su primera secuencia de 50 eventos (cobertura parcial), se utiliza solo Isolation Forest.
+	\item El puntaje se combina con una línea base personal del usuario, que se actualiza en forma incremental con el algoritmo de Welford y gana peso a medida que el usuario acumula historial.
+	\item Al cerrar cada día se aplica un decaimiento temporal del riesgo acumulado, con una vida media de 3 días; dentro del día el puntaje es provisional.
+	\item Se asigna el nivel según los umbrales vigentes. Una regla de piso eleva el nivel a alto cuando alguno de los dos modelos marca anomalía.
+	\item Se determina la acción según el mapeo nivel\,$\rightarrow$\,acción y se genera una explicación con las tres variables de Isolation Forest que más se apartan de lo habitual.
+\end{enumerate}
+
+Cuando un nivel está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes, con un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido. Si hay un proveedor IAM configurado, la API agrega el rol y el departamento del usuario como contexto informativo, con caché de 30 minutos y sin interrumpir la evaluación ante una falla del proveedor.
+
+La API también detecta corrimientos significativos de la línea base personal y los registra como alertas de \emph{drift}. El estado vigente de cada usuario y una lista acotada de sus eventos recientes se mantienen en Redis; el historial diario con su explicación y los eventos crudos se persisten en PostgreSQL. Los eventos crudos se encadenan mediante \emph{hashes} por usuario, lo que permite detectar modificaciones posteriores.
+
+\subsection{\emph{Dashboard}}
+El \emph{dashboard} consulta la API cada 2 segundos y se organiza en ocho pantallas:
+\begin{itemize}
+	\item \textbf{Inicio de sesión:} acceso con perfil de administrador u operador.
+	\item \textbf{Usuarios:} listado con puntaje, nivel, acción, cobertura, progreso del período de aprendizaje y última actividad, con filtro por nivel.
+	\item \textbf{Detalle de usuario:} puntaje vigente con su explicación, última acción confirmada por el agente, evolución histórica diaria y eventos recientes con la explicación de cada uno.
+	\item \textbf{Usuarios con historial:} usuarios con días cerrados en el historial persistente, incluidos los que fueron reiniciados en el estado operativo.
+	\item \textbf{Alertas:} usuarios en los dos niveles más severos, con la posibilidad de marcarlos como reconocidos durante la sesión.
+	\item \textbf{Configuración:} umbrales de cada nivel, acción por nivel, periodicidad y ventana horaria del reentrenamiento, umbral de aprendizaje, niveles que notifican y destinatarios, y registro de reentrenamientos.
+	\item \textbf{Auditoría:} historial de cambios de configuración con los valores anteriores y nuevos.
+	\item \textbf{Estado del sistema:} disponibilidad de Redis, de PostgreSQL y de cada artefacto del modelo.
+\end{itemize}
+
+\subsection{Reentrenamiento periódico}
+Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda los modelos vigentes. Luego compara las métricas del modelo nuevo con las del vigente y lo promueve solo si las iguala o las mejora: en ese caso, la API recarga los modelos en memoria sin reiniciarse. Si no, restaura el respaldo. Cada corrida queda registrada con la fecha, la cantidad de eventos y la variación de las métricas. El administrador puede registrar también reentrenamientos realizados en forma manual.
+
+\subsection{Usuarios nuevos y período de aprendizaje}
+Un usuario se da de alta automáticamente con su primer evento y permanece en período de aprendizaje hasta acumular la cantidad de eventos configurada (20 por defecto, entre 1 y 1000). Durante ese período sus eventos se evalúan normalmente y el nivel informado no cambia, pero la acción se atenúa a \texttt{alertar}, salvo en los eventos sobre archivos, que reciben la política normal. El \emph{dashboard} muestra el progreso de cada usuario respecto del umbral, y la salida del período es automática.
+
+\subsection{Control de acceso}
+La API expone 31 \emph{endpoints} con cuatro niveles de acceso: públicos (salud del servicio e inicio de sesión), de consulta para el \emph{dashboard}, de administración para los cambios de configuración y de agente para el envío de eventos y la confirmación de acciones. Las claves de los agentes se almacenan como \emph{hash} y pueden revocarse individualmente. El inicio de sesión del \emph{dashboard} rechaza las contraseñas por defecto o de ejemplo. Cada cambio de configuración queda registrado en la auditoría con un identificador derivado de la clave utilizada.
+
+\section{Cumplimiento de los requerimientos}
+\label{sec:cumplimiento}
+La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcionales agrupados por caso de uso. El estado individual de cada requerimiento funcional y no funcional figura en las tablas del capítulo~\ref{chap:requerimientos}.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.4cm}}
+	\caption{Estado de los requerimientos funcionales por caso de uso}
+	\label{tab:cumplimiento-cu}\\
+	\hline
+	\textbf{Caso de uso} & \textbf{RF} & \textbf{Implementados} & \textbf{Parciales} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Caso de uso} & \textbf{RF} & \textbf{Implementados} & \textbf{Parciales} \\
+	\hline
+	\endhead
+	CU-01 Detección y mitigación & RF-01 a RF-11 & 10 & RF-02 (sin TLS) \\
+	\hline
+	CU-02 Ajuste de políticas & RF-12 a RF-17 & 6 & -- \\
+	\hline
+	CU-03 Reentrenamiento & RF-18 a RF-22 & 4 & RF-21 (sin promoción real) \\
+	\hline
+	CU-04 Usuarios nuevos & RF-23 a RF-27 & 5 & -- \\
+	\hline
+	Integración IAM (transversal) & RF-28 a RF-30 & 3 & -- \\
+	\hline
+	\textbf{Total} & \textbf{30} & \textbf{28} & \textbf{2} \\
+	\hline
+\end{longtable}
+
+De los 15 requerimientos no funcionales, 8 se encuentran implementados, 5 en estado parcial (RNF-03, RNF-05, RNF-06, RNF-09 y RNF-11) y 1 no implementado (RNF-13, cifrado TLS). RNF-02 [[ESTADO SEGÚN RNF-02]].
+
+Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 está implementado en su lógica, pero el canal entre el agente y la API no está cifrado. RF-21 está implementado y fue verificado con modelos controlados; sin embargo, la única corrida real del planificador produjo un modelo peor que el vigente y, por lo tanto, todavía no se observó una promoción con un modelo genuinamente nuevo.
+
+\section{Estado del despliegue}
+\label{sec:estado-despliegue}
+El sistema completo se ejecuta y se verificó en un entorno local: el agente, la API y el \emph{dashboard} en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube. La infraestructura para la nube está definida como código con Terraform y se aplicó en forma parcial: existen la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración. La red de distribución de contenidos, que publica el \emph{dashboard} y provee el cifrado TLS, no se creó porque la cuenta requiere una habilitación del proveedor. Por lo tanto, el despliegue en la nube no está operativo para usuarios finales. El detalle de la arquitectura diseñada y desplegada se presenta en el capítulo de arquitectura.
+
+\section{Limitaciones conocidas}
+\label{sec:limitaciones-producto}
+La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del producto, su impacto y el tratamiento previsto.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{4.7cm}}
+	\caption{Limitaciones conocidas del producto}
+	\label{tab:limitaciones-producto}\\
+	\hline
+	\textbf{Limitación} & \textbf{Impacto} & \textbf{Tratamiento} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Limitación} & \textbf{Impacto} & \textbf{Tratamiento} \\
+	\hline
+	\endhead
+	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). & Trabajo futuro: variables con granularidad menor al día y calibración con escenarios etiquetados. \\
+	\hline
+	Transferencia de dominio del conjunto de datos & El modelo se entrenó con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints}. \\
+	\hline
+	Explicación solo de Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM. \\
+	\hline
+	Sesgo de la línea base personal en usuarios con poco historial & El componente personal tiende a valores altos en usuarios nuevos, lo que eleva las alertas en ese grupo. & Se evaluaron cinco alternativas sin una mejora general; se documenta como limitación. \\
+	\hline
+	Cobertura parcial prolongada & El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos y se evalúa solo con Isolation Forest. & Comportamiento previsto (RF-03); se informa la cobertura en el \emph{dashboard}. \\
+	\hline
+	Canal sin cifrar entre agente y API & Los eventos y las claves viajan en texto plano fuera de una red local. & Previsto mediante la red de distribución con TLS al completar el despliegue. \\
+	\hline
+	Clave de agente no ligada a su identificador & Un agente con una clave válida puede enviar eventos a nombre de cualquier usuario. & Trabajo futuro: validar el identificador del agente contra su clave. \\
+	\hline
+	Reversión de permisos amplia & La reversión elimina todas las entradas de denegación del usuario sobre la carpeta, incluidas las que no creó el agente. & Trabajo futuro: registrar y revertir solo las entradas propias. \\
+	\hline
+	Terminación de procesos irreversible y repetida & Un proceso terminado no puede restaurarse, y la acción se reintenta en cada evento mientras el nivel se mantiene. & Reservada para el nivel crítico por política (RF-07). \\
+	\hline
+	Suspensión fallida informada como ejecutada & Una falla al registrar la suspensión de un proceso puede reportarse como éxito. & Corrección prevista en el agente. \\
+	\hline
+	Envío con el \emph{circuit breaker} abierto & Los eventos nuevos siguen intentando enviarse y, con el \emph{buffer} lleno, se descartan los más recientes. & Corrección prevista en el agente. \\
+	\hline
+	Autenticación permisiva sin claves configuradas & Si no se configuran claves, la API acepta solicitudes sin autenticar; la clave de administración se conserva en el navegador. & Existe un modo estricto, activo en el despliegue en la nube, que rechaza las solicitudes sin claves configuradas. \\
+	\hline
+	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
+	\hline
+	Integración con Keycloak sin validación real & El adaptador está implementado y probado con un proveedor simulado. & Validación pendiente contra un servidor real. \\
+	\hline
+\end{longtable}
+
+\section{Síntesis}
+\label{sec:sintesis-producto}
+El producto implementa el ciclo completo de detección, decisión y mitigación sobre el \emph{endpoint}, con políticas configurables en tiempo de ejecución, auditoría de cambios, reentrenamiento periódico controlado y tratamiento de usuarios nuevos. De los 30 requerimientos funcionales, 28 están implementados y 2 en estado parcial, ambos con causa identificada. Las limitaciones principales no están en la cobertura funcional sino en la capacidad de detección del modelo y en la seguridad del canal, y orientan el trabajo futuro.
