@@ -414,11 +414,19 @@ El grupo de entrevistados reúne perfiles con responsabilidad directa sobre segu
 \section{Contraste con la percepción de los usuarios finales: resultados de la encuesta}
 \label{sec:encuesta-usuarios}
 
+La encuesta se difunde [[COMPLETAR: canal, por ejemplo redes sociales y contactos personales y
+laborales del equipo]] entre [[COMPLETAR: fechas]]. Se trata de una muestra no probabilística por
+conveniencia: los participantes no se seleccionan al azar de una población definida, sino entre las
+personas que el equipo puede alcanzar y que deciden responder. Por lo tanto, los porcentajes que
+siguen describen a los participantes y no pueden generalizarse a la población de empleados de
+empresas argentinas; se utilizan como indicio del problema y como insumo de diseño, no como
+estimación estadística. La muestra tampoco se estratifica por tamaño de empresa ni por sector.
+
 Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta. Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a empleados que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (Figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
 
 \subsection{La autenticación como portón, no como control continuo}
 
-Uno de los resultados más relevantes de la encuesta es que, para una parte importante de los empleados, la seguridad se concentra en el inicio de sesión. El 68\% no utiliza MFA de forma obligatoria durante la jornada: un 36\% nunca lo utiliza y un 32\% únicamente al iniciar el día. Solo el 22\% indica que se le solicita reautenticarse de forma aleatoria durante la sesión (Figuras~\ref{fig:encuesta-3} y~\ref{fig:encuesta-4}, Anexo B).
+Uno de los resultados más relevantes de la encuesta es que, para una parte importante de los participantes, la seguridad se concentra en el inicio de sesión. El 68\% no utiliza MFA de forma obligatoria durante la jornada: un 36\% nunca lo utiliza y un 32\% únicamente al iniciar el día. Solo el 22\% indica que se le solicita reautenticarse de forma aleatoria durante la sesión (Figuras~\ref{fig:encuesta-3} y~\ref{fig:encuesta-4}, Anexo B).
 
 Asimismo, el 54\% afirma que no existen controles adicionales de identidad después del inicio de sesión o desconoce si los hay (Figura~\ref{fig:encuesta-5}, Anexo B). En relación con las computadoras desatendidas, el 46\% deja la sesión abierta o no realiza ninguna acción al alejarse, mientras que el 54\% bloquea la pantalla de forma manual o automática (Figura~\ref{fig:encuesta-6}, Anexo B).
 
@@ -470,6 +478,6 @@ Este resultado aporta evidencia cuantitativa sobre el problema que motiva el pro
 
 \subsection{Síntesis}
 
-En conjunto, la encuesta respalda la premisa central del proyecto: la autenticación continúa siendo percibida principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también respaldan varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los usuarios, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante frente a una percepción de privacidad heterogénea.
+En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también respaldan varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los usuarios, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante frente a una percepción de privacidad heterogénea.
 
 Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen mayor peso que la garantía de privacidad como criterio de decisión, y la percepción sobre una posible adopción se encuentra prácticamente dividida. Por lo tanto, existe una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.
