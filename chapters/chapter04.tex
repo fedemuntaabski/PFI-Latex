@@ -172,8 +172,14 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
 	\hline
-	Diferenciador del proyecto propuesto & 
+	Diferenciador del proyecto propuesto & No aplica (fila de referencia). La síntesis de diferenciadores se presenta en la Sección~\ref{sec:sintesis-diferenciadores}. \\
+	\hline
 \end{longtable}
+
+Las valoraciones del proyecto propuesto en esta tabla y en la matriz de capacidades son una
+autoevaluación del equipo basada en lo implementado y verificado en los capítulos de producto y
+de pruebas, y no una medición externa. Las valoraciones de los competidores se basan en lo que
+describe el estado del arte; cuando una fuente no se pronuncia sobre una capacidad, se marca N/D.
 
 \section{Matriz de capacidades}
 \label{sec:matriz-capacidades}
@@ -207,6 +213,11 @@ Verificación explícita de qué cubre cada alternativa, usando solo lo que la S
 \end{longtable}
 
 \textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio Estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
+
+Las valoraciones del proyecto propuesto en esta tabla y en la matriz de capacidades son una
+autoevaluación del equipo basada en lo implementado y verificado en los capítulos de producto y
+de pruebas, y no una medición externa. Las valoraciones de los competidores se basan en lo que
+describe el estado del arte; cuando una fuente no se pronuncia sobre una capacidad, se marca N/D.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
@@ -379,6 +390,7 @@ Profundiza lo señalado en la comparación general de alternativas (Sección~\re
 \end{longtable}
 
 \section{Síntesis de diferenciadores}
+\label{sec:sintesis-diferenciadores}
 A partir de la propia Conclusión del estado del arte de la documentación del proyecto (Sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
 
 Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
