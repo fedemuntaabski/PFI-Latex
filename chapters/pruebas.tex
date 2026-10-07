@@ -306,7 +306,7 @@ La alta proporción de alertas en usuarios con pocos días de historial es consi
 \label{sec:evaluacion-usabilidad}
 La usabilidad del \emph{dashboard} se evaluó mediante una evaluación heurística, una técnica de inspección en la que se revisa la interfaz contra un conjunto de principios reconocidos. Se utilizaron las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}: visibilidad del estado del sistema (H1), correspondencia entre el sistema y el mundo real (H2), control y libertad del usuario (H3), consistencia y estándares (H4), prevención de errores (H5), reconocimiento antes que recuerdo (H6), flexibilidad y eficiencia de uso (H7), diseño estético y minimalista (H8), ayuda para reconocer, diagnosticar y recuperarse de errores (H9) y ayuda y documentación (H10).
 
-El equipo revisó las ocho pantallas del \emph{dashboard} contra cada heurística. Los comportamientos que no se observan en las capturas, como la confirmación de borrado y los mensajes de error al guardar la configuración, se verificaron en el código. Cada problema se clasificó con la escala de severidad de Nielsen: 0 (no es un problema de usabilidad), 1 (cosmético), 2 (menor), 3 (mayor, conviene corregirlo antes de la entrega) y 4 (catastrófico). Esta evaluación aporta la evidencia del requerimiento RNF-15.
+El equipo revisó las ocho pantallas del \emph{dashboard} contra cada heurística. Los comportamientos que no se observan en las capturas, como la confirmación de borrado y los mensajes de error al guardar la configuración, se verificaron en el código. Cada problema se clasificó con la escala de severidad de Nielsen: 0 (no es un problema de usabilidad), 1 (cosmético), 2 (menor), 3 (mayor, conviene corregirlo con prioridad alta) y 4 (catastrófico). Esta evaluación aporta la evidencia del requerimiento RNF-15.
 
 \subsection{Resultados}
 Se identificaron 15 problemas: 4 de severidad mayor, 5 menores y 6 cosméticos. No se encontraron problemas catastróficos. La tabla~\ref{tab:heuristica} detalla los problemas de severidad mayor y menor.
@@ -388,7 +388,7 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas no supervisadas y escenarios inyectados, sin informar precisión ni exhaustividad. \\
 	\hline
-	La evaluación heurística identificó cuatro problemas de usabilidad de severidad mayor en el \emph{dashboard}. & Corregir los cuatro antes de la entrega, junto con dos de severidad menor, modificando solo la interfaz. \\
+	La evaluación heurística identificó cuatro problemas de usabilidad de severidad mayor en el \emph{dashboard}. & Corregir los cuatro, junto con dos de severidad menor, modificando solo la interfaz. \\
 	\hline
 	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
 	\hline
