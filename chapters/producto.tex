@@ -134,6 +134,49 @@ Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 est�
 \label{sec:estado-despliegue}
 El sistema completo se ejecuta y se verificó en un entorno local: el agente, la API y el \emph{dashboard} en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube. La infraestructura para la nube está definida como código con Terraform y se aplicó en forma parcial: existen la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración. La red de distribución de contenidos, que publica el \emph{dashboard} y provee el cifrado TLS, no se creó porque la cuenta requiere una habilitación del proveedor. Por lo tanto, el despliegue en la nube no está operativo para usuarios finales. El detalle de la arquitectura diseñada y desplegada se presenta en el capítulo de arquitectura.
 
+\section{Tratamiento de datos personales y viabilidad legal}
+\label{sec:tratamiento-datos}
+El sistema actúa como herramienta de una organización que monitorea los equipos que provee a sus empleados. En un despliegue real, la organización cliente es la responsable del tratamiento en los términos de la Ley 25.326, y el proveedor del sistema actúa como prestador de servicios de tratamiento por cuenta de ella. La tabla~\ref{tab:tratamiento-datos} relaciona cada principio del marco legal (sección~\ref{sec:marco-legal}) con la forma en que el sistema lo contempla y con lo que queda a cargo de la organización.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{5.8cm}>{\raggedright\arraybackslash}p{5.3cm}}
+	\caption{Principios de la Ley 25.326 y su tratamiento en el sistema}
+	\label{tab:tratamiento-datos}\\
+	\hline
+	\textbf{Principio} & \textbf{Cómo lo contempla el sistema} & \textbf{A cargo de la organización / pendiente} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Principio} & \textbf{Cómo lo contempla el sistema} & \textbf{A cargo de la organización / pendiente} \\
+	\hline
+	\endhead
+	Finalidad (art.~4) & Finalidad única y declarada: detectar el uso indebido de credenciales y responder ante él. Los datos no se usan para medir productividad ni para otros fines. & Declarar la finalidad en la política interna y no reutilizar los datos para otros fines. \\
+	\hline
+	Datos no excesivos (art.~4) & El agente recolecta solo metadatos de actividad (RNF-08): no captura contenido de archivos, mensajes, pantallas ni pulsaciones de teclado. Las direcciones IP y las cuentas de volumen muy alto quedan sin puntaje. & Configurar las carpetas y aplicaciones vigiladas de forma acotada. \\
+	\hline
+	Consentimiento e información (arts.~5 y 6) & El panel muestra, para cada puntaje, las variables que lo explican, lo que permite informar al empleado por qué se tomó una acción. & Informar a los empleados la existencia del control, su finalidad y sus derechos (política de uso aceptable o cláusula contractual); la LCT exige que los controles relativos a la actividad del trabajador sean conocidos por este (art.~71). \\
+	\hline
+	Seguridad (art.~9) & [[CODIGO: cifrado TLS entre agente, panel y API; autenticación mutua entre agente y API; credenciales del panel fuera del navegador; claves de agente ligadas a su identificador]]. Cadena de hashes sobre los eventos crudos, seguridad a nivel de fila en la base de datos y secretos en un almacén de parámetros. & Gestionar los accesos al panel y rotar las claves. \\
+	\hline
+	Confidencialidad (art.~10) & Acceso al panel con inicio de sesión y roles diferenciados de consulta y administración; registro de auditoría de los cambios de configuración. & Limitar el acceso al personal de seguridad. \\
+	\hline
+	Transferencia internacional (art.~12) & Los servicios gestionados que usa el sistema procesan datos fuera de Argentina: la API corre en una instancia de AWS en Estados Unidos (us-east-2), y el estado y el historial se guardan en Redis (Upstash) y PostgreSQL (Supabase) [[VERIFICAR: región de Upstash y de Supabase]]. El servicio opcional de redacción de correos (Gemini) recibe el puntaje y los eventos recientes de la alerta. & Formalizar la transferencia con cláusulas contractuales modelo, o desplegar en una región con protección adecuada; desactivar o minimizar lo que se envía al servicio de redacción. \\
+	\hline
+	Acceso, rectificación y supresión (arts.~14 a 16) & El panel permite consultar el historial de un usuario y eliminarlo. & Pendiente: definir un plazo de conservación. La cadena de hashes por usuario entra en tensión con la supresión, porque borrar una fila impide verificar las siguientes. \\
+	\hline
+	Registro (art.~21) & No aplica al proveedor. & Evaluar la inscripción de la base según el uso que la organización haga de ella. \\
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia a partir de la Ley 25.326 y la Ley de Contrato de Trabajo.\par}
+
+\subsection{Conservación de los datos y cadena de hashes}
+Hoy los eventos crudos y el historial de puntajes no tienen un plazo de conservación definido. La cadena de hashes que protege la integridad de los eventos (sección~\ref{sec:modelo-datos}) dificulta la supresión: eliminar una fila rompe la verificación de las siguientes del mismo usuario. Se identifican tres alternativas: cerrar la cadena por período (por ejemplo, mensual), conservar el último hash de cada período y eliminar los períodos vencidos; reemplazar el identificador del usuario por un seudónimo calculado con una clave secreta, de modo que destruir la clave anonimice los registros sin modificarlos; o eliminar el contenido de la fila y conservar solo su hash. Se adopta como trabajo futuro la primera, por ser la que preserva la verificación de los períodos vigentes con el menor cambio en el modelo de datos.
+
+\subsection{Datos de entrenamiento}
+El modelo se entrena con CLUE-LDS, un conjunto público de registros reales seudonimizados mediante identificadores descriptivos y distribuido bajo licencia CC BY 4.0 (sección~\ref{sec:dataset}). El uso del conjunto respeta la licencia mediante la atribución a sus autores y no requiere el tratamiento de datos de personas identificables.
+
+\subsection{Descargo de responsabilidad}
+El sistema es una herramienta de apoyo a la seguridad de la información y no reemplaza el criterio del personal de seguridad. Las acciones automáticas que ejecuta (terminación de procesos, denegación de acceso a carpetas) pueden afectar el trabajo legítimo de un empleado ante un falso positivo; por eso las acciones más severas se reservan para el nivel crítico y pueden revertirse cuando el sistema operativo lo permite. La organización que lo adopte es responsable de configurar las políticas de respuesta, de informar a sus empleados y de cumplir la normativa de protección de datos y laboral aplicable.
+
 \section{Limitaciones conocidas}
 \label{sec:limitaciones-producto}
 La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del producto, su impacto y el tratamiento previsto.
@@ -176,6 +219,8 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
 	\hline
 	Integración con Keycloak sin validación real & El adaptador está implementado y probado con un proveedor simulado. & Validación pendiente contra un servidor real. \\
+	\hline
+	Sin plazo de conservación de datos & La supresión de datos de un usuario rompe la verificación de la cadena de \emph{hashes}. & Trabajo futuro: cierre de la cadena por período (sección~\ref{sec:tratamiento-datos}). \\
 	\hline
 \end{longtable}
 
