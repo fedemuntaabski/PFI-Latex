@@ -177,6 +177,7 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	\includegraphics[width=13.5cm]{images/diagramas/v75/er_postgres_scoring_eventos.pdf}
 	\caption{Modelo relacional: puntajes, eventos crudos y alertas de corrimiento}
 	\label{fig:er-scoring}
+	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
 \begin{figure}[ht]
@@ -184,6 +185,7 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	\includegraphics[width=13.5cm]{images/diagramas/v75/er_postgres_config_modelos.pdf}
 	\caption{Modelo relacional: auditoría, reentrenamientos, métricas y claves de agentes}
 	\label{fig:er-config}
+	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
 Las tablas no tienen claves foráneas: se relacionan lógicamente a través del identificador de usuario. Esta decisión simplifica la persistencia, que es tolerante a fallas: si la base de datos no está disponible, la evaluación de eventos continúa. Como contrapartida, la integridad referencial queda a cargo de la aplicación, por ejemplo la regla de un único modelo vigente por tipo. Seis de las siete tablas tienen activada la seguridad a nivel de fila, de modo que no pueden leerse desde la API pública de la plataforma de base de datos, y solo la API del sistema accede con sus credenciales. La tabla \texttt{historial\_\allowbreak{}scores} no tiene esta protección activada; su incorporación queda registrada como mejora pendiente.
