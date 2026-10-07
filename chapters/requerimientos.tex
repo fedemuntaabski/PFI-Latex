@@ -1,5 +1,7 @@
-\chapter{Requerimientos, Casos de Uso e Historias de Usuario}
+\chapter{Requerimientos, casos de uso e historias de usuario}
 \label{chap:requerimientos}
+
+Este capítulo presenta los requerimientos del sistema. Se definen el alcance del relevamiento y los actores, los requerimientos funcionales y no funcionales, los casos de uso, las historias de usuario y la matriz de trazabilidad que los relaciona.
 
 \section{Alcance del relevamiento}
 \label{sec:alcance-relevamiento}
@@ -38,7 +40,7 @@ Cada requerimiento indica su prioridad y su estado de implementación según la 
 	\hline
 \end{longtable}
 
-\section{Requerimientos Funcionales}
+\section{Requerimientos funcionales}
 \label{sec:requerimientos-funcionales}
 Los requerimientos funcionales se organizan en siete módulos. Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal.
 
@@ -200,7 +202,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 \end{longtable}
 
-\section{Requerimientos No Funcionales}
+\section{Requerimientos no funcionales}
 \label{sec:requerimientos-no-funcionales}
 Los requerimientos no funcionales son transversales a los casos de uso y definen criterios de calidad del sistema en su conjunto.
 
@@ -247,8 +249,10 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 \end{longtable}
 
-\section{Casos de Uso}
+\section{Casos de uso}
 \label{sec:casos-de-uso}
+
+Esta sección describe los cuatro casos de uso del sistema: la detección de desviaciones conductuales con mitigación automática en el \emph{endpoint} (CU-01), el ajuste de umbrales y políticas de respuesta (CU-02), el reentrenamiento periódico del modelo (CU-03) y el alta de usuarios nuevos con período de aprendizaje (CU-04).
 
 \subsection{CU-01: Detección de desviación conductual y mitigación automática en el endpoint}
 \label{sec:cu01}
@@ -373,11 +377,13 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 
 \noindent\textbf{Valor diferencial:} Reduce los falsos positivos iniciales asociados al \emph{cold-start}, una limitación reportada en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
 
-\section{Historias de Usuario}
+\section{Historias de usuario}
 \label{sec:historias-usuario}
 Las historias de usuario se expresan con el formato ``Como [rol], quiero [funcionalidad], para [beneficio]'', y sus criterios de aceptación con la estructura ``Dado / Cuando / Entonces''. Se agrupan en cinco épicas alineadas con los casos de uso.
 
 \subsection{Épica 1: Detección y respuesta en el endpoint (CU-01)}
+
+Esta épica agrupa las historias de usuario asociadas a CU-01: la recolección de actividad en el \emph{endpoint}, el puntaje de riesgo por evento, la mitigación automática y la reversión de acciones (HU-01 a HU-04).
 
 \subsubsection{HU-01: Recolección de actividad en el endpoint}
 Como administrador de seguridad, quiero que el agente recolecte en segundo plano la actividad de procesos, archivos, aplicaciones y red de cada equipo, para contar con la información necesaria para evaluar el comportamiento sin interrumpir al usuario.
@@ -413,6 +419,8 @@ Como administrador de seguridad, quiero revertir las acciones de mitigación apl
 
 \subsection{Épica 2: Panel de administración y políticas (CU-02)}
 
+Esta épica agrupa las historias de usuario asociadas a CU-02: el estado de riesgo de los usuarios, la configuración de umbrales, niveles y acciones, y las notificaciones y la auditoría (HU-05 a HU-07).
+
 \subsubsection{HU-05: Estado de riesgo de los usuarios}
 Como administrador de seguridad, quiero ver en el \emph{dashboard} el estado de riesgo de cada usuario y su historial, para priorizar qué casos revisar.
 \begin{itemize}
@@ -435,6 +443,8 @@ Como administrador de seguridad, quiero recibir notificaciones por correo en los
 \end{itemize}
 
 \subsection{Épica 3: Ciclo de vida del modelo (CU-03)}
+
+Esta épica agrupa las historias de usuario asociadas a CU-03: la planificación del reentrenamiento, el reentrenamiento aislado con promoción controlada y el historial de reentrenamientos (HU-08 a HU-10).
 
 \subsubsection{HU-08: Planificación del reentrenamiento}
 Como administrador de seguridad, quiero configurar cada cuánto y en qué franja horaria se reentrena el modelo, para que el reentrenamiento no interfiera con el entorno productivo.
@@ -460,6 +470,8 @@ Como administrador de seguridad, quiero ver el historial de reentrenamientos, pa
 
 \subsection{Épica 4: Alta de usuarios y cold-start (CU-04)}
 
+Esta épica agrupa las historias de usuario asociadas a CU-04: el período de aprendizaje, el seguimiento de los usuarios en aprendizaje y la transición automática al monitoreo normal (HU-11 a HU-13).
+
 \subsubsection{HU-11: Período de aprendizaje}
 Como administrador de seguridad, quiero que los usuarios nuevos se den de alta automáticamente y atraviesen un período de aprendizaje con acciones atenuadas, para evitar bloquear a alguien solo por no tener historial.
 \begin{itemize}
@@ -482,6 +494,8 @@ Como administrador de seguridad, quiero que la salida del aprendizaje sea autom�
 \end{itemize}
 
 \subsection{Épica 5: Requerimientos transversales}
+
+Esta épica agrupa las historias de usuario que no dependen de un único caso de uso: la autenticación de acceso a la configuración, la explicación persistida de cada puntaje y el contexto organizacional obtenido del IAM (HU-14 a HU-16).
 
 \subsubsection{HU-14: Autenticación de acceso y configuración}
 Como administrador de seguridad, quiero que el acceso al \emph{dashboard} y a la configuración requiera autenticación, para que nadie sin autorización modifique las políticas.

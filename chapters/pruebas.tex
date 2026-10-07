@@ -45,6 +45,8 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 \section{Pruebas automatizadas}
 \label{sec:pruebas-automatizadas}
 
+Esta sección presenta el inventario de pruebas automatizadas, los resultados de su ejecución, la integración continua y la cobertura de los requerimientos.
+
 \subsection{Inventario}
 El repositorio contiene 306 pruebas automatizadas, que corresponden a 204 funciones de prueba (algunas se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
 
@@ -149,6 +151,8 @@ Como complemento, el código del agente, de la API y del \emph{frontend} fue som
 \section{Pruebas de rendimiento}
 \label{sec:pruebas-rendimiento}
 
+Esta sección evalúa dos requerimientos no funcionales de rendimiento: la latencia de evaluación de eventos (RNF-01) y el consumo de recursos del agente (RNF-02).
+
 \subsection{Latencia de evaluación de eventos (RNF-01)}
 Se midió la latencia de extremo a extremo de la evaluación de eventos desde el lado del cliente: 1000 eventos medidos, precedidos por 50 de calentamiento que se descartaron, enviados en secuencia y distribuidos entre cinco usuarios con una mezcla de tipos representativa de la actividad que captura el agente. La API se ejecutó en el mismo equipo, con Redis en memoria y sin base de datos. La tabla~\ref{tab:rnf01} presenta los resultados.
 
@@ -238,6 +242,8 @@ La correlación negativa y la baja coincidencia indican que los dos modelos no s
 
 \section{Validación por escenarios inyectados}
 \label{sec:validacion-escenarios}
+
+Esta sección describe el método de validación mediante escenarios inyectados, sus resultados, la sensibilidad de la detección según el umbral y la interpretación de los resultados.
 
 \subsection{Método}
 Para obtener una medida de la capacidad de detección sin etiquetas, se inyectaron escenarios de ataque sintéticos sobre historiales reales. Se seleccionaron al azar, con semilla fija, 15 usuarios del período de prueba con entre 50 y 4000 eventos y al menos cinco días de actividad. Para cada usuario se reprodujo su historial completo a través de la API, se tomó una instantánea del estado y, a partir de ella, se inyectó cada escenario por separado, restaurando el estado entre uno y otro:

@@ -1,6 +1,10 @@
 \chapter{Antecedentes}
 
-\section{Marco Teórico}
+Este capítulo reúne los antecedentes del proyecto. El marco teórico presenta los conceptos en los que se apoya el sistema, y el estado del arte revisa las soluciones comerciales, los trabajos académicos y los enfoques alternativos existentes, junto con sus limitaciones y las tendencias del área.
+
+\section{Marco teórico}
+
+Esta sección presenta los conceptos que sustentan el diseño del sistema. Parte del problema central del proyecto, el punto ciego posterior a la autenticación, y recorre los marcos y las técnicas que permiten abordarlo: Zero Trust, el análisis de comportamiento de usuarios y entidades (UEBA), la gestión de identidad y acceso, los modelos de detección de anomalías, los tipos de \emph{datasets}, el \emph{concept drift} y los estándares de referencia.
 
 \subsection{El punto ciego post-autenticación: problema central del proyecto}
 Los modelos tradicionales de seguridad informática centran la verificación de identidad en el momento de la autenticación inicial. Una vez que el sistema valida las credenciales de un usuario, este obtiene un nivel de confianza que se mantiene durante toda la sesión, sin realizar nuevas verificaciones sobre su comportamiento. Este enfoque, conocido comúnmente como modelo de seguridad perimetral o \emph{castle-and-moat}, presenta una limitación importante: si un atacante logra obtener credenciales válidas, puede operar dentro del entorno protegido sin generar alertas basadas en reglas o firmas predefinidas, ya que sus acciones aparentan corresponder a un usuario legítimo \parencite{Rose2020}. 
@@ -26,7 +30,7 @@ User and Entity Behavior Analytics (UEBA) es una tecnología que permite aplicar
 
 La arquitectura funcional de un motor \emph{User and Entity Behavior Analytics} (UEBA) comprende cuatro etapas principales: (i) la recolección de datos provenientes de registros del sistema, logs de aplicaciones, dispositivos y tráfico de red; (ii) la construcción de \emph{baselines} de comportamiento individual y por grupo de rol mediante técnicas de aprendizaje automático; (iii) la detección de anomalías a partir de la comparación con los patrones de comportamiento establecidos; y (iv) la asignación de puntajes de riesgo (\emph{risk scoring}) junto con mecanismos de respuesta adaptativa \parencite{Artioli2024}.
 
-\subsection{Gestión de Identidad y Acceso: del control tradicional al acceso basado en riesgo}
+\subsection{Gestión de identidad y acceso: del control tradicional al acceso basado en riesgo}
 La Gestión de Identidad y Acceso (\emph{Identity and Access Management}, IAM) constituye un conjunto de políticas, procesos y tecnologías destinadas a gestionar las identidades digitales y regular el acceso de los usuarios a los recursos de una organización. No obstante, las deficiencias en su implementación continúan siendo una de las principales causas de incidentes de seguridad y brechas de datos. En este contexto, la evolución de los modelos de IAM resulta fundamental para superar las limitaciones de los enfoques tradicionales y adoptar mecanismos más avanzados de autenticación y autorización, fortaleciendo así la protección de los sistemas y facilitando la aplicación de principios de seguridad como el de menor privilegio \parencite{Glockler2023}.
 
 \subsubsection{Control de acceso basado en roles (RBAC)}
@@ -66,7 +70,7 @@ El algoritmo Isolation Forest basa su funcionamiento en el principio de aislamie
 
 Este método ofrece beneficios significativos al trabajar con grandes volúmenes de datos y múltiples dimensiones, ya que prescinde de requerimientos estadísticos rígidos o de la necesidad de contar con información previamente etiquetada. Asimismo, su bajo costo computacional lo convierte en una solución idónea para procesar flujos masivos de información. Estudios como el de \textcite{AlShehari2023} muestran que este método obtiene resultados sólidos en contextos altamente desbalanceados.
 
-\subsection{Introducción a los Datasets: Datos Reales vs. Datos Sintéticos}
+\subsection{Introducción a los datasets: datos reales vs. datos sintéticos}
 En el ámbito del aprendizaje automático y del análisis de sistemas, un \emph{dataset} es un conjunto estructurado de datos utilizado para entrenar, evaluar o validar modelos y algoritmos. Está compuesto por registros individuales que representan observaciones del fenómeno que se busca estudiar, junto con los atributos o variables que describen cada una de ellas. La calidad, el volumen y la representatividad del \emph{dataset} son aspectos fundamentales, ya que influyen directamente en la capacidad de generalización de cualquier modelo desarrollado a partir de esos datos. 
 
 Según su origen, los \emph{datasets} pueden clasificarse en dos grandes categorías: reales y sintéticos. Los datos reales son aquellos obtenidos directamente de sistemas en funcionamiento, interacciones humanas o procesos. Su principal ventaja es que reflejan la complejidad, el ruido y las distribuciones irregulares características de los entornos de producción, lo que los convierte en la fuente más confiable para evaluar el comportamiento de un sistema frente a situaciones reales. No obstante, su obtención suele estar sujeta a restricciones vinculadas con la privacidad, las regulaciones de protección de datos y la sensibilidad propia de la información que contienen, lo que con frecuencia requiere la aplicación de procesos de anonimización antes de su publicación o de ser compartidos. 
@@ -97,10 +101,14 @@ El período de gracia es el tiempo durante el cual el modelo mantiene un rendimi
 
 
 
-\section{Estado del Arte}
+\section{Estado del arte}
 \label{sec:estado-del-arte}
 
-\subsection{Soluciones Comerciales Vigentes}
+Esta sección revisa las soluciones y la investigación existentes sobre detección de comportamiento anómalo y control de acceso basado en riesgo. Se analizan soluciones comerciales, trabajos académicos y enfoques alternativos, y se cierra con las limitaciones reportadas por otros autores y las tendencias emergentes.
+
+\subsection{Soluciones comerciales vigentes}
+
+Esta subsección analiza cuatro soluciones comerciales: Microsoft Sentinel UEBA, Splunk UBA, Exabeam y Microsoft Entra ID Protection. Para cada una se describen su objetivo, su funcionamiento, los datos que utiliza, los resultados que reporta y sus limitaciones.
 
 \subsubsection{Microsoft Sentinel UEBA}
 Microsoft Sentinel integra funciones de UEBA para enfrentar el desafío de detectar conductas atípicas que sugieran vulneraciones de cuentas, amenazas de origen interno o desplazamientos malintencionados en la infraestructura organizacional. Su objetivo principal es determinar desviaciones en las rutinas de actividad de los usuarios y diversas entidades corporativas \parencite{MicrosoftSentinelUEBA}.
@@ -146,9 +154,11 @@ Entre los resultados reportados por Microsoft, la solución contribuye a detecta
 
 No obstante, la solución presenta algunas limitaciones. El cálculo del riesgo se encuentra fuertemente ligado a las señales disponibles dentro del ecosistema Microsoft, lo que puede restringir la visibilidad sobre comportamientos generados en sistemas externos. Además, los criterios específicos utilizados para determinar ciertos niveles de riesgo no son completamente transparentes para los usuarios de la plataforma. Finalmente, aunque la solución permite adaptar requisitos de autenticación en función del riesgo detectado, su enfoque se encuentra principalmente orientado a la protección de identidades y no al análisis profundo del comportamiento operativo de los usuarios durante el uso continuo de los recursos.
 
-\subsection{Trabajos Académicos: Modelos de Detección de Anomalías}
+\subsection{Trabajos académicos: modelos de detección de anomalías}
 
-\subsubsection{Control de Acceso Adaptativo Basado en Riesgo (RADAC)}
+Esta subsección reúne trabajos académicos que proponen modelos de detección de anomalías y de control de acceso basado en riesgo. Se agrupan en tres líneas: el control de acceso adaptativo basado en riesgo, los enfoques UEBA con aprendizaje profundo y la aplicación de Isolation Forest a la seguridad.
+
+\subsubsection{Control de acceso adaptativo basado en riesgo (RADAC)}
 El control de acceso adaptativo basado en riesgo (RAdAC) se ha consolidado como una de las principales líneas de investigación para abordar los desafíos de seguridad en entornos dinámicos. Dentro de este enfoque, destaca el trabajo de \textcite{Aliyu2024}, quienes desarrollaron \emph{ad-RACs} (\emph{Adaptive Risk-Based Access Control System}), un sistema diseñado para gestionar autorizaciones de acceso en tiempo real mediante la evaluación continua del riesgo asociado a cada solicitud. A diferencia de los mecanismos tradicionales, que suelen basarse en verificaciones realizadas únicamente durante la autenticación inicial, esta propuesta considera el contexto de cada interacción antes de tomar una decisión de acceso.
 
 Para ello, el sistema recopila y analiza cuatro factores principales: el contexto del usuario, incluyendo información como la ubicación geográfica y el horario de acceso; la sensibilidad del recurso solicitado; la criticidad de la acción que se desea ejecutar; y el historial de riesgo acumulado del usuario. Estos datos son procesados por un modelo de estimación de riesgo basado en el algoritmo de aprendizaje automático CatBoost, encargado de calcular un puntaje dinámico para cada solicitud. Posteriormente, este puntaje es evaluado mediante una política de control de acceso, que determina si el nivel de riesgo es aceptable para autorizar la operación.
@@ -171,6 +181,8 @@ De manera complementaria, la revisión sistemática realizada por \textcite{Land
 
 \subsection{Tecnologías o enfoques alternativos}
 
+Además de los sistemas UEBA, existen otros enfoques que ajustan la verificación de identidad o el control de acceso según el contexto. Esta subsección describe la autenticación adaptativa, la autenticación continua basada en biometría conductual y el control de acceso adaptativo basado en riesgo.
+
 \subsubsection{Autenticación adaptativa}
 Un ejemplo ampliamente utilizado de autenticación adaptativa en entornos empresariales es Okta Adaptive Multi-Factor Authentication (Adaptive MFA), integrada dentro de la plataforma de gestión de identidad de Okta. Esta solución aplica un modelo de autenticación basado en riesgo que analiza distintas señales contextuales cada vez que un usuario intenta iniciar sesión. Entre estas señales se incluyen la ubicación geográfica, la dirección IP, el tipo de dispositivo, el estado de la red y patrones de comportamiento previamente registrados \parencite{OktaAdaptiveMFA,OktaRiskScoring}.
 
@@ -182,14 +194,14 @@ Una de las principales ventajas de este enfoque es que mejora la seguridad sin a
 
 Sin embargo, una limitación importante de este tipo de soluciones es que la evaluación del riesgo se concentra principalmente en el momento de la autenticación inicial. Si bien puede existir cierta re-evaluación durante la sesión, el análisis no suele ser completamente continuo ni profundiza en el comportamiento del usuario una vez que el acceso fue concedido, lo que puede dejar algunos escenarios de ataque posteriores a la autenticación sin una detección adecuada.
 
-\subsubsection{Autenticación Continua Basada en Biometría Conductual}
+\subsubsection{Autenticación continua basada en biometría conductual}
 Un trabajo representativo en el área de autenticación continua fue desarrollado por \textcite{Stylios2023}, quienes propusieron un sistema basado en la combinación de múltiples características biométricas conductuales. En lugar de depender únicamente de una modalidad de autenticación, el modelo integra patrones de escritura en teclado y gestos táctiles realizados sobre dispositivos móviles. El objetivo principal fue mejorar la capacidad de identificar usuarios legítimos durante toda la sesión y reducir los problemas de precisión observados en soluciones que utilizan una única fuente de información.
 
 Para validar el enfoque, los autores desarrollaron una aplicación específica para recopilar datos reales de interacción de los usuarios y evaluaron distintos mecanismos de fusión de características. Los resultados mostraron que la combinación de múltiples señales conductuales permitió mejorar significativamente el rendimiento respecto a los modelos individuales, alcanzando tasas de autenticación más estables y reduciendo errores de clasificación \parencite{Stylios2023}.
 
 Sin embargo, los investigadores también identificaron limitaciones importantes. El rendimiento del sistema depende de la disponibilidad continua de interacciones del usuario y puede verse afectado cuando los patrones de comportamiento cambian con el tiempo. Además, la recopilación constante de datos biométricos plantea desafíos relacionados con privacidad y consumo de recursos en los dispositivos.
 
-\subsubsection{Control de Acceso Adaptativo Basado en Riesgo}
+\subsubsection{Control de acceso adaptativo basado en riesgo}
 El concepto de Control de Acceso Adaptativo Basado en Riesgo (RAdAC) ha sido impulsado dentro de las arquitecturas Zero Trust. Este enfoque plantea que las decisiones de acceso no deben basarse únicamente en la identidad del usuario o en permisos predefinidos, sino también en una evaluación dinámica del riesgo asociada a cada solicitud en tiempo real.
 
 En este modelo, se tienen en cuenta distintos factores que influyen en la decisión de autorización, como la sensibilidad del recurso solicitado, el contexto en el que se realiza la operación, el estado del dispositivo y otras señales de seguridad relevantes. Con esta información, el sistema puede ajustar el nivel de acceso de forma dinámica, aplicando controles según el nivel de riesgo.
@@ -206,7 +218,9 @@ Otra limitación metodológica relevante es la falta de explicabilidad o el efec
 Asimismo, la degradación del rendimiento del modelo ante cambios naturales y legítimos del comportamiento humano, fenómeno asociado al \emph{concept drift}, constituye una vulnerabilidad crítica documentada por \textcite{Artioli2024}. Modificaciones habituales en las rutinas de los usuarios —tales como la asignación a nuevos proyectos, cambios en los horarios de trabajo, transferencias de sector o la adopción de nuevas herramientas de software— provocan que las actividades válidas difieran drásticamente de los patrones con los que el modelo fue entrenado originalmente, disparando alarmas erróneas. Aunque el reentrenamiento periódico o adaptativo se propone como la solución estándar para asimilar estos cambios, esta estrategia introduce el riesgo de contaminación gradual del modelo (\emph{attacker-induced drift}), donde un atacante introduce actividades maliciosas sutiles e incrementales a lo largo del tiempo para que el sistema las aprenda e incorpore erróneamente dentro de su nueva línea base de normalidad.
 
 Finalmente, diversas investigaciones sobre Graph Neural Networks (GNN) han señalado que existe una relación directa entre la complejidad de los modelos y el costo computacional necesario para entrenarlos y ejecutarlos. Según \textcite{Wu2021GNN}, los modelos basados en grafos presentan desafíos importantes relacionados con la escalabilidad, el consumo de recursos y los tiempos de procesamiento, especialmente cuando deben operar sobre grandes volúmenes de datos o estructuras de alta complejidad. En muchos casos, los algoritmos que ofrecen los mejores niveles de precisión requieren una mayor cantidad de recursos de procesamiento y tiempos de inferencia más elevados, lo que puede dificultar su implementación en entornos donde las decisiones deben tomarse en tiempo real.
-\subsection{Tendencias Emergentes}
+\subsection{Tendencias emergentes}
+
+Esta subsección describe cuatro tendencias que se observan en el área: la integración de técnicas de inteligencia artificial explicable, la operación en entornos \emph{cloud-native}, la combinación de UEBA con plataformas de respuesta automática y el uso de modelos híbridos.
 
 \subsubsection{Integración de XAI en pipelines de seguridad}
 La incorporación de técnicas de Inteligencia Artificial Explicable (XAI) en los sistemas de detección de anomalías conductuales representa una 
@@ -227,7 +241,7 @@ Una de las tendencias más relevantes en los entornos modernos de ciberseguridad
 \subsubsection{Ensambles heterogéneos y modelos híbridos}
 Diversas investigaciones recientes, entre ellas las de \textcite{Artioli2024} y \textcite{Landauer2023Survey}, coinciden en que no existe un único algoritmo capaz de ofrecer el mejor rendimiento en todos los escenarios de detección de anomalías. Cada técnica presenta fortalezas y limitaciones dependiendo del tipo de comportamiento analizado, la calidad de los datos disponibles y el contexto operativo. Como consecuencia, una de las tendencias más importantes en la literatura actual consiste en combinar múltiples modelos dentro de una misma arquitectura, aprovechando las ventajas de cada uno. Estos enfoques híbridos suelen integrar modelos especializados en el análisis de secuencias temporales, como LSTM o GRU, con algoritmos orientados a la detección de valores atípicos, como \emph{Isolation Forest} o \emph{One-Class SVM}, e incluso con técnicas basadas en grafos para analizar relaciones entre usuarios, dispositivos y recursos. La combinación de estos enfoques permite construir sistemas más robustos y capaces de detectar distintos tipos de anomalías, tanto aquellas que se manifiestan a lo largo del tiempo como las que aparecen de forma puntual o aislada. Como resultado, los modelos híbridos se han consolidado como una de las principales líneas de evolución en los sistemas modernos de análisis conductual y detección de amenazas.
 
-\subsection{Conclusión del Estado del Arte}
+\subsection{Conclusión del estado del arte}
 En base al análisis de las soluciones actuales del mercado y de los marcos académicos vigentes, se evidencia una carencia en la etapa final del control de acceso: la respuesta ante los incidentes. Las herramientas comerciales consolidadas operan principalmente bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa y, ante la detección de una anomalía, la respuesta se delega a soluciones externas, como plataformas SOAR, o requiere la intervención manual de un administrador de seguridad. Como consecuencia, se genera una ventana de exposición temporal que puede ser aprovechada por un atacante para ejecutar movimientos laterales.
 
 La propuesta presentada busca mitigar este punto ciego posterior a la autenticación mediante el cierre autónomo del ciclo completo del modelo RADAC. Desde una perspectiva técnica, esto se logra mediante el despliegue de un agente local en el \emph{endpoint}, que actúa como \emph{Policy Enforcement Point} (PEP), mientras que la lógica de decisión se mantiene en la nube como \emph{Policy Decision Point} (PDP), siguiendo los lineamientos del estándar NIST SP 800-207 \parencite{Rose2020}.

@@ -1,4 +1,6 @@
-\chapter{Análisis Comparativo del Estado del Arte}
+\chapter{Análisis comparativo del estado del arte}
+
+Este capítulo compara el proyecto con las alternativas relevadas en el estado del arte mediante una comparación general de soluciones, una matriz de capacidades, una comparación de algoritmos de inteligencia artificial y una síntesis de diferenciadores. Luego contrasta el diseño con la práctica de profesionales de seguridad y con la percepción de usuarios finales.
 
 \section{Comparación general de alternativas}
 \label{sec:comparacion-general}
@@ -205,7 +207,7 @@ Verificación explícita de qué cubre cada alternativa, usando solo lo que la S
 	\hline
 \end{longtable}
 
-\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio Estado del Arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
+\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio Estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
@@ -378,7 +380,7 @@ Profundiza lo señalado en la comparación general de alternativas (Sección~\re
 \end{longtable}
 
 \section{Síntesis de diferenciadores}
-A partir de la propia Conclusión del Estado del Arte de la documentación del proyecto (Sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
+A partir de la propia Conclusión del estado del arte de la documentación del proyecto (Sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
 
 Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
 
@@ -388,7 +390,7 @@ El agente mantiene conexión con el motor de IA e intercepta la respuesta casi e
 
 Ninguna de las cuatro soluciones comerciales relevadas hace esto: Sentinel y Splunk UBA se detienen en detección/priorización; Exabeam automatiza respuesta pero vía orquestación externa, no vía agente propio; Entra ID Protection actúa solo en el momento de autenticación, no durante el uso continuo de recursos.
 
-\section{Contraste con la Práctica Profesional en Seguridad de la Información: Resultados de las Entrevistas}
+\section{Contraste con la práctica profesional en seguridad de la información: resultados de las entrevistas}
 \label{sec:entrevistas-profesionales}
 
 Como complemento al análisis comparativo frente a herramientas comerciales y trabajos académicos, se realiza un relevamiento cualitativo mediante entrevistas semiestructuradas a cinco profesionales vinculados a la seguridad de la información, con el objetivo de contrastar las decisiones de diseño del proyecto con la práctica profesional vigente y de identificar líneas de evolución del sistema.
@@ -410,7 +412,7 @@ El grupo de entrevistados reúne perfiles con responsabilidad directa sobre segu
 
 \textbf{Casos de uso correlacionados.} Guillermo, Jacubovich y Ruiz coinciden en que el valor de la detección surge de la correlación entre eventos de distintas fuentes, más que del análisis de un evento aislado. Guillermo ejemplifica esta lógica con el caso de dos inicios de sesión geográficamente distantes en un lapso breve, que en conjunto constituyen una señal de riesgo aunque cada evento por separado resulte válido, y recomienda acotar el diseño a un número reducido de casos de uso críticos antes que abarcar un conjunto extenso y poco priorizado. Jacubovich aporta un ejemplo equivalente al describir la correlación entre el registro de acceso físico de un usuario y su posterior inicio de sesión en un sistema, como control cruzado entre eventos de naturaleza distinta. Estos aportes señalan la definición de un conjunto acotado de casos de uso correlacionados entre colectores como una línea de evolución del sistema.
 
-\section{Contraste con la Percepción de los Usuarios Finales: Resultados de la Encuesta}
+\section{Contraste con la percepción de los usuarios finales: resultados de la encuesta}
 \label{sec:encuesta-usuarios}
 
 Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta. Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a empleados que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (Figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
