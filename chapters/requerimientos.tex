@@ -76,7 +76,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\endhead
 	RF-03 & La API debe calcular, para cada evento recibido, un puntaje de riesgo en escala 0--100 mediante el modelo híbrido Isolation Forest + LSTM Autoencoder. Con cobertura completa se combinan ambos modelos en partes iguales; con cobertura parcial (el usuario aún no completó una secuencia de 50 eventos de tipo conocido para el LSTM) se utiliza solo Isolation Forest. Los identificadores de tipo dirección IP y las cuentas de volumen muy alto (más de 500\,000 eventos) quedan sin puntaje. & Alta & Implementado \\
 	\hline
-	RF-04 & El puntaje debe mantener continuidad entre sesiones del mismo usuario y aplicar un decaimiento temporal del riesgo acumulado según el tiempo transcurrido sin actividad. El decaimiento se aplica al cerrar cada día calendario; dentro del día el puntaje es provisional y no modifica el acumulado. & Alta & Implementado \\
+	RF-04 & El puntaje debe mantener continuidad entre sesiones del mismo usuario y aplicar un decaimiento temporal del riesgo acumulado según el tiempo transcurrido sin actividad. El decaimiento se aplica al cerrar cada día calendario; dentro del día el puntaje es provisional y no modifica el acumulado. El decaimiento tiene una vida media de 3 días. [[VERIFICAR: si la vida media es configurable, agregar su rango; si no, decir "fija".]] & Alta & Implementado \\
 	\hline
 	RF-05 & La API debe asignar a cada evento un nivel de riesgo a partir de los umbrales vigentes (por defecto: bajo $[0,40)$, medio $[40,70)$, alto $[70,90)$ y crítico $[90,100]$). & Alta & Implementado \\
 	\hline
@@ -223,15 +223,15 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Parcial: credenciales fijas por rol \\
 	\hline
-	RNF-04 & Seguridad / arquitectura & El agente no toma decisiones de riesgo por sí mismo: solo ejecuta lo que decide el PDP, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
+	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
 	\hline
-	RNF-05 & Disponibilidad & Ante una caída de la API o errores de autenticación, el agente no debe detenerse: los eventos no enviados se conservan en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos) y se reenvían al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
+	RNF-05 & Disponibilidad & Ante una caída de la API o un error de autenticación, el agente continúa el monitoreo y conserva los eventos no enviados en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos), que reenvía al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
 	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Parcial: la terminación de procesos no es reversible \\
 	\hline
 	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
-	RNF-08 & Privacidad & El agente recolecta solo metadatos de actividad; no captura contenido de archivos, mensajes, pantallas ni teclado. & Implementado \\
+	RNF-08 & Privacidad & El agente recolecta exclusivamente metadatos de actividad: nombres de archivo y de proceso, dirección y puerto remotos, marca temporal e identificador del par equipo-usuario. & Implementado \\
 	\hline
 	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & Parcial: cadena verificada manualmente, sin test automatizado ni inmutabilidad; esquema no estricto \\
 	\hline
