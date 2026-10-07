@@ -63,3 +63,31 @@ E5 y E8 se revisaron y conservan su etiqueta. Las interjecciones breves ("Correc
   - 3.1 (Okta): "Es exactamente el ``punto ciego…'' …, Okta…" → "Corresponde al ``punto ciego…'' …: Okta…"
   - 3.3: "sigue exactamente la conclusión" → "sigue la conclusión".
   - 3.3: "adopta literalmente la combinación" → "adopta la combinación".
+
+## Tanda 3 — Capítulo de mercado (T15, T22)
+
+- Plaza: el `\todo` de alcance geográfico se reemplazó por el texto de T15.
+- BCG: los dos ejes se reemplazaron por los párrafos de T15.
+  - La cita `rose2020` pasa a `Rose2020`.
+  - La referencia `sec:punto-ciego` necesitaba una etiqueta: se creó `\label{sec:punto-ciego}` en 2.1.1 (`chapter02.tex`), según el mapa de P0.
+- Bibliografía: `Henderson1970` pasa de `@misc` (con `howpublished = {BCG Perspectives, …}`) a `@book` según T22, con publisher The Boston Consulting Group, location Boston y año 1970. Se mantiene la clave existente. En el PDF queda: "HENDERSON, Bruce D., 1970. The Product Portfolio. Boston: The Boston Consulting Group."
+- Pasada de registro en el capítulo 11, sin cambios de contenido:
+
+| Lugar | Antes | Después |
+|---|---|---|
+| Producto | "\textbf{¿Cuál es el diferencial?}" | "\textbf{Diferencial del producto.}" |
+| Producto | "detectan y alertan, pero no actúan solas" | "detectan y alertan, pero no ejecutan una respuesta por sí mismas" |
+| Producto | "exigir una verificación extra) queda en manos de un analista humano, … o directamente no existe" | "exigir una verificación adicional) queda en manos de un analista, … o no existe" |
+| Producto | "Ese hueco entre ``detecté algo raro'' y ``hice algo al respecto'' es exactamente la ventana… sin ser frenado." | "El intervalo entre la detección de la anomalía y la ejecución de una respuesta coincide con la ventana… sin ser detenido." |
+| Producto | "cierra ese hueco: el mismo agente … es el que ejecuta …, sin depender de que haya un humano mirando la pantalla" | "cierra ese intervalo: el mismo agente … ejecuta …, sin depender de que un analista esté atento" |
+| Producto | "No es ``una alerta más clara'' ni ``un dashboard más prolijo'', es la diferencia entre un sistema que avisa y un sistema que reacciona." | "La diferencia no reside en la claridad de la alerta ni en la presentación del dashboard, sino en que el sistema, además de avisar, reacciona." |
+| Producto (Exabeam) | "va a buscar la actividad directamente al endpoint" | "sino que recolecta la actividad directamente en el endpoint" |
+| Precio | "un precio pensado para PyME pero tarifado como si fuera enterprise no tendría sentido, invalidaría todo el posicionamiento de Plaza…" | "un precio de nivel enterprise sería incompatible con el posicionamiento definido en la plaza y con el mercado objetivo" |
+| Precio | "eso da / esto da un gasto total"; "(un monto que una PyME puede aprobar)" | "esto representa un gasto total"; ", un monto accesible para el presupuesto de una PyME" |
+| Debilidades | "no solo con buena tecnología" | "no solo con calidad técnica" |
+| Amenazas | "Sentinel llega ``gratis'' para quien ya paga Microsoft 365…: sustituto percibido sin costo adicional" | "Sentinel se percibe como incluido para quien ya contrata Microsoft 365…: un sustituto sin costo adicional" |
+| Porter 1 | "ninguno de los tres, está diseñado …, ahí la rivalidad directa es baja" | "ninguno de los tres está diseñado …, por lo que en ese segmento la rivalidad directa es baja" |
+| Porter 3 | "no es contratar otro UEBA: es no cambiar nada y quedarse con Sentinel ya incluido" | "no es otro UEBA, sino mantener la situación actual y continuar con Sentinel, ya incluido" |
+| BCG cierre | "ganar tracción rápido en el nicho PyME … por diseño de su propio modelo de costos" | "ganar adopción en el corto plazo en el nicho PyME … por su modelo de costos" |
+
+"acá", "por definición", "literalmente" y el resto de "exactamente" estaban en los párrafos BCG que se reemplazaron por T15. Ya no queda ninguno en el capítulo.
