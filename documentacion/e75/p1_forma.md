@@ -91,3 +91,33 @@ E5 y E8 se revisaron y conservan su etiqueta. Las interjecciones breves ("Correc
 | BCG cierre | "ganar tracción rápido en el nicho PyME … por diseño de su propio modelo de costos" | "ganar adopción en el corto plazo en el nicho PyME … por su modelo de costos" |
 
 "acá", "por definición", "literalmente" y el resto de "exactamente" estaban en los párrafos BCG que se reemplazaron por T15. Ya no queda ninguno en el capítulo.
+
+## Tanda 4 — Figuras (T21)
+
+- Figuras 5.11 y 8.2: **ya se referenciaban** por número en el cuerpo, así que no hubo cambios.
+  - `e50_diseno_ux.tex`: "las Figuras~\ref{fig:mockup-umbrales-real-1} y~\ref{fig:mockup-umbrales-real-2}", que en el PDF se lee "Figuras 5.10 y 5.11". Viene de la tanda 4 de L1.
+  - `datos.tex`: "Las figuras~\ref{fig:er-scoring} y~\ref{fig:er-config} muestran su estructura", que en el PDF se lee "figuras 8.1 y 8.2".
+- Anexo A (`schedule_of_activities.tex`): el Gantt pasa a una página completa (float `[p]`), con la imagen rotada 90°. Se usa `\includegraphics[width=0.85\textheight,height=\textwidth,keepaspectratio,angle=90]` y solo hace falta `graphicx`, que ya estaba cargado. No se tocó el preámbulo ni se agregó `pdflscape`.
+  - La figura queda aproximadamente al doble de tamaño que antes.
+  - El epígrafe y la fuente quedan horizontales.
+  - **Pendiente del equipo (T21):** revisar que el Gantt refleje lo realizado y no solo lo planificado.
+- Figuras 7.1 y 7.2: etiquetas con notas internas, solo listadas; se rehacen en L3.
+  - 7.1 (`images/diagramas/v75/despliegue_local.pdf`):
+    - "Frontend dev (Vite) [solo local]"
+    - "Agente PEP (Windows) [solo local] unico lugar"
+    - "API local (uvicorn) [solo local]"
+    - "IAM mock :8002 / Keycloak - [solo local]"
+    - "SMTP Gmail 587 - [solo tests] sin envio real"
+    - "Gemini API - [desplegado] verificado", "Upstash Redis - [desplegado] probado", "Supabase Postgres - [desplegado] usado"
+  - 7.2 (`images/diagramas/v75/despliegue_aws.pdf`):
+    - "CloudFront distribution [no creado] (pendiente … en state"
+    - "… 3.147.149.208 - [a verificar] state running; estado_producto dice apagada/t3.micro"
+    - "[desplegado] solo CI"
+    - "… x11 - [desplegado]", "Functions - [desplegado]"
+    - "Upstash Redis - [desplegado] probado", "Supabase Postgres - [desplegado] usado", "Gemini API - [desplegado] verificado"
+    - "SMTP Gmail 587 - [solo tests] sin envio real"
+    - La figura además muestra CloudFront.
+
+## Verificación
+
+Cada tanda se compiló con `latexmk -pdf main`. Resultado en todas: 0 errores, 0 referencias indefinidas y ningún "??" en el PDF.
