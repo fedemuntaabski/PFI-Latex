@@ -42,3 +42,24 @@ Rama `e75/paquete`. Fuente: `documentacion/e75/textos_e75.md` (T14, T15, T20, T2
 | E34 | "No, no, por favor, ningún problema." | Muntaabski | Pita |
 
 E5 y E8 se revisaron y conservan su etiqueta. Las interjecciones breves ("Correcto.", "Claro.", "Sí.") y el intercambio del número de teléfono se dejaron sin separar.
+
+## Tanda 2 — Estado del arte y comparativo (T14, T15, T21)
+
+- 2.2.1 (`chapter02.tex`):
+  - Sentinel: "Diversos usuarios señalan que el modelo de costos basado en el volumen de datos procesados puede resultar elevado en organizaciones con grandes cantidades de logs." → "Su modelo de costos se basa en el volumen de datos ingeridos, lo que puede resultar elevado en organizaciones con grandes cantidades de registros."
+  - Splunk: "Diversos reportes señalan que su implementación inicial puede resultar compleja y requerir conocimientos especializados para su correcta configuración." → "Su puesta en marcha requiere integrar y normalizar múltiples fuentes de datos, lo que demanda conocimientos especializados para su configuración."
+  - Se borraron los 6 comentarios `% REVISAR (E75)` de 2.2.1. Las frases que acompañaban quedan como estaban.
+  - **Pendiente fuera de alcance:** el comentario `% REVISAR (E75)` de 2.2.3 (Autenticación adaptativa, remite a documentación de Okta) no se tocó.
+- 2.2.6: "El verdadero diferencial radica en que" → "El diferencial del proyecto consiste en que", y se agregó al final el párrafo T14.
+- 2.1: las 4 citas narrativas pasan a `\parencite`. La oración se reformuló sin nombrar al autor y la cita va al final.
+  - `Artioli2024`: "\textcite{…} destacan que esto…" → "Esto … \parencite{…}."
+  - `Kuhn2010`: "Como explica \textcite{…}, este modelo…" → "Este modelo … \parencite{…}."
+  - `AlShehari2023`: "Estudios como el de \textcite{…} muestran que este método…" → "Este método … \parencite{…}."
+  - `Kuppa2022`: "\textcite{…} advierte además el riesgo…" → "Existe además el riesgo … \parencite{…}."
+- 3.1: "dimens iones" → "dimensiones". El origen era un salto de línea dentro de la palabra en el fuente.
+- 3.2: "informacion" → "información".
+- 3.5: menciones por apellido. "Guillermo" → "Pita" (5 casos), "Pablo" → "Villarino" (1 caso). En el perfil (3.5.1), la primera presentación de cada entrevistado conserva el nombre completo.
+- Tablas:
+  - 3.1 (Okta): "Es exactamente el ``punto ciego…'' …, Okta…" → "Corresponde al ``punto ciego…'' …: Okta…"
+  - 3.3: "sigue exactamente la conclusión" → "sigue la conclusión".
+  - 3.3: "adopta literalmente la combinación" → "adopta la combinación".
