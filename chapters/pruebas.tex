@@ -211,6 +211,46 @@ Para RNF-02 se registró, cada 5~s durante 30 minutos de uso normal del equipo, 
 
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
+
+\subsection{Metas de evaluación}\label{sec:metas-modelo}
+El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
+\parencite{Landauer2022Dataset}, por lo que la evaluación no puede expresarse en exactitud, precisión,
+exhaustividad o F1. [[COMPLETAR: una oración que explique por qué versiones anteriores del trabajo
+mencionaban sesiones etiquetadas y balanceo de clases, y por qué ese enfoque se descarta. No
+inventar.]] En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
+comportamiento del modelo sobre datos sin etiquetar con la detección de escenarios de ataque
+inyectados (sección~\ref{sec:validacion-escenarios}).
+
+\begin{table}[h]
+\centering
+\caption{Metas de evaluación del modelo y resultado obtenido}
+\label{tab:metas-modelo}
+\begin{tabular}{p{5.2cm}p{3.2cm}p{3cm}p{1.8cm}}
+\hline
+Métrica & Meta & Resultado & Cumple \\
+\hline
+Tasa de anomalías de Isolation Forest en prueba & entre 1\,\% y 3\,\% (contaminación del 2\,\%) & 0,79\,\% & No \\
+Tasa de anomalías del LSTM en prueba & entre 3\,\% y 7\,\% (umbral en el percentil 95) & 3,99\,\% & Sí \\
+Detección atribuible del escenario combinado (E4) con el umbral del nivel alto (70) & $\geq$ 50\,\% de los usuarios & 13,3\,\% (2 de 15) & No \\
+Detección atribuible promedio de los cuatro escenarios con umbral 70 & $\geq$ 33\,\% & 6,7\,\% (4 de 60) & No \\
+Usuario-días sin inyección que terminan en nivel alto o crítico & $\leq$ 10\,\% & 16,8\,\% & No \\
+Latencia de evaluación, percentil 95 (RNF-01) & $\leq$ 500\,ms & 14,9\,ms & Sí \\
+\hline
+\end{tabular}
+{\small Fuente: elaboración propia.\par}
+\end{table}
+\FloatBarrier
+
+[[DECIDIR: los valores de las metas. Son una propuesta razonable; lo importante es que queden fijos y se justifiquen. Si el reentrenamiento cambia los resultados, se actualiza solo la columna "Resultado" ([[CODIGO]]).]]
+
+Las tasas de anomalías se comparan con el parámetro que cada modelo usa para fijar su umbral: una
+tasa muy por debajo indica que el umbral es más estricto en prueba que en entrenamiento. La meta
+de detección exige que al menos la mitad de los ataques combinados, que son los más evidentes,
+lleven al usuario al nivel alto, y la meta de alertas acota la carga de revisión sobre actividad
+normal a uno de cada diez usuario-días. Los resultados muestran que el sistema cumple las metas de
+rendimiento y de comportamiento del LSTM, pero no las de detección ni de alertas: es la principal
+limitación técnica del proyecto, cuyas causas se analizan en la sección~\ref{sec:interpretacion}.
+
 El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}. Por lo tanto, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evaluó con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{5.5cm}}
@@ -298,6 +338,7 @@ Para analizar el compromiso entre sensibilidad y alertas sobre actividad normal 
 La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un 33,3\,\% para el escenario combinado en el umbral de 55, y nunca supera un tercio de los usuarios. La curva no es monótona porque, al bajar el umbral, una proporción creciente de usuarios ya lo supera antes de la inyección: en el umbral de 40, el 93,3\,\% de los usuarios parte por encima, mientras que en el de 70 lo hace solo el 13,3\,\%. La tasa de alertas sobre días normales se pudo calcular únicamente en los umbrales de 70 y 90, porque los resultados registrados contienen el nivel de cierre de cada día y no su puntaje numérico. Por eso no es posible estimar cuántas alertas adicionales produciría un umbral en la zona de 55 a 65.
 
 \subsection{Interpretación}
+\label{sec:interpretacion}
 Con la política vigente, el sistema detecta pocos de los escenarios inyectados y ninguno alcanza el nivel crítico, de modo que la mitigación más severa no se dispara ante estos ataques simulados. Esto es consistente con una política conservadora, que reserva la terminación de procesos y la denegación de acceso para el nivel crítico, pero también indica una sensibilidad baja ante ataques de corta duración.
 
 Entre las causas, una está verificada: el 99,946\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte. Las demás causas son inferidas y no se aislaron experimentalmente:
