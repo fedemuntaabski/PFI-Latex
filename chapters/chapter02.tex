@@ -99,6 +99,60 @@ El período de gracia es el tiempo durante el cual el modelo mantiene un rendimi
 \subsection{Estándares y marcos normativos}
 \textbf{NIST SP 800-207} \parencite{Rose2020} define los principios base del enfoque Zero Trust y sirve como referencia principal para el diseño de este tipo de sistemas. Su valor no es solo teórico, sino también práctico, ya que permite justificar decisiones clave como la verificación continua de usuarios, la aplicación de distintos niveles de respuesta según el riesgo, y la separación entre los componentes que evalúan decisiones y los que las ejecutan. Este estándar se complementa con NIST SP 800-207A \parencite{NIST2023_800207A}, que adapta el modelo a entornos modernos basados en servicios en la nube y APIs, lo que lo hace especialmente relevante para arquitecturas distribuidas.
 
+\subsection{Marco legal: protección de datos personales}\label{sec:marco-legal}
+Un sistema que registra la actividad de los empleados en sus equipos de trabajo trata datos
+personales, por lo que su viabilidad depende del marco normativo de protección de datos y del
+derecho laboral. En Argentina, la norma principal es la Ley 25.326 de Protección de los Datos
+Personales \parencite{Ley25326}, reglamentada por el Decreto 1558/2001.
+
+La ley define como dato personal a la información de cualquier tipo referida a personas físicas
+o de existencia ideal determinadas o determinables (art.~2). Los registros de actividad que
+recolecta el agente están asociados a un identificador de equipo y de usuario, por lo que
+constituyen datos personales aunque no incluyan el contenido de archivos ni de comunicaciones.
+
+Los principios relevantes para el proyecto son los siguientes:
+\begin{itemize}
+  \item \textbf{Calidad y finalidad} (art.~4): los datos deben ser ciertos, adecuados, pertinentes
+        y no excesivos en relación con la finalidad para la que se obtienen, y no pueden utilizarse
+        para finalidades distintas o incompatibles con ella.
+  \item \textbf{Consentimiento} (art.~5): el tratamiento requiere el consentimiento libre, expreso
+        e informado del titular, salvo excepciones, entre ellas que los datos deriven de una relación
+        contractual del titular y resulten necesarios para su desarrollo o cumplimiento.
+  \item \textbf{Información al titular} (art.~6): al recabar los datos se debe informar la
+        finalidad, los destinatarios, la existencia del archivo y su responsable, y la posibilidad de
+        ejercer los derechos de acceso, rectificación y supresión.
+  \item \textbf{Seguridad y confidencialidad} (arts.~9 y 10): el responsable debe adoptar las
+        medidas técnicas y organizativas necesarias para garantizar la seguridad y confidencialidad
+        de los datos, y quienes intervienen en el tratamiento están obligados al secreto.
+  \item \textbf{Transferencia internacional} (art.~12): se prohíbe la transferencia de datos
+        personales a países u organismos que no proporcionen niveles de protección adecuados, salvo
+        las excepciones previstas.
+  \item \textbf{Derechos del titular} (arts.~14 a 16): acceso, rectificación, actualización y
+        supresión de sus datos.
+  \item \textbf{Registro} (art.~21): las bases de datos privadas destinadas a proporcionar
+        informes deben inscribirse en el registro que lleva el órgano de control.
+\end{itemize}
+
+El órgano de control es la Agencia de Acceso a la Información Pública (AAIP), que asumió las
+funciones de la entonces Dirección Nacional de Protección de Datos Personales. Entre las normas
+complementarias dictadas por ambos organismos se encuentran las medidas de seguridad recomendadas
+para el tratamiento de datos personales \parencite{AAIP2018} y las cláusulas contractuales tipo
+para la transferencia internacional, junto con la lista de países con legislación adecuada
+\parencite{DNPDP2016}. Argentina aprobó además el Convenio 108 del Consejo de Europa para la
+protección de las personas con respecto al tratamiento automatizado de datos de carácter personal y
+su Protocolo adicional \parencite{Ley27483}, y el Protocolo modificatorio que lo actualiza,
+conocido como Convenio 108+ \parencite{Ley27699}.
+
+En el ámbito laboral, la Ley de Contrato de Trabajo \parencite{Ley20744} admite que el empleador
+establezca sistemas de control personal destinados a la protección de sus bienes, siempre que
+salvaguarden la dignidad del trabajador, se practiquen con discreción y mediante medios de
+selección automática (art.~70). Esos controles, así como los relativos a la actividad del
+trabajador, deben ser conocidos por este (art.~71), y la autoridad de aplicación está facultada
+para verificar que no afecten su dignidad (art.~72).
+El monitoreo de la actividad en equipos provistos por la empresa se analiza en este marco: su
+legitimidad depende de que los empleados conozcan la existencia del control, su finalidad y su
+alcance.
+
 
 
 
