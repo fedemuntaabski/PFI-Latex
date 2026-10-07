@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 160" width="560" height="160">
+  <!-- Isotipo: escudo con línea de actividad que cruza un umbral -->
+  <g transform="translate(20,10)">
+    <path d="M70 6 L128 26 L128 74 C128 110 102 132 70 144 C38 132 12 110 12 74 L12 26 Z"
+          fill="#0F2A44" stroke="#0F2A44" stroke-width="4" stroke-linejoin="round"/>
+    <!-- umbral -->
+    <line x1="22" y1="88" x2="118" y2="88" stroke="#F2B233" stroke-width="5" stroke-linecap="round"/>
+    <!-- actividad del usuario -->
+    <polyline points="24,104 44,104 54,80 64,112 76,58 86,98 96,104 116,104"
+              fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- punto de enforcement -->
+    <circle cx="76" cy="58" r="9" fill="#F2B233" stroke="#0F2A44" stroke-width="3"/>
+  </g>
+  <!-- Logotipo -->
+  <text x="172" y="92" font-family="Helvetica, Arial, sans-serif" font-size="64" font-weight="700"
+        letter-spacing="6" fill="#0F2A44">UMBRAL</text>
+  <text x="175" y="126" font-family="Helvetica, Arial, sans-serif" font-size="17" letter-spacing="1.5"
+        fill="#4A5B6C">confianza continua, después del login</text>
+</svg>
