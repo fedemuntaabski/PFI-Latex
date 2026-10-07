@@ -257,6 +257,13 @@ Durante el desarrollo se evaluó ejecutar la API, Redis y el \emph{dashboard} co
 \end{itemize}
 La imagen de la API se conserva en el repositorio como alternativa de despliegue, pero no forma parte del camino verificado.
 
+\subsection{Viabilidad técnica}
+El sistema no requiere hardware específico. El agente se ejecuta como un proceso nativo en equipos
+con Windows que la organización ya posee, con un consumo de recursos acotado por RNF-02, y la API
+y el almacenamiento corren sobre servicios de nube de uso general (cómputo, Redis y PostgreSQL
+gestionados) contratables bajo demanda. La viabilidad técnica depende, por lo tanto, de la
+disponibilidad de esos servicios y no de la producción o adquisición de dispositivos.
+
 \section{Protocolos de comunicación}
 \label{sec:protocolos}
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{7.5cm}}
