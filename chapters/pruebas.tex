@@ -354,6 +354,121 @@ Entre las causas, una está verificada: el 99,946\,\% de los eventos del conjunt
 
 La alta proporción de alertas en usuarios con pocos días de historial es consistente con el sesgo conocido del componente de riesgo personal en usuarios con historial escaso. Los resultados deben leerse con cautela: se trata de 15 usuarios por escenario, con una sola inyección por caso, escenarios diseñados por el propio equipo y una referencia de normalidad sin verificación. Una diferencia de un usuario equivale a 6,7 puntos porcentuales.
 
+\section{Evaluación con escenarios etiquetados}
+\label{sec:benchmark}
+La validación de la sección~\ref{sec:validacion-escenarios} utiliza 15 usuarios y una sola inyección por caso. Esta sección la amplía con un conjunto mayor de víctimas, escenarios con etiqueta conocida, una partición que separa los experimentos de la evaluación final e intervalos de confianza. Con etiquetas construidas de este modo es posible calcular sobre el sistema en producción las métricas que la ausencia de etiquetas impide obtener sobre los datos originales: el área bajo la curva ROC, la exhaustividad (\emph{recall}) y la tasa de falsos positivos.
+
+\subsection{Escenarios}
+Como CLUE-LDS no incluye ataques, los escenarios se construyen sobre el historial real de cada víctima a partir de un instante T. La tabla~\ref{tab:bench-escenarios} los describe.
+
+\begin{table}[h]
+\centering
+\caption{Escenarios del benchmark de detección}
+\label{tab:bench-escenarios}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{8.8cm}}
+\hline
+Escenario & Qué simula & Construcción \\
+\hline
+S1 similar y S1 disímil & Toma de cuenta & Desde el instante T, los eventos de la víctima en una ventana de 7 días se reemplazan por los de otro usuario activo en la misma ventana: el más parecido (similar) o el menos parecido (disímil), según una similitud que pondera con 0,3 el cociente de eventos por día y con 0,7 el índice de Jaccard de los tipos de evento. \\
+\hline
+S2, con $k$ = 2, 5 y 10 & Exfiltración & En cada día activo de la ventana se inyecta una ráfaga de eventos de archivo y de compartición de $k$ veces la mediana diaria de eventos de archivo de la víctima, en una hora habitual para ella. \\
+\hline
+S2 solo archivos, con $k$ = 10 & Exfiltración sin compartir & Igual que S2, pero solo con eventos de archivo, para separar el efecto de la compartición. \\
+\hline
+S3 & Uso fuera de horario & Los eventos de cada día se reubican entre las 2 y las 5 de la mañana, hora de Viena, conservando su orden. \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+Cada escenario se construye en dos versiones. En la versión sin país, los eventos conservan su ubicación original, desconocida en casi todos los casos, por lo que el escenario mide el comportamiento; en la versión con país, los eventos modificados llevan un país atacante, lo que mide el efecto de la ubicación sobre los modelos. El escenario S1 reproduce la fórmula y los pesos de similitud de la herramienta publicada por los autores del conjunto de datos \parencite{Landauer2022Dataset}, con cuatro diferencias: se toman los extremos de similitud en lugar de pares al azar, el reemplazo es unidireccional, la etiqueta se asigna por usuario-día dentro de la ventana y los usuarios donantes se restringen a los que el LSTM no vio en su entrenamiento.
+
+\subsection{Partición y métricas}
+Se toman como víctimas los 123 usuarios con al menos 5 días activos posteriores al corte temporal de Isolation Forest (2 de agosto de 2021), repartidos por estrato de actividad previa en dos particiones: DEV, con 63 víctimas, y HOLDOUT, con 60. Con al menos una ventana válida para los escenarios quedan 62 y 57, respectivamente. Todos los experimentos con variantes del cálculo del puntaje se realizan solo sobre DEV, y HOLDOUT se utiliza una única vez, para la evaluación final que presenta esta sección. Isolation Forest se entrena con una partición temporal, por lo que sus resultados en HOLDOUT no se solapan con su entrenamiento; el LSTM vigente, en cambio, se entrena con una partición por usuario, y 47 de las 57 víctimas de HOLDOUT forman parte de su entrenamiento.
+
+La unidad de evaluación es el usuario-día. Los positivos son los días modificados por cada escenario, y los negativos, los días limpios posteriores al corte de las mismas víctimas. La prevalencia de positivos se ubica entre 0,08 y 0,09, que es también el área bajo la curva de precisión y exhaustividad (PR-AUC) de una clasificación al azar.
+
+Se calculan el área bajo la curva ROC (ROC-AUC), el PR-AUC, el \emph{recall} y la tasa de falsos positivos con los umbrales de producción: 40, 70 y 90 para el puntaje híbrido, con la regla de piso, y un riesgo de 70 y de 90 para cada componente por separado. La tasa de falsos positivos se calcula sobre los negativos de cada partición y sobre todo el período de test de Isolation Forest, formado por los usuario-días posteriores al corte.
+
+Los intervalos de confianza al 95\,\% se obtienen por \emph{bootstrap} con 1\,000 remuestreos sobre víctimas y no sobre días, porque los días de una misma víctima están correlacionados. Para comparar dos variantes se utiliza el mismo remuestreo, lo que da intervalos pareados de la diferencia.
+
+\subsection{Resultados en HOLDOUT}
+El sistema evaluado es el vigente en producción: los modelos de la versión v1, el riesgo del LSTM calculado como media acumulada de las secuencias cerradas, la combinación en partes iguales, el decaimiento temporal y los umbrales 40/70/90. Como en todo el benchmark, cada día se evalúa cerrado, sin el agregado parcial ni la línea base personal que la producción aplica en cada evento. La tabla~\ref{tab:bench-auc} presenta el ROC-AUC de cada componente y del híbrido en los escenarios sin país.
+
+\begin{table}[h]
+\centering
+\caption{ROC-AUC en HOLDOUT, escenarios sin país [IC 95\,\%]}
+\label{tab:bench-auc}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{3.4cm}}
+\hline
+Escenario & Isolation Forest & LSTM & Híbrido \\
+\hline
+S1 similar & 0,46 [0,37--0,55] & 0,56 [0,51--0,61] & 0,58 [0,52--0,65] \\
+S1 disímil & 0,62 [0,52--0,70] & 0,62 [0,56--0,67] & 0,68 [0,63--0,73] \\
+S2, $k$ = 2 & 0,76 [0,70--0,82] & 0,57 [0,53--0,61] & 0,75 [0,71--0,80] \\
+S2, $k$ = 5 & 0,85 [0,80--0,91] & 0,61 [0,57--0,65] & 0,79 [0,76--0,84] \\
+S2, $k$ = 10 & 0,88 [0,82--0,93] & 0,62 [0,58--0,66] & 0,80 [0,76--0,84] \\
+S2 solo archivos, $k$ = 10 & 0,59 [0,53--0,65] & 0,63 [0,59--0,67] & 0,67 [0,63--0,72] \\
+S3 & 0,90 [0,85--0,95] & 0,56 [0,51--0,60] & 0,80 [0,77--0,84] \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+En todos los escenarios, las diferencias del híbrido entre DEV y HOLDOUT caen dentro de los intervalos de confianza. La tabla~\ref{tab:bench-recall} presenta la detección operativa del híbrido: la proporción de días atacados que alcanzan el nivel alto o superior y el nivel crítico, con la regla de piso aplicada.
+
+\begin{table}[h]
+\centering
+\caption{\emph{Recall} del híbrido en HOLDOUT, con y sin país [IC 95\,\%]}
+\label{tab:bench-recall}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}}
+\hline
+Escenario & Alto o superior, sin país & Alto o superior, con país & Crítico, sin país & Crítico, con país \\
+\hline
+S1 similar & 0,12 [0,06--0,19] & 0,12 [0,06--0,19] & 0,00 & 0,00 \\
+S1 disímil & 0,18 [0,10--0,27] & 0,18 [0,10--0,27] & 0,00 & 0,00 \\
+S2, $k$ = 2 & 0,19 [0,12--0,28] & 0,91 [0,87--0,94] & 0,01 & 0,12 [0,07--0,18] \\
+S2, $k$ = 5 & 0,27 [0,18--0,37] & 0,99 [0,98--1,00] & 0,00 & 0,12 [0,07--0,18] \\
+S2, $k$ = 10 & 0,30 [0,20--0,41] & 0,99 [0,98--1,00] & 0,01 & 0,10 [0,05--0,16] \\
+S2 solo archivos, $k$ = 10 & 0,11 [0,04--0,19] & 0,79 [0,71--0,86] & 0,00 & 0,10 [0,05--0,16] \\
+S3 & 0,29 [0,20--0,41] & 0,30 [0,20--0,41] & 0,04 [0,01--0,07] & 0,04 [0,01--0,08] \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+La tabla~\ref{tab:bench-fpr} presenta la tasa de falsos positivos sobre usuario-días limpios. Sin decaimiento temporal, la tasa del híbrido en nivel alto o superior es de 0,08 en los negativos de DEV, de 0,05 en los de HOLDOUT y de 0,07 en el período de test de Isolation Forest.
+
+\begin{table}[h]
+\centering
+\caption{Tasa de falsos positivos sobre usuario-días limpios [IC 95\,\%]}
+\label{tab:bench-fpr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{2.35cm}>{\raggedright\arraybackslash}p{2.35cm}>{\raggedright\arraybackslash}p{2.35cm}>{\raggedright\arraybackslash}p{2.35cm}}
+\hline
+Base & Isolation Forest $\geq$ 70 & LSTM $\geq$ 70 & Híbrido, alto o superior & Híbrido, crítico \\
+\hline
+Negativos DEV (6\,127 días, 62 usuarios) & 0,23 [0,15--0,31] & 0,10 [0,04--0,18] & 0,06 [0,02--0,11] & 0,00 \\
+Negativos HOLDOUT (5\,894 días, 57 usuarios) & 0,31 [0,19--0,44] & 0,08 [0,03--0,14] & 0,04 [0,02--0,09] & 0,00 \\
+Período de test de Isolation Forest (12\,236 días, 262 usuarios) & 0,26 [0,20--0,34] & 0,09 [0,05--0,14] & 0,05 [0,03--0,09] & 0,00 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+\subsection{Lectura de los resultados}
+HOLDOUT es una estimación limpia del sistema vigente, porque no se adoptó nada de lo explorado en DEV: el sistema evaluado es el mismo que estaba en producción antes de los experimentos, de modo que no existe una selección sobre DEV que HOLDOUT pueda desmentir. Isolation Forest sostiene la detección por volumen y por horario, con un ROC-AUC de 0,76 a 0,88 en S2 y de 0,90 en S3, y queda cerca del azar en la toma de cuenta (0,46 a 0,62 en S1). El híbrido ordena peor que Isolation Forest solo en lo que este detecta (0,80 contra 0,90 en S3 y 0,80 contra 0,88 en S2 con $k$ = 10), y algo mejor en la toma de cuenta disímil (0,68 contra 0,62).
+
+En términos operativos, con una tasa de falsos positivos en nivel alto del 4\,\% al 5\,\% y prácticamente nula en crítico, el sistema detecta en nivel alto entre el 12\,\% y el 30\,\% de los días atacados sin país; la exfiltración solo con archivos queda en 0,11. Cuando la exfiltración introduce un país nuevo mezclado en el día, la regla de piso de Isolation Forest lleva la detección al rango del 91\,\% al 99\,\%. Sin país, el nivel crítico casi no se alcanza. La detección operativa más alta del sistema proviene, por lo tanto, de la ubicación y no del comportamiento.
+
+Las cifras del LSTM en HOLDOUT son optimistas, porque 47 de las 57 víctimas forman parte de su entrenamiento, y aun así el componente queda cerca del azar sin país (0,56 a 0,63). Las 10 víctimas restantes tienen tan poca actividad que su historia no llega a cerrar una secuencia de 50 eventos, por lo que no permiten una estimación del LSTM fuera de su entrenamiento.
+
+\subsection{Contraste con las metas}
+Las metas de la sección~\ref{sec:metas-modelo} se mantienen sin cambios. Si se aplican sus mismos límites a los resultados de HOLDOUT, la tasa de falsos positivos en nivel alto (4\,\% a 5\,\%) cumple el límite del 10\,\% de la meta de alertas, mientras que la detección en nivel alto sin país (12\,\% a 30\,\% de los días atacados) no alcanza el 50\,\% de la meta de detección. Con país, la detección de la exfiltración supera ese valor. El contraste es indicativo, porque la meta de detección se expresa en usuarios y el benchmark mide usuario-días.
+
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
 La usabilidad del \emph{dashboard} se evalúa mediante una evaluación heurística, una técnica de inspección en la que se revisa la interfaz contra un conjunto de principios reconocidos. Se utilizan las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}: visibilidad del estado del sistema (H1), correspondencia entre el sistema y el mundo real (H2), control y libertad del usuario (H3), consistencia y estándares (H4), prevención de errores (H5), reconocimiento antes que recuerdo (H6), flexibilidad y eficiencia de uso (H7), diseño estético y minimalista (H8), ayuda para reconocer, diagnosticar y recuperarse de errores (H9) y ayuda y documentación (H10).
