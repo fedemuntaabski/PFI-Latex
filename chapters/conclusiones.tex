@@ -1,0 +1,103 @@
+\chapter{Conclusiones y trabajo futuro}\label{chap:conclusiones}
+
+\section{Cumplimiento de los objetivos}
+El objetivo general se cumple en su alcance funcional: el sistema evalúa cada evento durante toda
+la sesión, mantiene un puntaje de riesgo con continuidad entre sesiones y ejecuta en el equipo una
+respuesta graduada, con la decisión centralizada en la API y la aplicación distribuida en los
+agentes. La tabla~\ref{tab:cumplimiento-objetivos} detalla cada objetivo específico.
+
+\begin{longtable}{p{5.6cm}p{6.2cm}p{2.2cm}}
+\caption{Cumplimiento de los objetivos específicos}\label{tab:cumplimiento-objetivos}\\
+\hline
+Objetivo & Evidencia & Estado \\
+\hline
+\endfirsthead
+\hline
+Objetivo & Evidencia & Estado \\
+\hline
+\endhead
+1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
+RNF-08); canal [[CODIGO: TLS y autenticación mutua]]; consumo [[CODIGO: RNF-02]] & [[CODIGO]] \\
+2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
+comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}) [[CODIGO: actualizar si se reentrena]] & Parcial \\
+3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
+(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms en entorno local & Cumplido \\
+4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,
+RF-08); la ejecución real de las mitigaciones en el equipo se verificó en forma manual
+(sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del
+sistema operativo (RNF-06) & Cumplido con limitación \\
+5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
+RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos & Cumplido \\
+6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; la única
+corrida real del reentrenamiento produjo un modelo peor que el vigente, que no se promovió (RF-21)
+& Cumplido; promoción no observada \\
+7. Credenciales y canal protegidos & [[CODIGO: resultado de seguridad]] & [[CODIGO]] \\
+8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y
+análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); queda pendiente el plazo de
+conservación & Cumplido \\
+9. Pruebas con cobertura $\geq$ 85\,\% & [[CODIGO: cantidad de pruebas y cobertura]]; pruebas de extremo
+a extremo y evaluación heurística realizadas & [[CODIGO]] \\
+\hline
+\end{longtable}
+{\small Fuente: elaboración propia.\par}
+
+De los 30 requerimientos funcionales, 28 están implementados y 2 en estado parcial, y de los 15 no
+funcionales, [[CODIGO: actualizar conteo con RNF-02, RNF-03 y RNF-13]] (sección~\ref{sec:cumplimiento}).
+
+\section{Resultados principales}
+El resultado técnico más relevante es la arquitectura: el sistema cierra el ciclo de detección,
+decisión y respuesta en el equipo, que es el hueco que el estado del arte identifica en las
+soluciones comerciales, y lo hace con una latencia muy por debajo de la que exige una respuesta en
+tiempo casi real. La separación entre el punto de decisión y el de aplicación permite cambiar
+umbrales y acciones sin modificar los agentes.
+
+El resultado más débil es la capacidad de detección. Sobre escenarios de ataque inyectados en el
+historial de 15 usuarios, la detección atribuible nunca supera un tercio de los usuarios en ningún
+umbral, y con el umbral vigente del nivel alto llega al 13,3\,\% en el escenario combinado, mientras
+que el 16,8\,\% de los días sin ataque termina en nivel alto. Entre las causas, la única verificada
+es que casi todos los eventos del conjunto de entrenamiento tienen el país registrado como
+desconocido, lo que impide detectar el cambio de país; las demás son inferidas: la granularidad
+diaria de las variables de Isolation Forest, que diluye una ráfaga corta de eventos, y la longitud
+de las secuencias del LSTM. Estos resultados
+se basan en una muestra chica y en escenarios diseñados por el propio equipo, pero alcanzan para
+concluir que el modelo, tal como está entrenado, no detecta de forma confiable ataques de corta
+duración. [[CODIGO: actualizar si el reentrenamiento cambia los resultados.]]
+
+El análisis económico muestra que el producto puede ser rentable en un escenario de adopción
+moderada, con un VAN de USD 35.084 al 25\,\%, pero que su viabilidad depende de la velocidad de
+adopción y del costo de adquirir clientes. El marco legal no impide el uso del sistema, pero exige
+que la organización que lo adopte informe a sus empleados y formalice la transferencia
+internacional de los datos.
+
+\section{Lecciones aprendidas}
+\begin{itemize}
+  \item Un conjunto de datos público resuelve la falta de datos reales, pero impone su vocabulario
+        y sus limitaciones: traducir la telemetría de un equipo Windows al vocabulario de una
+        plataforma de archivos compartidos hace que algunos eventos no aporten a las variables del
+        modelo, y la falta de etiquetas obliga a construir una evaluación propia.
+  \item Sin etiquetas, la evaluación del modelo necesita metas definidas de antemano y escenarios
+        controlados; las métricas no supervisadas por sí solas no dicen si el sistema detecta.
+  \item Las limitaciones de seguridad del propio sistema (credenciales y canal) son parte del
+        producto y no un detalle de despliegue: un sistema de seguridad se evalúa también por
+        cómo se protege a sí mismo.
+  \item Verificar en el destino real (la base de datos, el correo recibido, el equipo donde se
+        ejecuta la acción) evita dar por cumplidas funciones que solo se observaron en un registro.
+\end{itemize}
+
+\section{Trabajo futuro}
+El trabajo futuro se prioriza según el impacto sobre la principal limitación del sistema:
+\begin{enumerate}
+  \item \textbf{Capacidad de detección}: incorporar variables con granularidad menor al día,
+        evaluar secuencias más cortas o solapadas en el LSTM, y calibrar umbrales y pesos con
+        escenarios etiquetados más amplios (sección~\ref{sec:interpretacion}).
+  \item \textbf{Datos propios}: reentrenar el modelo con telemetría de equipos Windows, para
+        eliminar la traducción de vocabulario y la variable de país sin información.
+  \item \textbf{Explicabilidad del LSTM}: hoy un puntaje impulsado por ese componente no identifica
+        qué lo causó.
+  \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
+        un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
+  \item \textbf{Validación comercial}: medir la disposición a pagar y el costo de adquisición a
+        través del canal de MSSP, que son las variables que más influyen en la viabilidad.
+  \item [[CODIGO: limitaciones de seguridad que queden abiertas después del trabajo del repo de
+        código; integración con un proveedor de identidad real.]]
+\end{enumerate}
