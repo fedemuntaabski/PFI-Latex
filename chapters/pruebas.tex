@@ -255,7 +255,7 @@ normal a uno de cada diez usuario-días. Los resultados muestran que el sistema 
 rendimiento y de comportamiento del LSTM, pero no las de detección ni de alertas: es la principal
 limitación técnica del proyecto, cuyas causas se analizan en la sección~\ref{sec:interpretacion}.
 
-El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}. Por lo tanto, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evalúa con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}.
+El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}. Por lo tanto, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evalúa con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}. La sección~\ref{sec:benchmark} supera en parte esta limitación con escenarios de etiqueta conocida.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{5.5cm}}
 	\caption{Métricas no supervisadas del modelo híbrido}
@@ -553,13 +553,25 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	El disparador de la cadena de \emph{hashes} agrega 0,042~ms por inserción y no produce errores con hasta 50 escrituras concurrentes. & Mantener la configuración del grupo de conexiones a la base de datos sin ampliarla. \\
 	\hline
-	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas no supervisadas y escenarios inyectados, sin informar precisión ni exhaustividad. \\
+	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas no supervisadas y escenarios inyectados y, después, con escenarios de etiqueta conocida que permiten medir \emph{recall} y falsos positivos (sección~\ref{sec:benchmark}). \\
 	\hline
 	La evaluación heurística identifica cuatro problemas de usabilidad de severidad mayor en el \emph{dashboard}. & Corregir los cuatro, junto con dos de severidad menor, modificando solo la interfaz. \\
 	\hline
 	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
 	\hline
 \end{longtable}
+
+Además de las decisiones de la tabla, la evaluación con escenarios etiquetados (sección~\ref{sec:benchmark}) da lugar a un conjunto de experimentos sobre el cálculo del puntaje. Se realizan solo sobre DEV, en su mayoría sobre una primera versión del benchmark con 27 víctimas, por lo que sus cifras no son comparables con las de HOLDOUT. Ninguno se adopta.
+
+\textbf{Recalibración de umbrales.} Calibrar los umbrales por cuantiles sobre los usuario-días de entrenamiento da 50,1, 71,9 y 81,8 para los niveles medio, alto y crítico. Con ellos, el nivel medio deja de marcar el 60\,\% de los días limpios y pasa a marcar el 32\,\%, pero el \emph{recall} en nivel alto queda parecido: la mejora es de reparto entre niveles y no de detección. Además, con los umbrales calibrados la escena de exfiltración de la demostración cae al nivel bajo al cerrar la primera secuencia del LSTM. Se mantienen los umbrales 40/70/90; como son editables en tiempo de ejecución, la recalibración queda disponible sin modificar el código.
+
+\textbf{Agregación del LSTM y combinación.} Se prueban variantes de agregación del riesgo del LSTM (media de las secuencias del día y máximo diario, frente a la media acumulada vigente) y de combinación de los dos componentes (otros pesos, el máximo, e Isolation Forest como puntaje con el LSTM solo como piso). Una selección por pasos sobre 13 víctimas elige el máximo diario, pero su ventaja desaparece en las 14 víctimas restantes, y la variante ganadora del protocolo queda por debajo del sistema vigente. Una prueba confirmatoria fijada de antemano, con Isolation Forest como puntaje, el LSTM como piso y un decaimiento asimétrico, mejora el ordenamiento pero pierde \emph{recall} operativo, y en la demostración la exfiltración sin VPN no llega al nivel alto. Con tan pocas víctimas, la selección persigue diferencias que la prueba no confirma.
+
+\textbf{Decaimiento temporal.} El decaimiento empeora el ordenamiento en todos los escenarios de ventana corta, entre 0,004 y 0,10 de ROC-AUC, y el mismo efecto se observa en HOLDOUT. Quitarlo es la única mejora de ordenamiento que se sostiene en las dos mitades de la primera versión del benchmark, pero no se traduce en más \emph{recall} en nivel alto. Se mantiene porque su efecto operativo neto no es concluyente y porque su vida media responde a la mediana real de los intervalos de actividad (3 días).
+
+\textbf{Modelos v2.} Se entrenan versiones corregidas de ambos modelos: sin variables de país, con partición temporal también para el LSTM, con la hora local de Viena y con una variable nueva de eventos de compartición. Isolation Forest v2 mejora mucho en S2 sin país, pero toda esa mejora la explica la variable de compartición, que es en parte circular con la construcción del escenario: en S2 solo archivos, sin compartición, las dos versiones empatan. Además, v2 empeora en la toma de cuenta, pierde la detección basada en la ubicación (la escena con VPN de la demostración ya no llega a crítico) y el criterio de promoción lo rechaza por falsos positivos (sección~\ref{sec:reentrenamiento-producto}). Los modelos v2 no se promueven.
+
+La decisión principal que surge de estos resultados es mantener el modelo vigente y cambiar el criterio de promoción del reentrenamiento (sección~\ref{sec:reentrenamiento-producto}).
 
 \section{Limitaciones de las pruebas}
 \label{sec:limitaciones-pruebas}

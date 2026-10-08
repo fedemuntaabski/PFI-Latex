@@ -89,6 +89,7 @@ El \emph{dashboard} consulta la API cada 2 segundos y se organiza en ocho pantal
 \end{itemize}
 
 \subsection{Reentrenamiento periódico}
+\label{sec:reentrenamiento-producto}
 Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda los modelos vigentes. Luego compara las métricas del modelo nuevo con las del vigente y lo promueve solo si las iguala o las mejora: en ese caso, la API recarga los modelos en memoria sin reiniciarse. Si no, restaura el respaldo. [[CODIGO: regla de promoción vigente tras el cierre de los modelos]] Cada corrida queda registrada con la fecha, la cantidad de eventos y la variación de las métricas. El administrador puede registrar también reentrenamientos realizados en forma manual.
 
 \subsection{Usuarios nuevos y período de aprendizaje}
