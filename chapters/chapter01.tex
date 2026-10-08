@@ -77,8 +77,12 @@ Anexo~A.
 
 El \emph{pipeline} de entrenamiento del modelo se organiza en seis fases sucesivas, desde la
 preparación del conjunto de datos hasta la exportación de los artefactos que consume la API,
-y se ejecuta en forma separada del ciclo de desarrollo del software. [[CODIGO: nombres de las seis
-fases del pipeline]]
+y se ejecuta en forma separada del ciclo de desarrollo del software. Las fases son el análisis exploratorio y el perfilado del conjunto de
+datos; la limpieza y la clasificación de los usuarios por volumen y tipo; la ingeniería de
+variables para ambos modelos; el entrenamiento de Isolation Forest; el entrenamiento del LSTM
+Autoencoder; y la combinación de ambos en el puntaje híbrido, que fija los pesos, la vida media
+del decaimiento y los umbrales. Antes de la última fase se ejecutan dos auditorías de
+consistencia de los datos, la segunda de carácter bloqueante.
 
 La gestión del trabajo se apoya en el control de versiones con ramas por funcionalidad, la
 revisión de cada cambio antes de integrarlo y un \emph{pipeline} de integración continua que ejecuta el

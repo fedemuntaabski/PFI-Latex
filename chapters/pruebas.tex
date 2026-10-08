@@ -215,9 +215,13 @@ Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, e
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
 El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
 \parencite{Landauer2022Dataset}, por lo que la evaluación no puede expresarse en exactitud, precisión,
-exhaustividad o F1. [[COMPLETAR: una oración que explique por qué versiones anteriores del trabajo
-mencionaban sesiones etiquetadas y balanceo de clases, y por qué ese enfoque se descarta. No
-inventar.]] En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
+exhaustividad o F1. Una versión preliminar del trabajo planteaba un enfoque supervisado sobre
+el conjunto de datos de autenticación de Los Alamos National Laboratory (LANL)
+\parencite{Kent2015}, cuyas 253 sesiones anómalas, derivadas de los registros de un ejercicio de
+red team sobre más de 7,6 millones de sesiones, exigían técnicas de balanceo de clases. Ese
+enfoque se descarta al adoptar CLUE-LDS: las etiquetas de LANL corresponden a otro conjunto de
+datos y a otra unidad de análisis (la sesión, no el usuario-día), y ninguna fase del
+\emph{pipeline} vigente las utiliza. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
 comportamiento del modelo sobre datos sin etiquetar con la detección de escenarios de ataque
 inyectados (sección~\ref{sec:validacion-escenarios}).
 
