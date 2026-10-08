@@ -1,0 +1,76 @@
+\chapter{Modelo de negocio y viabilidad económico-financiera}\label{chap:negocio}
+Este capítulo describe cómo el producto crea, entrega y captura valor \parencite{Osterwalder2010},
+y evalúa si puede sostenerse y ser rentable en el tiempo. Los supuestos parten del análisis de
+mercado del capítulo anterior (segmento, precio y canales) y de los costos reales de la
+infraestructura del prototipo.
+
+\section{Cliente, usuario y pagador}
+El producto es un servicio B2B. El \textbf{usuario} del panel es el responsable de seguridad o de
+tecnología de la organización, que revisa los niveles de riesgo y configura las políticas. Los
+empleados cuyos equipos ejecutan el agente no son usuarios del producto, sino titulares de los
+datos que este trata (sección~\ref{sec:tratamiento-datos}). El \textbf{cliente} que decide la
+compra es el responsable de tecnología o, en las empresas más chicas, la dirección. El
+\textbf{pagador} es la organización, en forma directa o a través del proveedor de servicios de
+seguridad gestionados (MSSP) que le revende el producto.
+
+\section{Lienzo del modelo de negocio}
+La tabla~\ref{tab:canvas} resume el modelo en los nueve bloques del lienzo de
+\textcite{Osterwalder2010}.
+
+\begin{longtable}{p{3.4cm}p{11cm}}
+\caption{Lienzo del modelo de negocio}\label{tab:canvas}\\
+\hline
+\textbf{Bloque} & \textbf{Contenido} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Bloque} & \textbf{Contenido} \\
+\hline
+\endhead
+Segmentos de clientes & PyMEs argentinas de 50 a 100 equipos con información sensible y sin
+centro de operaciones de seguridad propio; en la encuesta, el 47\,\% de la base efectiva de la
+encuesta (112 participantes que utilizan una computadora provista por su empresa) accede a
+datos o sistemas de criticidad media-alta o alta (sección~\ref{sec:encuesta-usuarios}). \\
+Propuesta de valor & Detección del uso indebido de una sesión válida y respuesta automática en el
+propio equipo, sin depender de un analista ni de una plataforma de orquestación externa, con
+explicación de cada alerta y a un precio acorde al presupuesto de una PyME. \\
+Canales & Venta directa con alta autogestionada y reventa a través de integradores y MSSP que ya
+atienden PyMEs. La elección del canal de reventa es consistente con la encuesta, donde la
+recomendación de proveedores es el factor de adopción más mencionado (20\,\%)
+(sección~\ref{sec:encuesta-usuarios}). \\
+Relación con los clientes & Alta autogestionada con período de aprendizaje automático;
+soporte por correo; acompañamiento del MSSP en los clientes que llegan por ese canal. \\
+Fuentes de ingresos & Suscripción mensual por equipo monitoreado en dos planes: Business (USD 2 a 5)
+y Enterprise, con reentrenamiento periódico configurable (USD 6 a 10). \\
+Recursos clave & Modelo de detección entrenado y su pipeline de reentrenamiento; agente, API y
+panel; equipo de desarrollo; infraestructura de nube. \\
+Actividades clave & Desarrollo y mantenimiento del producto; reentrenamiento y evaluación del
+modelo; soporte; gestión del canal de reventa. \\
+Socios clave & Integradores y MSSP; proveedores de nube (AWS, Upstash, Supabase); proveedores de
+identidad (Keycloak u otros) para la integración IAM. \\
+Estructura de costos & Equipo (costo fijo principal); infraestructura de nube base (fija) y por
+equipo monitoreado (variable); comisiones del canal y del procesador de pagos (variables);
+costo de adquisición de clientes; certificado de firma de código y asesoramiento legal. \\
+\hline
+\end{longtable}
+{\small Fuente: elaboración propia con el esquema de \textcite{Osterwalder2010}.\par}
+
+\section{Monetización y economía unitaria}
+El esquema de suscripción por equipo se elige porque el costo variable del producto crece con
+la cantidad de equipos monitoreados (eventos procesados, almacenamiento y cómputo de la API), de
+modo que el ingreso escala con el mismo factor que el costo. Con una mezcla supuesta de 70\,\% de
+equipos en el plan Business a USD 4 y 30\,\% en Enterprise a USD 8, el ingreso promedio es de USD 5,20
+por equipo y de USD 390 por mes para un cliente de 75 equipos. Descontados el costo de nube por
+equipo (USD 0,60), las comisiones de pago e impuestos sobre ventas (6\,\%) y la comisión del canal
+(20\,\% sobre la mitad de las ventas), el margen de contribución es de USD 283 por cliente y por mes.
+
+Con un costo de adquisición de USD 1.500 y una tasa de abandono del 2\,\% mensual (escenario base),
+el valor de vida de un cliente es de USD 283 / 0,02 = USD 14.150, la relación entre el valor de vida
+y el costo de adquisición es de 9,4 y el costo de adquisición se recupera en 5,3 meses.
+
+\textbf{Disposición a pagar.} El proyecto no cuenta con una medición directa de la disposición a
+pagar. El precio se fija por debajo del de las soluciones del segmento corporativo, que se
+tarifan por volumen de datos o por usuario con montos dimensionados para grandes empresas, y se
+contrasta con la encuesta, donde el costo aparece como factor determinante de adopción para el
+17\,\% de los participantes. Validar el precio con clientes potenciales es la primera acción
+comercial prevista.
