@@ -190,7 +190,7 @@ Una segunda medición con el juego de modelos vigente, en otro equipo (Windows~1
 Las latencias más altas coinciden con los eventos que completan una secuencia de 50 eventos de un usuario, que es cuando se ejecuta la inferencia del LSTM. Esta relación se infiere de la posición de los valores extremos y no está instrumentada. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se envían de forma secuencial, sin carga concurrente de varios agentes.
 
 \subsection{Consumo de recursos del agente (RNF-02)}
-Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, el consumo de CPU del proceso del agente, normalizado sobre el total de núcleos lógicos, y su memoria residente. El agente se ejecuta en modo de simulación de mitigaciones, de modo que la medición refleja la captura y el envío de eventos sin efectos sobre el equipo. El umbral es un consumo medio de CPU menor o igual al 5\,\% de la máquina y una memoria residente menor o igual a 150~MB. La tabla~\ref{tab:rnf02} presenta los resultados.
+Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, el consumo de CPU del proceso del agente, normalizado sobre el total de núcleos lógicos, y su memoria residente. El agente se ejecuta en modo de simulación de mitigaciones, de modo que la medición refleja la captura y el envío de eventos sin efectos sobre el equipo. El umbral es un consumo medio de CPU menor o igual al 5\,\% de la máquina y una memoria residente menor o igual a 150~MB. La medición se realizó el 8 de octubre de 2026 en un equipo con Windows~11 Pro y 16 núcleos lógicos: se tomaron 360 muestras sin pérdidas y el agente envió unos 112 eventos, todos respondidos. La tabla~\ref{tab:rnf02} presenta los resultados.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.0cm}}
 	\caption{Consumo de recursos del agente (RNF-02)}
@@ -203,13 +203,13 @@ Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, e
 	\textbf{Métrica} & \textbf{Media} & \textbf{Percentil 95} & \textbf{Máximo} \\
 	\hline
 	\endhead
-	CPU (\% de la máquina) & [[CPU MEDIA]] & [[CPU P95]] & [[CPU MÁX]] \\
+	CPU (\% de la máquina) & 0,09 & 0,14 & 0,16 \\
 	\hline
-	Memoria residente (MB) & [[RSS MEDIA]] & [[RSS P95]] & [[RSS MÁX]] \\
+	Memoria residente (MB) & 33,02 & 33,24 & 33,25 \\
 	\hline
 \end{longtable}
 
-[[INTERPRETACIÓN DE RNF-02 SEGÚN EL RESULTADO]]
+El agente cumple el umbral con un margen amplio: su consumo medio de CPU es más de cincuenta veces menor que el límite y su memoria residente se mantiene estable durante toda la medición, cerca de un quinto del máximo admitido. La medición refleja el uso normal del equipo; no incluye una ráfaga de eventos de archivo como la del escenario de exfiltración, en la que el percentil 95 y el máximo podrían ser mayores.
 
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
@@ -585,6 +585,7 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 	\item Cuatro requerimientos funcionales (RF-18, RF-19, RF-22 y RF-26) no tienen una prueba registrada.
 	\item La ejecución real de las mitigaciones en el \emph{endpoint} se verifica en forma manual y no tiene pruebas automatizadas.
 	\item La latencia se mide con Redis en memoria y sin carga concurrente; no representa el desempeño con un Redis gestionado ni con varios agentes simultáneos.
+	\item El consumo de recursos del agente (RNF-02) se mide con uso normal del equipo, sin una ráfaga de eventos de archivo como la del escenario de exfiltración.
 	\item La evaluación del modelo carece de etiquetas, y la validación por escenarios usa una muestra de 15 usuarios con ataques diseñados por el equipo.
 	\item Los escenarios del benchmark de detección son sintéticos: ráfagas uniformes en la exfiltración y reubicación lineal en el uso fuera de horario.
 	\item El benchmark trabaja con el día cerrado, sin el agregado parcial ni la línea base personal que aplica la producción.
@@ -597,4 +598,4 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
-Las 306 pruebas automatizadas se ejecutan sin fallas, y la integración continua verifica la API, el subconjunto del agente independiente del sistema operativo, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación cumple holgadamente el umbral de RNF-01. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
+Las 306 pruebas automatizadas se ejecutan sin fallas, y la integración continua verifica la API, el subconjunto del agente independiente del sistema operativo, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).

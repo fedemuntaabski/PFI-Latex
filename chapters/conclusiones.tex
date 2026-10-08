@@ -17,7 +17,7 @@ Objetivo & Evidencia & Estado \\
 \hline
 \endhead
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
-RNF-08); canal [[CODIGO: TLS y autenticación mutua]]; consumo [[CODIGO: RNF-02]] & [[CODIGO]] \\
+RNF-08); canal [[CODIGO: TLS y autenticación mutua]]; consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02) & [[CODIGO]] \\
 2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
 comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); evaluación con escenarios
 etiquetados en una partición reservada (sección~\ref{sec:benchmark}) [[CODIGO: actualizar si se reentrena]] & Parcial \\
@@ -44,7 +44,7 @@ a extremo y evaluación heurística realizadas & [[CODIGO]] \\
 {\small Fuente: elaboración propia.\par}
 
 De los 30 requerimientos funcionales, 28 están implementados y 2 en estado parcial, y de los 15 no
-funcionales, [[CODIGO: actualizar conteo con RNF-02, RNF-03 y RNF-13]] (sección~\ref{sec:cumplimiento}).
+funcionales, 9 están implementados, 5 en estado parcial y 1 no implementado [[CODIGO: actualizar conteo con RNF-03 y RNF-13]] (sección~\ref{sec:cumplimiento}).
 
 \section{Resultados principales}
 El resultado técnico más relevante es la arquitectura: el sistema cierra el ciclo de detección,
