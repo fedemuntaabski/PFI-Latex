@@ -10,13 +10,13 @@ Esta sección describe el producto, su rango de precios y su plaza, es decir, lo
 \subsection{Producto}
 Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), compuesto por un agente liviano local (PEP) que recolecta actividad del usuario, una API central (PDP) que calcula un \emph{score} de riesgo dinámico con un modelo híbrido (Isolation Forest + LSTM Autoencoder) con decaimiento temporal, y un \emph{dashboard} donde el administrador define umbrales y acciones.
 
-\noindent\textbf{Diferencial del producto.} Las tres soluciones relevadas en el Estado del arte (Sentinel, Splunk UBA, Exabeam) comparten un mismo punto ciego: detectan y alertan, pero no ejecutan una respuesta por sí mismas. Cuando identifican una desviación de comportamiento, el paso siguiente (bloquear el acceso, aislar el proceso, exigir una verificación adicional) queda en manos de un analista, de una plataforma SOAR externa, o no existe de forma nativa. El intervalo entre la detección de la anomalía y la ejecución de una respuesta coincide con la ventana de tiempo que un atacante con credenciales robadas necesita para moverse dentro de la red sin ser detenido. El diferencial del producto es que cierra ese intervalo: el mismo agente que detecta la anomalía ejecuta la respuesta, directamente en el \emph{endpoint}, en segundos, sin depender de que un analista esté atento en ese momento. La diferencia no reside en la claridad de la alerta ni en la presentación del \emph{dashboard}, sino en que el sistema, además de avisar, reacciona.
+\noindent\textbf{Diferencial del producto.} Las tres soluciones relevadas en el Estado del arte (Sentinel, Splunk UBA, Exabeam) comparten un mismo punto ciego: detectan y alertan, pero no ejecutan una respuesta por sí mismas. Cuando identifican una desviación de comportamiento, el paso siguiente (suspender o terminar procesos, denegar el acceso a carpetas, exigir una verificación adicional) queda en manos de un analista, de una plataforma SOAR externa, o no existe de forma nativa. El intervalo entre la detección de la anomalía y la ejecución de una respuesta coincide con la ventana de tiempo que un atacante con credenciales robadas necesita para moverse dentro de la red sin ser detenido. El diferencial del producto es que cierra ese intervalo: el mismo agente que detecta la anomalía ejecuta la respuesta, directamente en el \emph{endpoint}, en segundos, sin depender de que un analista esté atento en ese momento. La diferencia no reside en la claridad de la alerta ni en la presentación del \emph{dashboard}, sino en que el sistema, además de avisar, reacciona.
 
 
 \begin{itemize}
 	\item Frente a Exabeam, que según el propio Estado del arte ``no incorpora de forma nativa un agente configurable para la recolección directa de datos desde los equipos finales'', el proyecto lo tiene como pieza central de la arquitectura: no depende de que la infraestructura ya tenga \emph{logs} centralizados, sino que recolecta la actividad directamente en el \emph{endpoint} del usuario.
-	\item Frente a Splunk UBA, cuyas ``acciones de respuesta suelen depender de integraciones externas ya que no incorpora de forma nativa mecanismos de respuesta adaptativa'' (cita textual del Estado del arte), el agente PEP ejecuta la acción (restricción de permisos, aislamiento del proceso) directamente en el \emph{endpoint}, sin \emph{re-login} y sin un componente externo que haya que integrar y configurar aparte.
-	\item Frente a Microsoft Sentinel, que el Estado del arte describe con ``falta de visibilidad en el funcionamiento de sus algoritmos de detección'', el sistema puede exponer la razón concreta de cada alerta en la notificación generada por IA en el momento del evento, en vez de una caja negra que solo informa ``riesgo alto''.
+	\item Frente a Splunk UBA, cuyas ``acciones de respuesta suelen depender de integraciones externas ya que no incorpora de forma nativa mecanismos de respuesta adaptativa'' (cita textual del Estado del arte), el agente PEP ejecuta la acción (suspensión o terminación de procesos, denegación del acceso a carpetas) directamente en el \emph{endpoint}, sin \emph{re-login} y sin un componente externo que haya que integrar y configurar aparte.
+	\item Frente a Microsoft Sentinel, que el Estado del arte describe con ``falta de visibilidad en el funcionamiento de sus algoritmos de detección'', el sistema puede exponer la razón concreta de cada alerta en una notificación que informa las variables que más contribuyen a cada alerta, redactada en forma opcional por un modelo de lenguaje, en vez de una caja negra que solo informa ``riesgo alto''.
 \end{itemize}
 
 \subsection{Precio}
@@ -33,8 +33,8 @@ La viabilidad económico-financiera de este esquema de precios se evalúa en la 
 La plaza define cómo llega el producto al cliente. Se organiza en tres aspectos: los canales de distribución, la modalidad de despliegue y el alcance geográfico.
 
 \begin{itemize}
-	\item \textbf{Canales de distribución.} Distribución digital directa, con alta \emph{self-service}, complementada con un canal de reventa a través de integradores y proveedores de servicios de seguridad gestionados (MSSP) que ya atienden PyMEs.
-	\item \textbf{Modalidad de despliegue.} Despliegue 100\% \emph{cloud-native}: la API y las bases de datos (Redis Upstash, Postgres Supabase) funcionan como servicios gestionados en la nube, y del lado del cliente solo se instala el agente en cada equipo Windows. No requiere infraestructura propia del cliente, a diferencia de Splunk UBA, cuya implementación inicial el propio Estado del arte describe como compleja.
+	\item \textbf{Canales de distribución.} Se prevé una distribución digital directa con alta autogestionada, complementada con un canal de reventa a través de integradores y proveedores de servicios de seguridad gestionados (MSSP) que ya atienden PyMEs.
+	\item \textbf{Modalidad de despliegue.} El producto está diseñado para desplegarse en la nube: la API y las bases de datos (Redis en Upstash y PostgreSQL en Supabase) funcionan como servicios gestionados, y del lado del cliente solo se instala el agente en cada equipo Windows. No requiere infraestructura propia del cliente, a diferencia de Splunk UBA, cuya implementación inicial el propio Estado del arte describe como compleja. El despliegue verificado del prototipo es local, con almacenamiento en la nube (sección~\ref{sec:despliegue}).
 	\item \textbf{Alcance geográfico.} Argentina, con foco inicial en las PyMEs del Área Metropolitana de Buenos Aires, donde se concentran los integradores y proveedores de servicios de seguridad gestionados del canal de reventa. La comercialización en otros países de América Latina se plantea como una expansión posterior, sujeta a adecuar el tratamiento de datos a la normativa de cada país.
 \end{itemize}
 
@@ -53,11 +53,11 @@ Matriz de Fortalezas, Debilidades (factores internos) y Oportunidades, Amenazas 
 \subsection{Fortalezas}
 Las fortalezas son factores internos que favorecen al producto frente a las soluciones relevadas:
 \begin{itemize}
-	\item Arquitectura Zero Trust real (PDP/PEP, NIST SP~800-207), con respuesta ejecutada en el \emph{endpoint} sin \emph{re-login}: cierra el punto ciego que el propio Estado del arte identifica como carencia común de Sentinel, Splunk UBA y Exabeam.
+	\item Arquitectura basada en la separación entre punto de decisión y punto de aplicación de NIST SP~800-207, con respuesta ejecutada en el \emph{endpoint} sin \emph{re-login}: cierra el punto ciego que el propio Estado del arte identifica como carencia común de Sentinel, Splunk UBA y Exabeam.
 	\item Agente liviano y configurable nativo, algo que Exabeam no ofrece de forma nativa.
 	\item Umbrales y catálogo de acciones editable en tiempo real desde el \emph{dashboard}, sin depender de integraciones externas como sí necesita Splunk UBA.
 	\item Modelo de costos no atado al volumen de datos ingeridos (a diferencia de Sentinel), lo que permite un precio predecible y bajo, acorde al presupuesto de una PyME.
-	\item Notificaciones con explicación generada por IA en el momento de la alerta, atendiendo la falta de transparencia algorítmica que el Estado del arte señala en Sentinel.
+	\item Una notificación que informa las variables que más contribuyen a cada alerta, redactada en forma opcional por un modelo de lenguaje, atendiendo la falta de transparencia algorítmica que el Estado del arte señala en Sentinel.
 \end{itemize}
 
 \subsection{Debilidades}
@@ -75,7 +75,7 @@ Las oportunidades son factores externos del mercado que el producto puede aprove
 \begin{itemize}
 	\item Segmento PyME desatendido: las tres soluciones relevadas están dimensionadas y tarifadas para organizaciones grandes con equipo de seguridad dedicado.
 	\item Mercado de Zero Trust/UEBA en expansión.
-	\item Posibilidad de integrarse como complemento de soluciones IAM existentes en vez de competir por reemplazarlas.
+	\item Posibilidad de integrarse como complemento de soluciones IAM existentes, mediante el adaptador de identidad, hoy validado con un proveedor simulado, en vez de competir por reemplazarlas.
 \end{itemize}
 
 \subsection{Amenazas}
