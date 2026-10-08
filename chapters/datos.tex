@@ -5,7 +5,7 @@ Este capítulo describe el conjunto de datos utilizado para entrenar el modelo, 
 
 \section{Conjunto de datos}
 \label{sec:dataset}
-El modelo se entrenó con CLUE-LDS (\emph{Cloud-based User Entity Behavior Analytics Log Data Set}) \parencite{Landauer2022, Landauer2022Dataset}. El conjunto contiene registros reales de actividad de los usuarios de una plataforma de almacenamiento y colaboración de archivos en la nube, seudonimizados mediante identificadores descriptivos. Abarca desde julio de 2017 hasta septiembre de 2022 y se distribuye bajo la licencia Creative Commons Atribución 4.0 (CC BY 4.0), que permite su uso con atribución a los autores.
+El modelo se entrena con CLUE-LDS (\emph{Cloud-based User Entity Behavior Analytics Log Data Set}) \parencite{Landauer2022, Landauer2022Dataset}. El conjunto contiene registros reales de actividad de los usuarios de una plataforma de almacenamiento y colaboración de archivos en la nube, seudonimizados mediante identificadores descriptivos. Abarca desde julio de 2017 hasta septiembre de 2022 y se distribuye bajo la licencia Creative Commons Atribución 4.0 (CC BY 4.0), que permite su uso con atribución a los autores.
 
 Cada registro corresponde a un evento e incluye su tipo, la marca temporal, el identificador del usuario y su clase (nombre de usuario o dirección IP), parámetros específicos del tipo de evento y, cuando está disponible, la ubicación. El vocabulario comprende 44 tipos de evento propios de una plataforma de archivos compartidos, como accesos, creación y escritura de archivos, inicios de sesión y acceso a recursos compartidos públicamente.
 
@@ -13,7 +13,7 @@ El conjunto no incluye etiquetas que indiquen qué eventos corresponden a activi
 
 \section{Selección y preparación}
 \label{sec:seleccion-datos}
-El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasificaron según su volumen de actividad. No se descartaron eventos por su contenido: solo se clasificaron los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado.
+El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasifican según su volumen de actividad. No se descartan eventos por su contenido: solo se clasifican los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.0cm}}
 	\caption{Clasificación de los usuarios del conjunto de datos}
@@ -36,7 +36,7 @@ El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados 
 	\hline
 \end{longtable}
 
-Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento automatizado no representa la conducta de una persona, por lo que se excluyeron del entrenamiento. Los eventos identificados por dirección IP no pueden asociarse a un usuario y también se excluyeron. El mismo criterio se aplica en producción: estos casos quedan sin puntaje (RF-03).
+Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento automatizado no representa la conducta de una persona, por lo que se excluyen del entrenamiento. Los eventos identificados por dirección IP no pueden asociarse a un usuario y también se excluyen. El mismo criterio se aplica en producción: estos casos quedan sin puntaje (RF-03).
 
 \section{Variables y modelos}
 \label{sec:variables-modelos}
@@ -56,10 +56,10 @@ Isolation Forest evalúa cada día de actividad de cada usuario. Para cada par u
 	\item entropía de la distribución de tipos de evento.
 \end{itemize}
 
-Se utilizaron los usuarios válidos y los de baja actividad: 908 usuarios y 61\,283 pares usuario-día. Las variables se estandarizaron antes del entrenamiento.
+Se utilizan los usuarios válidos y los de baja actividad: 908 usuarios y 61\,283 pares usuario-día. Las variables se estandarizan antes del entrenamiento.
 
 \subsection{LSTM Autoencoder}
-El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtuvieron 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
+El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtienen 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
 
 \subsection{Partición y parámetros}
 La tabla~\ref{tab:entrenamiento} resume la partición de los datos y los parámetros de cada modelo.
@@ -89,11 +89,11 @@ La tabla~\ref{tab:entrenamiento} resume la partición de los datos y los paráme
 	\hline
 \end{longtable}
 
-El puntaje híbrido combina ambos modelos con un peso de 0,5 cada uno y aplica un decaimiento temporal con una vida media de 3 días. Los umbrales por defecto de los niveles son 40, 70 y 90. Los dos modelos se particionaron con criterios distintos: la partición temporal evalúa la capacidad de Isolation Forest de generalizar hacia el futuro, mientras que la partición por usuario evalúa la del LSTM sobre usuarios no vistos. Como consecuencia, solo 15 usuarios están en el conjunto de prueba de ambos modelos, lo que limita la evaluación conjunta (sección~\ref{sec:evaluacion-modelo}).
+El puntaje híbrido combina ambos modelos con un peso de 0,5 cada uno y aplica un decaimiento temporal con una vida media de 3 días. Los umbrales por defecto de los niveles son 40, 70 y 90. Los dos modelos se particionan con criterios distintos: la partición temporal evalúa la capacidad de Isolation Forest de generalizar hacia el futuro, mientras que la partición por usuario evalúa la del LSTM sobre usuarios no vistos. Como consecuencia, solo 15 usuarios están en el conjunto de prueba de ambos modelos, lo que limita la evaluación conjunta (sección~\ref{sec:evaluacion-modelo}).
 
 \section{Adaptación de la telemetría del agente}
 \label{sec:mapeo-agente}
-El agente observa un \emph{endpoint} Windows, mientras que el modelo se entrenó con eventos de una plataforma de archivos en la nube. Para que el modelo pueda evaluar la telemetría del agente sin reentrenarse, cada señal del sistema operativo se traduce a un tipo de evento del vocabulario de CLUE-LDS. La tabla~\ref{tab:mapeo-agente} presenta esa correspondencia y su efecto sobre las variables de Isolation Forest.
+El agente observa un \emph{endpoint} Windows, mientras que el modelo se entrena con eventos de una plataforma de archivos en la nube. Para que el modelo pueda evaluar la telemetría del agente sin reentrenarse, cada señal del sistema operativo se traduce a un tipo de evento del vocabulario de CLUE-LDS. La tabla~\ref{tab:mapeo-agente} presenta esa correspondencia y su efecto sobre las variables de Isolation Forest.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{6.7cm}}
 	\caption{Correspondencia entre las señales del agente y los tipos de evento del conjunto de datos}
@@ -224,4 +224,4 @@ Redis almacena catorce tipos de clave, agrupados en la tabla~\ref{tab:claves-red
 
 \section{Síntesis}
 \label{sec:sintesis-datos}
-El modelo se entrenó con 8,5 millones de eventos reales de 291 usuarios, sin etiquetas. Isolation Forest trabaja sobre variables diarias y el LSTM sobre secuencias de 50 eventos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
+El modelo se entrena con 8,5 millones de eventos reales de 291 usuarios, sin etiquetas. Isolation Forest trabaja sobre variables diarias y el LSTM sobre secuencias de 50 eventos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.

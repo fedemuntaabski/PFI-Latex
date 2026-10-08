@@ -57,7 +57,7 @@ La respuesta de la API indica la acción de mitigación. El agente la ejecuta y 
 	\item \texttt{suspender\_proceso}: suspende el proceso de forma reversible.
 \end{itemize}
 
-Las acciones pueden revertirse con un comando del agente que restituye los permisos y reanuda los procesos suspendidos. La terminación de procesos no es reversible. El agente dispone además de un modo de simulación, que registra las acciones sin aplicarlas y se utilizó en las pruebas y demostraciones.
+Las acciones pueden revertirse con un comando del agente que restituye los permisos y reanuda los procesos suspendidos. La terminación de procesos no es reversible. El agente dispone además de un modo de simulación, que registra las acciones sin aplicarlas y se utiliza en las pruebas y demostraciones.
 
 \subsection{Motor de \emph{scoring}}
 La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 días en el pasado y 5 minutos en el futuro), descarta reenvíos duplicados durante 6 horas y lo evalúa en los siguientes pasos:
@@ -128,11 +128,11 @@ La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcio
 
 De los 15 requerimientos no funcionales, 8 se encuentran implementados, 5 en estado parcial (RNF-03, RNF-05, RNF-06, RNF-09 y RNF-11) y 1 no implementado (RNF-13, cifrado TLS). RNF-02 [[ESTADO SEGÚN RNF-02]].
 
-Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 está implementado en su lógica, pero el canal entre el agente y la API no está cifrado. RF-21 está implementado y fue verificado con modelos controlados; sin embargo, la única corrida real del planificador produjo un modelo peor que el vigente y, por lo tanto, todavía no se observó una promoción con un modelo genuinamente nuevo.
+Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 está implementado en su lógica, pero el canal entre el agente y la API no está cifrado. RF-21 está implementado y se verifica con modelos controlados; sin embargo, la única corrida real del planificador produjo un modelo peor que el vigente y, por lo tanto, todavía no se observa una promoción con un modelo genuinamente nuevo.
 
 \section{Estado del despliegue}
 \label{sec:estado-despliegue}
-El sistema completo se ejecuta y se verificó en un entorno local: el agente, la API y el \emph{dashboard} en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube. La infraestructura para la nube está definida como código con Terraform y se aplicó en forma parcial: existen la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración. La red de distribución de contenidos, que publica el \emph{dashboard} y provee el cifrado TLS, no se creó porque la cuenta requiere una habilitación del proveedor. Por lo tanto, el despliegue en la nube no está operativo para usuarios finales. El detalle de la arquitectura diseñada y desplegada se presenta en el capítulo de arquitectura.
+El sistema completo se ejecuta y se verifica en un entorno local: el agente, la API y el \emph{dashboard} en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube. La infraestructura para la nube está definida como código con Terraform y se aplica en forma parcial: existen la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración. La red de distribución de contenidos, que publica el \emph{dashboard} y provee el cifrado TLS, no se crea porque la cuenta requiere una habilitación del proveedor. Por lo tanto, el despliegue en la nube no está operativo para usuarios finales. El detalle de la arquitectura diseñada y desplegada se presenta en el capítulo de arquitectura.
 
 \section{Tratamiento de datos personales y viabilidad legal}
 \label{sec:tratamiento-datos}
@@ -194,11 +194,11 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\endhead
 	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). & Trabajo futuro: variables con granularidad menor al día y calibración con escenarios etiquetados. \\
 	\hline
-	Transferencia de dominio del conjunto de datos & El modelo se entrenó con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints}. \\
+	Transferencia de dominio del conjunto de datos & El modelo se entrena con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints}. \\
 	\hline
 	Explicación solo de Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM. \\
 	\hline
-	Sesgo de la línea base personal en usuarios con poco historial & El componente personal tiende a valores altos en usuarios nuevos, lo que eleva las alertas en ese grupo. & Se evaluaron cinco alternativas sin una mejora general; se documenta como limitación. \\
+	Sesgo de la línea base personal en usuarios con poco historial & El componente personal tiende a valores altos en usuarios nuevos, lo que eleva las alertas en ese grupo. & Se evalúan cinco alternativas sin una mejora general; se documenta como limitación. \\
 	\hline
 	Cobertura parcial prolongada & El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos y se evalúa solo con Isolation Forest. & Comportamiento previsto (RF-03); se informa la cobertura en el \emph{dashboard}. \\
 	\hline

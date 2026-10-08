@@ -42,7 +42,7 @@ Cada componente utiliza el lenguaje que mejor se ajusta a su función y a su ent
 	\hline
 \end{longtable}
 
-Se descartó un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implicaba más configuración y código para el alcance del proyecto.
+Se descarta un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implicaba más configuración y código para el alcance del proyecto.
 
 \section{Frameworks y librerías}
 \label{sec:frameworks}
@@ -67,11 +67,11 @@ Esta sección describe los \emph{frameworks} y las librerías de cada componente
 	\hline
 	SQLAlchemy y psycopg2 & Acceso a PostgreSQL con consultas SQL explícitas y un grupo de conexiones reducido. Las escrituras son de dos tipos: una por evento en la tabla de eventos crudos y una por usuario y día en el historial. Los tiempos de espera acotados evitan que una caída de la base de datos bloquee la evaluación de eventos. \\
 	\hline
-	redis-py & Cliente de Redis para el estado de cada usuario, que se lee y escribe en cada evento. Se eligió Redis frente a PostgreSQL para este estado porque el patrón es de alta frecuencia y baja latencia, distinto del historial. Redis ofrece además transacciones optimistas, que la API utiliza con hasta 20 reintentos ante escrituras concurrentes. \\
+	redis-py & Cliente de Redis para el estado de cada usuario, que se lee y escribe en cada evento. Se elige Redis frente a PostgreSQL para este estado porque el patrón es de alta frecuencia y baja latencia, distinto del historial. Redis ofrece además transacciones optimistas, que la API utiliza con hasta 20 reintentos ante escrituras concurrentes. \\
 	\hline
-	scikit-learn 1.4 & Implementación madura de Isolation Forest. Se prefirió frente a autoencoders tabulares o máquinas de vectores de soporte de una clase por su bajo costo computacional y porque su salida se presta a la explicación por variables. \\
+	scikit-learn 1.4 & Implementación madura de Isolation Forest. Se prefiere frente a autoencoders tabulares o máquinas de vectores de soporte de una clase por su bajo costo computacional y porque su salida se presta a la explicación por variables. \\
 	\hline
-	TensorFlow 2.16 (Keras) & Implementación del LSTM Autoencoder, que analiza el orden de los eventos, algo que Isolation Forest no captura al trabajar con agregados diarios. Se eligió Keras frente a PyTorch por su API de alto nivel. \\
+	TensorFlow 2.16 (Keras) & Implementación del LSTM Autoencoder, que analiza el orden de los eventos, algo que Isolation Forest no captura al trabajar con agregados diarios. Se elige Keras frente a PyTorch por su API de alto nivel. \\
 	\hline
 	pandas, NumPy, SciPy y joblib & Manipulación de datos, cálculo numérico y serialización de los modelos entrenados. Todas las dependencias de la API están fijadas en versiones exactas para que el cálculo sea reproducible. \\
 	\hline
@@ -193,7 +193,7 @@ La tabla~\ref{tab:servicios} enumera los servicios externos y la infraestructura
 El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, diseñada y aplicada en forma parcial.
 
 \subsection{Despliegue local}
-En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por la interfaz de red local y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizaron sobre esta configuración.
+En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por la interfaz de red local y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
 
 \begin{figure}[ht]
 	\centering
@@ -248,13 +248,13 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\hline
 \end{longtable}
 
-Como la red de distribución no se creó, el despliegue en la nube no tiene un acceso operativo para usuarios finales ni cifrado TLS en ningún tramo. Esta es la causa del estado parcial de RF-02 y del estado no implementado de RNF-13.
+Como la red de distribución no está creada, el despliegue en la nube no tiene un acceso operativo para usuarios finales ni cifrado TLS en ningún tramo. Esta es la causa del estado parcial de RF-02 y del estado no implementado de RNF-13.
 
 \subsection{Contenedores}
-Durante el desarrollo se evaluó ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se dejó de lado por tres motivos:
+Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
 \begin{itemize}
 	\item El agente debe ejecutarse de forma nativa en Windows para acceder a los procesos y a los permisos del sistema de archivos, por lo que no podía formar parte de los contenedores.
-	\item Redis y PostgreSQL se reemplazaron por servicios gestionados.
+	\item Redis y PostgreSQL se reemplazan por servicios gestionados.
 	\item Ejecutar la API como servicio nativo en la instancia simplifica la administración con las herramientas del sistema operativo y del proveedor.
 \end{itemize}
 La imagen de la API se conserva en el repositorio como alternativa de despliegue, pero no forma parte del camino verificado.
@@ -303,4 +303,4 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
-La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligieron por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado en forma parcial, sin la capa que provee el cifrado.
+La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado en forma parcial, sin la capa que provee el cifrado.
