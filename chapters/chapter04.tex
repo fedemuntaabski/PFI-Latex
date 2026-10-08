@@ -4,7 +4,7 @@ Este capítulo compara el proyecto con las alternativas relevadas en el estado d
 
 \section{Comparación general de alternativas}
 \label{sec:comparacion-general}
-Incluye las cuatro soluciones comerciales relevadas, la tecnología de autenticación adaptativa (Okta, tratada aparte porque no es UEBA de sesión completa sino un enfoque relacionado) y el modelo académico más cercano conceptualmente al proyecto (RADAC / ad-RACs), contra el proyecto propuesto. Cada alternativa se compara en cinco dimensiones: Tipo, Funcionalidad principal, Tecnología / IA, Alcance de monitoreo y Diferenciador del proyecto propuesto.
+Incluye las cuatro soluciones comerciales relevadas, la tecnología de autenticación adaptativa (Okta, tratada aparte porque no es UEBA de sesión completa sino un enfoque relacionado) y el modelo académico más cercano conceptualmente al proyecto (RADAC / ad-RACs), contra el proyecto propuesto. Cada alternativa se compara en cinco dimensiones: Tipo, Funcionalidad principal, Tecnología / IA, Alcance de monitoreo y Diferenciador del proyecto propuesto. Las tablas~\ref{tab:comp-sentinel} a~\ref{tab:comp-proyecto} presentan esa comparación.
 
 \subsection{Microsoft Sentinel UEBA}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -183,7 +183,7 @@ describe el estado del arte; cuando una fuente no se pronuncia sobre una capacid
 
 \section{Matriz de capacidades}
 \label{sec:matriz-capacidades}
-Verificación explícita de qué cubre cada alternativa, usando solo lo que la Sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en caso de no haber información acerca de estas.
+Verificación explícita de qué cubre cada alternativa, usando solo lo que la Sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en caso de no haber información acerca de estas. La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
 
 \begin{longtable}{p{2.5cm}p{1.8cm}p{1.8cm}p{2.0cm}p{2.4cm}p{2.8cm}}
 	\caption{Matriz de capacidades}
@@ -221,7 +221,7 @@ describe el estado del arte; cuando una fuente no se pronuncia sobre una capacid
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
-Profundiza lo señalado en la comparación general de alternativas (Sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto.
+Profundiza lo señalado en la comparación general de alternativas (Sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
 
 \subsection{CatBoost (score de riesgo por solicitud)}
 \begin{longtable}{p{3cm}p{11.6cm}}
