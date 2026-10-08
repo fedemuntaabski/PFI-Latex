@@ -154,7 +154,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-20 & El reentrenamiento debe ejecutarse en un proceso aislado del que atiende producción, disparado por un planificador cuando se cumple la periodicidad configurada. & Alta & Implementado \\
 	\hline
-	RF-21 & El sistema debe promover el modelo nuevo solo si iguala o mejora las métricas del modelo vigente, reemplazándolo sin reiniciar la API. & Alta & Parcial: ninguna corrida real promovió todavía un modelo \\
+	RF-21 & El sistema debe promover el modelo nuevo solo si no es inferior al vigente en la detección de escenarios de referencia (ROC-AUC medio no menor que el del vigente menos 0,02 y tasa de falsos positivos en nivel alto no mayor que la del vigente más 0,01), reemplazándolo sin reiniciar la API. & Alta & Parcial: todavía no se observa la promoción real de un modelo mejor \\
 	\hline
 	RF-22 & El sistema debe registrar cada reentrenamiento (fecha, eventos utilizados, variación de métricas y actor) y mostrarlo en el \emph{dashboard}; también admite la carga manual de un reentrenamiento. & Baja & Implementado \\
 	\hline
@@ -332,8 +332,8 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 	\item El planificador detecta que corresponde reentrenar.
 	\item El sistema exporta los eventos nuevos al formato del \emph{pipeline} de entrenamiento.
 	\item El \emph{pipeline} de entrenamiento se ejecuta en un proceso aislado.
-	\item El sistema compara las métricas del modelo nuevo con las del vigente.
-	\item Si el modelo nuevo iguala o mejora al vigente, se promueve sin reiniciar la API.
+	\item El sistema puntúa el modelo nuevo y el vigente sobre los mismos escenarios de referencia.
+	\item Si el modelo nuevo no es inferior al vigente según el criterio de promoción, se promueve sin reiniciar la API.
 	\item El sistema registra el reentrenamiento con fecha, eventos utilizados y variación de métricas.
 \end{enumerate}
 
@@ -341,7 +341,7 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 \begin{itemize}
 	\item 1a. El administrador registra manualmente un reentrenamiento realizado fuera del planificador.
 	\item 3a. El proceso se interrumpe: no se escribe ningún registro parcial y el planificador reintenta en el ciclo siguiente.
-	\item 4a. El modelo nuevo empeora: se conserva el vigente y se registra el rechazo.
+	\item 4a. El modelo nuevo no cumple el criterio de promoción, faltan escenarios, su corte temporal no coincide o el puntuado falla: se conserva el vigente y se registra el motivo del rechazo.
 \end{itemize}
 
 \noindent\textbf{Postcondición:} El modelo vigente es el de mejores métricas y el reentrenamiento quedó registrado.
@@ -456,11 +456,11 @@ Como administrador de seguridad, quiero configurar cada cuánto y en qué franja
 \end{itemize}
 
 \subsubsection{HU-09: Reentrenamiento aislado y promoción controlada}
-Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si mejora, para mantener la precisión frente a cambios de comportamiento sin arriesgar el servicio.
+Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si no detecta peor que el vigente, para mantener la precisión frente a cambios de comportamiento sin arriesgar el servicio.
 \begin{itemize}
 	\item Dado que se cumplió el período, cuando se ejecuta el planificador, entonces el \emph{pipeline} se ejecuta en un proceso aparte.
-	\item Dado un modelo nuevo con métricas iguales o mejores, entonces reemplaza al vigente sin reiniciar la API.
-	\item Dado un modelo nuevo con métricas peores, entonces se conserva el vigente.
+	\item Dado un modelo nuevo que cumple el criterio de no inferioridad sobre los escenarios de referencia, entonces reemplaza al vigente sin reiniciar la API.
+	\item Dado un modelo nuevo que no cumple ese criterio, o una evaluación incompleta, entonces se conserva el vigente y se registra el motivo.
 \end{itemize}
 
 \subsubsection{HU-10: Historial de reentrenamientos}

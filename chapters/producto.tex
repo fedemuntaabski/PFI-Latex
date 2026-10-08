@@ -26,7 +26,7 @@ El producto se compone de tres piezas de software y de un proceso de mantenimien
 	\hline
 	\emph{Dashboard} & React, TypeScript, Vite & Monitoreo de usuarios, alertas, configuración de políticas, auditoría y estado del sistema. \\
 	\hline
-	Reentrenamiento & Planificador de la API y \emph{notebooks} del \emph{pipeline} & Reentrenamiento periódico en un proceso aislado, comparación de métricas y promoción del modelo sin reinicio. \\
+	Reentrenamiento & Planificador de la API y \emph{notebooks} del \emph{pipeline} & Reentrenamiento periódico en un proceso aislado, evaluación del candidato sobre escenarios de referencia y promoción del modelo sin reinicio. \\
 	\hline
 \end{longtable}
 
@@ -90,7 +90,13 @@ El \emph{dashboard} consulta la API cada 2 segundos y se organiza en ocho pantal
 
 \subsection{Reentrenamiento periódico}
 \label{sec:reentrenamiento-producto}
-Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda los modelos vigentes. Luego compara las métricas del modelo nuevo con las del vigente y lo promueve solo si las iguala o las mejora: en ese caso, la API recarga los modelos en memoria sin reiniciarse. Si no, restaura el respaldo. [[CODIGO: regla de promoción vigente tras el cierre de los modelos]] Cada corrida queda registrada con la fecha, la cantidad de eventos y la variación de las métricas. El administrador puede registrar también reentrenamientos realizados en forma manual.
+Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda el juego completo de artefactos vigentes (modelos, escaladores, codificación y referencias de percentil), de modo que un rechazo los restaura juntos; la exportación de las referencias de percentil es el último paso del \emph{pipeline}.
+
+Luego aplica un criterio de promoción de no inferioridad sobre los escenarios de DEV de la sección~\ref{sec:benchmark}: el modelo candidato y el vigente se puntúan sobre los mismos escenarios, y HOLDOUT nunca participa. El candidato se promueve solo si (a) el ROC-AUC medio del híbrido en los cuatro escenarios primarios sin país (S2 con $k$ = 2, 5 y 10, y S3) es al menos el del vigente menos 0,02, y (b) su tasa de falsos positivos en nivel alto o superior sobre los días limpios de DEV es como máximo la del vigente más 0,01. En ese caso, la API recarga los modelos en memoria sin reiniciarse. El candidato no se promueve, y se registra el motivo, si faltan escenarios, si su corte temporal no es el 2 de agosto de 2021 o si el puntuado falla; ante cualquier rechazo se restaura el respaldo. El criterio agrega unos 7,5 minutos al reentrenamiento.
+
+Este criterio reemplaza al anterior, que comparaba la tasa de anomalías de Isolation Forest y el error de reconstrucción del LSTM y exigía que el valor del modelo nuevo fuera menor o igual al del vigente. Ninguna de esas dos magnitudes mide detección: con esa regla, un modelo que no marcara nada resultaría el mejor. Los márgenes de 0,02 y 0,01 se fijan de antemano y son del orden de la variación entre semillas de entrenamiento, por lo que un candidato equivalente al vigente puede rechazarse por azar; el criterio protege contra regresiones grandes, pero no distingue diferencias pequeñas. Como demostración, el modelo vigente evaluado contra sí mismo se promueve (ROC-AUC medio de 0,7726 y tasa de falsos positivos de 0,0557 en ambos casos), y los modelos v2 se rechazan por falsos positivos: su tasa es de 0,0734, frente a un máximo admitido de 0,0657.
+
+Cada corrida queda registrada con la fecha, la cantidad de eventos, las métricas de ambos modelos y el motivo de la decisión. El administrador puede registrar también reentrenamientos realizados en forma manual.
 
 \subsection{Usuarios nuevos y período de aprendizaje}
 Un usuario se da de alta automáticamente con su primer evento y permanece en período de aprendizaje hasta acumular la cantidad de eventos configurada (20 por defecto, entre 1 y 1000). Durante ese período sus eventos se evalúan normalmente y el nivel informado no cambia, pero la acción se atenúa a \texttt{alertar}, salvo en los eventos sobre archivos, que reciben la política normal. El \emph{dashboard} muestra el progreso de cada usuario respecto del umbral, y la salida del período es automática.
