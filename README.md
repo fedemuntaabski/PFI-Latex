@@ -23,7 +23,7 @@ Universidad Argentina de la Empresa (UADE)
 Para generar el documento PDF, abrir **cmd**, **bash** o **PowerShell** en la carpeta del proyecto y ejecutar:
 
 ```shell
-c
+pdflatex main
 biber main
 pdflatex main
 ```
