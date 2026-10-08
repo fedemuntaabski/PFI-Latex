@@ -241,7 +241,7 @@ Latencia de evaluación, percentil 95 (RNF-01) & $\leq$ 500\,ms & 14,9\,ms & Sí
 \end{table}
 \FloatBarrier
 
-[[DECIDIR: los valores de las metas. Son una propuesta razonable; lo importante es que queden fijos y se justifiquen. Si el reentrenamiento cambia los resultados, se actualiza solo la columna "Resultado" ([[CODIGO]]).]]
+Las metas se fijan antes de cualquier reentrenamiento posterior del modelo; si este cambia los resultados, se informan contra estas mismas metas.
 
 Las tasas de anomalías se comparan con el parámetro que cada modelo usa para fijar su umbral: una
 tasa muy por debajo indica que el umbral es más estricto en prueba que en entrenamiento. La meta

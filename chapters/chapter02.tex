@@ -243,8 +243,7 @@ Un ejemplo ampliamente utilizado de autenticación adaptativa en entornos empres
 
 A partir de esta información, el sistema estima un nivel de riesgo asociado al intento de acceso y, en función de ese valor, aplica diferentes políticas de seguridad de forma dinámica. Dependiendo del nivel de riesgo detectado, puede solicitar factores adicionales de autenticación, exigir una verificación más estricta o directamente bloquear el acceso al recurso. Esto permite ajustar el nivel de seguridad según el contexto, evitando aplicar las mismas medidas a todos los usuarios sin distinción.
 
-% REVISAR (E75): remite a la documentación de Okta, que ya no figura en la bibliografía.
-Según la documentación oficial de Okta, el sistema trabaja con señales en tiempo real para construir un perfil de riesgo del inicio de sesión, considerando indicadores como el uso de un dispositivo nuevo, una ubicación inusual o patrones de red que se desvían del comportamiento esperado. Estos elementos influyen directamente en la decisión final de permitir o restringir el acceso.
+Okta Adaptive MFA trabaja con señales en tiempo real para construir un perfil de riesgo del inicio de sesión, considerando indicadores como el uso de un dispositivo nuevo, una ubicación inusual o patrones de red que se desvían del comportamiento esperado. Estos elementos influyen directamente en la decisión final de permitir o restringir el acceso.
 
 Una de las principales ventajas de este enfoque es que mejora la seguridad sin afectar de manera constante la experiencia del usuario. Solo introduce pasos adicionales cuando el sistema detecta condiciones que considera sospechosas o de mayor riesgo. Además, permite definir políticas específicas según la aplicación o el tipo de usuario, lo que aporta flexibilidad en su implementación.
 
@@ -302,7 +301,7 @@ En base al análisis de las soluciones actuales del mercado y de los marcos acad
 
 La propuesta presentada busca mitigar este punto ciego posterior a la autenticación mediante el cierre autónomo del ciclo completo del modelo RADAC. Desde una perspectiva técnica, esto se logra mediante el despliegue de un agente local en el \emph{endpoint}, que actúa como \emph{Policy Enforcement Point} (PEP), mientras que la lógica de decisión se mantiene en la nube como \emph{Policy Decision Point} (PDP), siguiendo los lineamientos del estándar NIST SP 800-207 \parencite{Rose2020}.
 
-El diferencial del proyecto consiste en que este agente está diseñado para mantener una conexión con el motor de IA en la nube e interceptar la respuesta de la API casi en tiempo real. Ante una desviación conductual inusual detectada durante la sesión activa, el sistema cambia de un estado de ``monitoreo y alerta'' a uno de ``respuesta adaptativa'', ejecutando restricciones dinámicas de permisos o el aislamiento preventivo del proceso directamente en la máquina del usuario, sin intermediarios y sin depender de un \emph{re-login}.
+El diferencial del proyecto consiste en que este agente está diseñado para mantener una conexión con el motor de IA de la API central e interceptar la respuesta de la API casi en tiempo real. Ante una desviación conductual inusual detectada durante la sesión activa, el sistema cambia de un estado de ``monitoreo y alerta'' a uno de ``respuesta adaptativa'', ejecutando restricciones dinámicas de permisos o el aislamiento preventivo del proceso directamente en la máquina del usuario, sin intermediarios y sin depender de un \emph{re-login}.
 
 La relevancia del problema excede a las grandes organizaciones. El robo de credenciales afecta
 también a pequeñas y medianas empresas que no cuentan con un centro de operaciones de seguridad

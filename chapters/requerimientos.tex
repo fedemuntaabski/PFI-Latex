@@ -221,7 +221,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\endhead
 	RNF-01 & Rendimiento & La evaluación de un evento debe completarse en tiempo casi real: percentil 95 de la latencia extremo a extremo menor o igual a 500~ms y percentil 99 menor o igual a 1~s, en red local. & Implementado: p95 de 14,9~ms y p99 de 148,9~ms en entorno local \\
 	\hline
-	RNF-02 & Eficiencia & El agente debe ser liviano y no degradar el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & [[ESTADO SEGÚN RNF-02]] \\
+	RNF-02 & Eficiencia & El agente opera con un consumo acotado que preserva el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & [[ESTADO SEGÚN RNF-02]] \\
 	\hline
 	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Parcial: credenciales fijas por rol \\
 	\hline
@@ -237,7 +237,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & Parcial: cadena verificada manualmente, sin test automatizado ni inmutabilidad; esquema no estricto \\
 	\hline
-	RNF-10 & Aislamiento & El reentrenamiento no debe afectar la disponibilidad ni la latencia del servicio de \emph{scoring} en producción. & Implementado por diseño (proceso separado); sin medición de impacto \\
+	RNF-10 & Aislamiento & El reentrenamiento se ejecuta en un proceso aislado que preserva la disponibilidad y la latencia del servicio de \emph{scoring} en producción. & Implementado por diseño (proceso separado); sin medición de impacto \\
 	\hline
 	RNF-11 & Explicabilidad & Cada puntaje debe acompañarse de una justificación legible (principales variables que lo explican) y persistirse en el historial. & Parcial: cubre Isolation Forest; LSTM sin explicación \\
 	\hline
