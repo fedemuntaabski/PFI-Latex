@@ -174,7 +174,7 @@ La tabla~\ref{tab:servicios} enumera los servicios externos y la infraestructura
 	\hline
 	PostgreSQL gestionado (Supabase) & Historial, eventos crudos, auditoría y métricas. Incluye seguridad a nivel de fila y la extensión criptográfica que usa la cadena de \emph{hashes}. \\
 	\hline
-	Amazon Web Services & Infraestructura para el despliegue: instancia de cómputo para la API, almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, almacén de parámetros para los secretos y red de distribución de contenidos para publicar el \emph{dashboard} con HTTPS. \\
+	Amazon Web Services & Infraestructura para el despliegue: instancia de cómputo para la API, almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, almacén de parámetros para los secretos y administración remota sin SSH; el \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) en la propia instancia. \\
 	\hline
 	Terraform & Infraestructura como código: los recursos de la nube se crean, modifican y destruyen de forma reproducible y revisable. \\
 	\hline
@@ -190,7 +190,7 @@ La tabla~\ref{tab:servicios} enumera los servicios externos y la infraestructura
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
-El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, diseñada y aplicada en forma parcial.
+El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, aplicada pero sin verificación de extremo a extremo con un agente.
 
 \subsection{Despliegue local}
 En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por la interfaz de red local y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
@@ -204,12 +204,12 @@ En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como pr
 \end{figure}
 
 \subsection{Despliegue en la nube}
-La arquitectura de la nube, descripta con Terraform, publica el \emph{dashboard} desde un \emph{bucket} privado a través de una red de distribución de contenidos con HTTPS, que además encamina las solicitudes a la API hacia una instancia de cómputo (figura~\ref{fig:despliegue-aws}). Incorpora las siguientes decisiones de seguridad:
+La arquitectura de la nube, descripta con Terraform, ejecuta la API en una instancia de cómputo con un proxy inverso (Caddy) que termina TLS con un certificado obtenido por ACME, sirve el \emph{dashboard} y encamina a la API las solicitudes bajo \texttt{/api} (figura~\ref{fig:despliegue-aws}). Incorpora las siguientes decisiones de seguridad:
 \begin{itemize}
-	\item La instancia solo acepta tráfico proveniente de la red de distribución.
+	\item La API escucha solo en la interfaz local de la instancia; el acceso externo pasa por el proxy.
 	\item El acceso a los metadatos de la instancia exige la versión 2 del servicio, y el disco está cifrado.
 	\item Los secretos se guardan en el almacén de parámetros y no en el código.
-	\item Las versiones se publican mediante el almacenamiento de objetos y comandos remotos, sin acceso SSH.
+	\item La administración y la publicación de versiones se realizan mediante el almacenamiento de objetos y el administrador de sistemas del proveedor (SSM), sin acceso SSH.
 	\item La API se ejecuta en modo de autenticación estricta y sin la documentación interactiva expuesta.
 \end{itemize}
 
@@ -234,21 +234,25 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\textbf{Recurso} & \textbf{Diseño} & \textbf{Estado} \\
 	\hline
 	\endhead
-	Instancia de cómputo de la API & Servidor Linux con la API como servicio del sistema, sin contenedores & Creada; se mantiene apagada fuera de las pruebas para limitar el costo \\
+	Instancia de cómputo de la API & Servidor Linux con la API como servicio del sistema, sin contenedores & Creada; se mantiene apagada fuera de las pruebas para limitar el costo; tras detenerla y arrancarla, el proxy y la API vuelven a funcionar solos \\
+	\hline
+	Proxy inverso con TLS (Caddy) & TLS con certificado ACME; \emph{dashboard} y API bajo \texttt{/api} & Verificado el 6 de octubre de 2026: la verificación de estado de la API responde por HTTPS con TLS verificado y los artefactos cargados; el \emph{dashboard} se sirve por HTTPS; HTTP redirige a HTTPS; la documentación interactiva no está expuesta \\
 	\hline
 	Dirección IP fija, rol de acceso y parámetros de configuración & Identidad de la instancia y secretos administrados & Creados \\
 	\hline
 	\emph{Buckets} de almacenamiento & \emph{Dashboard} estático y versiones publicadas de la API & Creados \\
 	\hline
-	Red de distribución de contenidos & HTTPS para el \emph{dashboard} y la API & No creada: la cuenta requiere una habilitación del proveedor \\
+	Red de distribución de contenidos & Prevista inicialmente para HTTPS & No utilizada: reemplazada por el proxy en la instancia \\
 	\hline
-	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia; el reentrenamiento se ejecuta en el entorno local \\
+	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia, con una versión anterior al criterio de promoción vigente; el reentrenamiento se ejecuta en el entorno local \\
+	\hline
+	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Sin evidencia: no se registró un evento de un agente en la instancia ni un inicio de sesión en el \emph{dashboard} desplegado [[CODIGO: resultado del Prompt C]] \\
 	\hline
 	Despliegue continuo & -- & No implementado: la integración continua no despliega \\
 	\hline
 \end{longtable}
 
-Como la red de distribución no está creada, el despliegue en la nube no tiene un acceso operativo para usuarios finales ni cifrado TLS en ningún tramo. Esta es la causa del estado parcial de RF-02 y del estado no implementado de RNF-13.
+Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. Falta la verificación de extremo a extremo: no hay evidencia de un evento enviado por un agente a la instancia ni de un inicio de sesión en el \emph{dashboard} desplegado. Por eso se mantienen el estado parcial de RF-02 y el no implementado de RNF-13 [[CODIGO: resultado del Prompt C]]. La instancia se mantiene apagada fuera de las pruebas.
 
 \subsection{Contenedores}
 Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
@@ -291,16 +295,16 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 	\hline
 	Protocolo de PostgreSQL & API $\rightarrow$ PostgreSQL & Protocolo estándar, con grupo de conexiones y tiempos de espera acotados. \\
 	\hline
-	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} en la nube (diseñado) & Cifrado hacia los servicios externos. En la nube, la red de distribución terminaría TLS para el \emph{dashboard} y para el agente. \\
+	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube (diseñado) & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el canal del agente por HTTPS no tiene verificación de extremo a extremo con un agente [[CODIGO: resultado del Prompt C]]. \\
 	\hline
 	OAuth 2.0 con credenciales de cliente & API $\rightarrow$ Keycloak & Autenticación de la API ante el proveedor IAM, con el \emph{token} en caché hasta su vencimiento. \\
 	\hline
 	SMTP con STARTTLS & API $\rightarrow$ servidor de correo & Envío de notificaciones con cifrado del canal. \\
 	\hline
-	HTTP sin TLS (limitación) & Agente $\rightarrow$ API & En el entorno verificado, el canal no está cifrado y no hay autenticación mutua. Se declara como limitación (RNF-13). \\
+	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP; en la nube el diseño usa HTTPS, sin verificación de extremo a extremo con un agente. No existe autenticación mutua entre el agente y la API. Se declara como limitación (RNF-13) [[CODIGO: resultado del Prompt C]]. \\
 	\hline
 \end{longtable}
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
-La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado en forma parcial, sin la capa que provee el cifrado.
+La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, pero sin verificación de extremo a extremo con un agente.

@@ -60,7 +60,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\endhead
 	RF-01 & El agente local (PEP) debe ejecutarse en segundo plano y recolectar metadatos de actividad del usuario: procesos ejecutados, accesos a archivos y carpetas, aplicaciones utilizadas y conexiones a recursos de red. No captura contenido, pantallas ni pulsaciones de teclado. Los metadatos incluyen nombres de archivo y de proceso, IP y puerto remotos y el identificador host-usuario. & Alta & Implementado \\
 	\hline
-	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Parcial: canal sin TLS (ver RNF-13) \\
+	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Parcial: canal sin TLS (ver RNF-13) [[CODIGO: resultado del Prompt C]] \\
 	\hline
 \end{longtable}
 
@@ -243,7 +243,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-12 & Portabilidad / despliegue & El agente corre como un proceso nativo por dispositivo Windows, sin servidor propio ni contenedores. & Implementado \\
 	\hline
-	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & No implementado \\
+	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & No implementado [[CODIGO: resultado del Prompt C]] \\
 	\hline
 	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado \\
 	\hline
