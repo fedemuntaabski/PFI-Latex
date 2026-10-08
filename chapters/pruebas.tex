@@ -212,6 +212,8 @@ Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, e
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
 
+Las métricas corresponden al juego de modelos vigente, entrenado en la corrida del 2 de septiembre de 2026 sobre CLUE-LDS más 92 eventos reales del agente, y con las referencias de percentil regeneradas el 6 de octubre de 2026. La regla de promoción anterior rechazó ese juego por diferencias del orden del ruido; se adopta como vigente porque es el único juego completo y coherente (modelo, escaladores, codificación y referencias) disponible, y la evaluación de la sección~\ref{sec:benchmark} se realiza sobre él.
+
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
 El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
 \parencite{Landauer2022Dataset}, por lo que la evaluación no puede expresarse en exactitud, precisión,
@@ -233,11 +235,11 @@ inyectados (sección~\ref{sec:validacion-escenarios}).
 \hline
 Métrica & Meta & Resultado & Cumple \\
 \hline
-Tasa de anomalías de Isolation Forest en prueba & entre 1\,\% y 3\,\% (contaminación del 2\,\%) & 0,79\,\% & No \\
-Tasa de anomalías del LSTM en prueba & entre 3\,\% y 7\,\% (umbral en el percentil 95) & 3,99\,\% & Sí \\
+Tasa de anomalías de Isolation Forest en prueba & entre 1\,\% y 3\,\% (contaminación del 2\,\%) & 0,81\,\% & No \\
+Tasa de anomalías del LSTM en prueba & entre 3\,\% y 7\,\% (umbral en el percentil 95) & 4,18\,\% & Sí \\
 Detección atribuible del escenario combinado (E4) con el umbral del nivel alto (70) & $\geq$ 50\,\% de los usuarios & 13,3\,\% (2 de 15) & No \\
-Detección atribuible promedio de los cuatro escenarios con umbral 70 & $\geq$ 33\,\% & 6,7\,\% (4 de 60) & No \\
-Usuario-días sin inyección que terminan en nivel alto o crítico & $\leq$ 10\,\% & 16,8\,\% & No \\
+Detección atribuible promedio de los cuatro escenarios con umbral 70 & $\geq$ 33\,\% & 5,0\,\% (3 de 60) & No \\
+Usuario-días sin inyección que terminan en nivel alto o crítico & $\leq$ 10\,\% & 15,4\,\% & No \\
 Latencia de evaluación, percentil 95 (RNF-01) & $\leq$ 500\,ms & 14,9\,ms & Sí \\
 \hline
 \end{tabular}\par
@@ -268,21 +270,21 @@ El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \pare
 	\textbf{Métrica} & \textbf{Valor} & \textbf{Lectura} \\
 	\hline
 	\endhead
-	Tasa de anomalías de Isolation Forest en prueba & 0,79\,\% (97 de 12\,235 usuario-días) & Inferior a la proporción de contaminación fijada en el entrenamiento (2\,\%). \\
+	Tasa de anomalías de Isolation Forest en prueba & 0,81\,\% (99 de 12\,236 usuario-días) & Inferior a la proporción de contaminación fijada en el entrenamiento (2\,\%). \\
 	\hline
-	Tasa de anomalías del LSTM Autoencoder en prueba & 3,99\,\% (1\,487 de 37\,254 secuencias) & Cercana al 5\,\% esperable por usar el percentil 95 del error como umbral. \\
+	Tasa de anomalías del LSTM Autoencoder en prueba & 4,18\,\% (1\,558 de 37\,254 secuencias) & Cercana al 5\,\% esperable por usar el percentil 95 del error como umbral. \\
 	\hline
-	Error de reconstrucción del LSTM & Media 0,1248; umbral 0,1368 & Umbral definido como el percentil 95 del error en entrenamiento. \\
+	Error de reconstrucción del LSTM & Media 0,1225; umbral 0,1180 & Umbral definido como el percentil 95 del error en entrenamiento. \\
 	\hline
-	Distribución del puntaje híbrido & Mediana 41,6; percentil 95 70,2; percentil 99 82,6 & La mayor parte de la actividad queda por debajo del umbral del nivel alto (70). \\
+	Distribución del puntaje híbrido & Mediana 42,0; percentil 95 69,3; percentil 99 82,8 & La mayor parte de la actividad queda por debajo del umbral del nivel alto (70). \\
 	\hline
-	Correlación entre modelos & Pearson $-0{,}20$ (234 usuarios) & Los modelos capturan aspectos distintos del comportamiento. \\
+	Correlación entre modelos & [[CODIGO: Pearson con el modelo vigente]] & Los modelos capturan aspectos distintos del comportamiento. \\
 	\hline
 	Coincidencia de anomalías & Índice de Jaccard 0,111 (15 usuarios en común) & Las anomalías que marca cada modelo casi no se superponen. \\
 	\hline
 \end{longtable}
 
-La correlación negativa y la baja coincidencia indican que los dos modelos no son redundantes, lo que es consistente con la decisión de combinarlos. Sin embargo, estas métricas no demuestran que la combinación detecte mejor que cada modelo por separado, y el peso de 0,5 asignado a cada uno no tiene un respaldo cuantitativo. Además, los conjuntos de prueba de los dos modelos se construyen con criterios distintos (partición temporal para Isolation Forest y por usuario para el LSTM), por lo que la comparación entre ambos es limitada.
+La baja coincidencia indica que los dos modelos no son redundantes, lo que es consistente con la decisión de combinarlos. Sin embargo, estas métricas no demuestran que la combinación detecte mejor que cada modelo por separado, y el peso de 0,5 asignado a cada uno no tiene un respaldo cuantitativo. Además, los conjuntos de prueba de los dos modelos se construyen con criterios distintos (partición temporal para Isolation Forest y por usuario para el LSTM), por lo que la comparación entre ambos es limitada.
 
 \section{Validación por escenarios inyectados}
 \label{sec:validacion-escenarios}
@@ -314,7 +316,7 @@ La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, 
 	\textbf{Escenario} & \textbf{Alto o crítico} & \textbf{Ya en alto antes} & \textbf{Atribuibles} & \textbf{Crítico} \\
 	\hline
 	\endhead
-	E1, exfiltración & 3 & 2 & 1 & 0 \\
+	E1, exfiltración & 2 & 2 & 0 & 0 \\
 	\hline
 	E2, fuera de horario & 3 & 2 & 1 & 0 \\
 	\hline
@@ -324,9 +326,9 @@ La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, 
 	\hline
 \end{longtable}
 
-Sobre los días sin inyección, el 16,8\,\% de los usuario-días terminó en nivel alto y ninguno en crítico. La proporción fue del 14,6\,\% para los días con cobertura completa de ambos modelos y del 28,9\,\% para los días con cobertura parcial, y se concentró en los usuarios con pocos días de historial.
+Sobre los días sin inyección, el 15,4\,\% de los usuario-días (100 de 650) terminó en nivel alto y ninguno en crítico. La proporción fue del 14,3\,\% (79 de 553) para los días con cobertura completa de ambos modelos y del 21,6\,\% (21 de 97) para los días con cobertura parcial, y se concentró en los usuarios con pocos días de historial.
 
-Las inyecciones elevaron la mediana del puntaje entre 3,9 y 5,6 puntos respecto del valor previo, pero el puntaje máximo mediano de cada escenario quedó entre 63,7 y 65,8, por debajo del umbral del nivel alto. Las cuatro detecciones atribuibles corresponden a dos usuarios con cobertura completa. Todas las explicaciones generadas provinieron de las variables de Isolation Forest (proporción de actividad fuera de horario, hora promedio y entropía de tipos de evento); en 7 de los 60 casos ninguna variable superó el umbral de explicación.
+Las inyecciones elevaron la mediana del puntaje entre 3,9 y 5,6 puntos respecto del valor previo, pero el puntaje máximo mediano de cada escenario quedó entre 63,7 y 65,8, por debajo del umbral del nivel alto. Las tres detecciones atribuibles corresponden a [[CODIGO: usuarios y cobertura de las detecciones con el modelo vigente]]. Todas las explicaciones generadas provinieron de las variables de Isolation Forest (proporción de actividad fuera de horario, hora promedio y entropía de tipos de evento); en 7 de los 60 casos ninguna variable superó el umbral de explicación.
 
 \subsection{Sensibilidad según el umbral}
 Para analizar el compromiso entre sensibilidad y alertas sobre actividad normal sin modificar la configuración del sistema, se recalcula la detección atribuible para umbrales entre 40 y 90. La figura~\ref{fig:curva-umbral} muestra el resultado.
@@ -339,7 +341,7 @@ Para analizar el compromiso entre sensibilidad y alertas sobre actividad normal 
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un 33,3\,\% para el escenario combinado en el umbral de 55, y nunca supera un tercio de los usuarios. La curva no es monótona porque, al bajar el umbral, una proporción creciente de usuarios ya lo supera antes de la inyección: en el umbral de 40, el 93,3\,\% de los usuarios parte por encima, mientras que en el de 70 lo hace solo el 13,3\,\%. La tasa de alertas sobre días normales se puede calcular únicamente en los umbrales de 70 y 90, porque los resultados registrados contienen el nivel de cierre de cada día y no su puntaje numérico. Por eso no es posible estimar cuántas alertas adicionales produciría un umbral en la zona de 55 a 65.
+La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un 33,3\,\% para el escenario combinado en los umbrales de 55 y de 65, y nunca supera un tercio de los usuarios. La curva no es monótona porque, al bajar el umbral, una proporción creciente de usuarios ya lo supera antes de la inyección: en el umbral de 40, el 93,3\,\% de los usuarios parte por encima, mientras que en el de 70 lo hace solo el 13,3\,\%. La tasa de alertas sobre días normales se puede calcular únicamente en los umbrales de 70 y 90, porque los resultados registrados contienen el nivel de cierre de cada día y no su puntaje numérico. Por eso no es posible estimar cuántas alertas adicionales produciría un umbral en la zona de 55 a 65. [[CODIGO: curva completa con el modelo vigente]]
 
 \subsection{Interpretación}
 \label{sec:interpretacion}
