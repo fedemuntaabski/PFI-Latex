@@ -200,11 +200,23 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\textbf{Limitación} & \textbf{Impacto} & \textbf{Tratamiento} \\
 	\hline
 	\endhead
-	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). & Trabajo futuro: variables con granularidad menor al día y calibración con escenarios etiquetados. \\
+	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). La evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados (sección~\ref{sec:benchmark}). & Trabajo futuro: variables con granularidad menor al día y evaluación con datos etiquetados del dominio del agente. \\
+	\hline
+	El país actúa como interruptor & En ambos modelos, la ubicación decide la detección operativa de los ataques con país y el nivel crítico de la demostración, no el comportamiento (sección~\ref{sec:benchmark}). & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
+	\hline
+	El LSTM no aprovecha el orden de los eventos & Permutar los 50 eventos de una secuencia no cambia el ordenamiento (Spearman 0,989), y la variable de cambio de país explica el 66,7\,\% del error de reconstrucción en la muestra del diagnóstico y cerca del 72\,\% en todo el período de test. & Trabajo futuro: rediseñar o reemplazar el LSTM. \\
+	\hline
+	Horas en UTC & Los modelos calculan la hora en UTC, aunque el conjunto de datos proviene de Viena y el agente corre en Argentina, por lo que las variables horarias no reflejan la hora local del usuario. & Trabajo futuro: calcular las variables horarias en hora local. \\
+	\hline
+	Calibración del híbrido sin datos independientes & El peso de cada modelo, la regla de piso y los umbrales se calibraron sin escenarios etiquetados. & La recalibración evaluada sobre el benchmark no mejora la detección (sección~\ref{sec:decisiones-pruebas}); los umbrales son editables en tiempo de ejecución. \\
+	\hline
+	Salto al cerrar la primera secuencia del LSTM & El puntaje pasa de depender solo de Isolation Forest a combinar ambos modelos en partes iguales de un evento al siguiente. & Trabajo futuro: transición gradual entre ambos cálculos. \\
+	\hline
+	Fragilidad del corte temporal del criterio de promoción & Con unos 28 usuario-días nuevos posteriores a 2022, el corte temporal del candidato se mueve y el criterio rechaza por precaución todo reentrenamiento con datos del agente (sección~\ref{sec:reentrenamiento-producto}). & Trabajo futuro: fijar el corte en el \emph{pipeline} o evaluar el criterio solo sobre los días posteriores al corte del candidato. \\
 	\hline
 	Transferencia de dominio del conjunto de datos & El modelo se entrena con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints}. \\
 	\hline
-	Explicación solo de Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM. \\
+	Explicación solo de Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM, o su reemplazo por un modelo explicable. \\
 	\hline
 	Sesgo de la línea base personal en usuarios con poco historial & El componente personal tiende a valores altos en usuarios nuevos, lo que eleva las alertas en ese grupo. & Se evalúan cinco alternativas sin una mejora general; se documenta como limitación. \\
 	\hline

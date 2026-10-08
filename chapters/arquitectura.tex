@@ -71,7 +71,7 @@ Esta sección describe los \emph{frameworks} y las librerías de cada componente
 	\hline
 	scikit-learn 1.4 & Implementación madura de Isolation Forest. Se prefiere frente a autoencoders tabulares o máquinas de vectores de soporte de una clase por su bajo costo computacional y porque su salida se presta a la explicación por variables. \\
 	\hline
-	TensorFlow 2.16 (Keras) & Implementación del LSTM Autoencoder, que analiza el orden de los eventos, algo que Isolation Forest no captura al trabajar con agregados diarios. Se elige Keras frente a PyTorch por su API de alto nivel. \\
+	TensorFlow 2.16 (Keras) & Implementación del LSTM Autoencoder, elegido para analizar el orden de los eventos, algo que Isolation Forest no captura al trabajar con agregados diarios; la evaluación muestra que el modelo entrenado no aprovecha ese orden (sección~\ref{sec:limitaciones-producto}). Se elige Keras frente a PyTorch por su API de alto nivel. \\
 	\hline
 	pandas, NumPy, SciPy y joblib & Manipulación de datos, cálculo numérico y serialización de los modelos entrenados. Todas las dependencias de la API están fijadas en versiones exactas para que el cálculo sea reproducible. \\
 	\hline

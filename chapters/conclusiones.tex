@@ -19,7 +19,8 @@ Objetivo & Evidencia & Estado \\
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
 RNF-08); canal [[CODIGO: TLS y autenticación mutua]]; consumo [[CODIGO: RNF-02]] & [[CODIGO]] \\
 2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
-comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}) [[CODIGO: actualizar si se reentrena]] & Parcial \\
+comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); evaluación con escenarios
+etiquetados en una partición reservada (sección~\ref{sec:benchmark}) [[CODIGO: actualizar si se reentrena]] & Parcial \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
 (RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms en entorno local & Cumplido \\
 4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,
@@ -54,11 +55,17 @@ umbrales y acciones sin modificar los agentes.
 El resultado más débil es la capacidad de detección. Sobre escenarios de ataque inyectados en el
 historial de 15 usuarios, la detección atribuible nunca supera un tercio de los usuarios en ningún
 umbral, y con el umbral vigente del nivel alto llega al 13,3\,\% en el escenario combinado, mientras
-que el 16,8\,\% de los días sin ataque termina en nivel alto. Entre las causas, la única verificada
-es que casi todos los eventos del conjunto de entrenamiento tienen el país registrado como
-desconocido, lo que impide detectar el cambio de país; las demás son inferidas: la granularidad
-diaria de las variables de Isolation Forest, que diluye una ráfaga corta de eventos, y la longitud
-de las secuencias del LSTM. Estos resultados
+que el 16,8\,\% de los días sin ataque termina en nivel alto. La evaluación con escenarios
+etiquetados sobre un conjunto mayor de víctimas, en una partición reservada para la evaluación
+final, lo confirma: sin país, el sistema detecta en nivel alto entre el 12\,\% y el 30\,\% de los
+días atacados, con una tasa de falsos positivos del 4\,\% al 5\,\% en ese nivel; cuando la
+exfiltración introduce un país nuevo, la detección sube al rango del 91\,\% al 99\,\%, por efecto
+de la ubicación y no del comportamiento (sección~\ref{sec:benchmark}). Entre las causas verificadas
+están que casi todos los eventos del conjunto de entrenamiento tienen el país registrado como
+desconocido, que la variable de cambio de país domina el error del LSTM, que este no aprovecha el
+orden de los eventos y que su riesgo se asocia en forma inversa al volumen de actividad del
+usuario; la granularidad diaria de las variables de Isolation Forest, que diluye una ráfaga corta
+de eventos, sigue siendo una causa inferida. Estos resultados
 se basan en una muestra chica y en escenarios diseñados por el propio equipo, pero alcanzan para
 concluir que el modelo, tal como está entrenado, no detecta de forma confiable ataques de corta
 duración. [[CODIGO: actualizar si el reentrenamiento cambia los resultados.]]
@@ -77,6 +84,8 @@ internacional de los datos.
         modelo, y la falta de etiquetas obliga a construir una evaluación propia.
   \item Sin etiquetas, la evaluación del modelo necesita metas definidas de antemano y escenarios
         controlados; las métricas no supervisadas por sí solas no dicen si el sistema detecta.
+  \item El criterio de promoción del reentrenamiento tiene que medir detección: comparar la tasa
+        de anomalías o el error de reconstrucción favorece a un modelo que no marca nada.
   \item Las limitaciones de seguridad del propio sistema (credenciales y canal) son parte del
         producto y no un detalle de despliegue: un sistema de seguridad se evalúa también por
         cómo se protege a sí mismo.
@@ -88,13 +97,19 @@ internacional de los datos.
 El trabajo futuro se prioriza según el impacto sobre la principal limitación del sistema:
 \begin{enumerate}
   \item \textbf{Capacidad de detección}: incorporar variables con granularidad menor al día,
-        evaluar secuencias más cortas o solapadas en el LSTM, y calibrar umbrales y pesos con
-        escenarios etiquetados más amplios (sección~\ref{sec:interpretacion}), y revisar el componente
-        personal en usuarios con historial escaso.
-  \item \textbf{Datos propios}: reentrenar el modelo con telemetría de equipos Windows, para
-        eliminar la traducción de vocabulario y la variable de país sin información.
-  \item \textbf{Explicabilidad del LSTM}: hoy un puntaje impulsado por ese componente no identifica
-        qué lo causó.
+        reemplazar las variables de país dentro de los modelos por una regla explícita de
+        ubicación en el motor de decisión, introducir una transición gradual al cerrar la primera
+        secuencia del LSTM y revisar el componente personal en usuarios con historial escaso
+        (secciones~\ref{sec:interpretacion} y~\ref{sec:benchmark}).
+  \item \textbf{Rediseño del LSTM}: el componente no aprovecha el orden de los eventos; rediseñarlo
+        o reemplazarlo por un modelo no secuencial sobre la misma ventana, que además permita
+        explicar los puntajes que hoy no identifican qué los causó.
+  \item \textbf{Datos propios}: reentrenar el modelo con telemetría de equipos Windows y evaluarlo
+        con escenarios etiquetados de ese dominio, para eliminar la traducción de vocabulario y la
+        variable de país sin información y medir la brecha de dominio.
+  \item \textbf{Benchmark con reproducción evento a evento}: evaluar el sistema con el agregado
+        parcial y la línea base personal que aplica la producción, y fijar el corte temporal del
+        criterio de promoción para que los datos nuevos no lo desplacen.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
   \item \textbf{Reversión acotada}: registrar las entradas de denegación que crea el agente y

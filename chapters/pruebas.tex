@@ -345,11 +345,11 @@ La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un
 \label{sec:interpretacion}
 Con la política vigente, el sistema detecta pocos de los escenarios inyectados y ninguno alcanza el nivel crítico, de modo que la mitigación más severa no se dispara ante estos ataques simulados. Esto es consistente con una política conservadora, que reserva la terminación de procesos y la denegación de acceso para el nivel crítico, pero también indica una sensibilidad baja ante ataques de corta duración.
 
-Entre las causas, una está verificada: el 99,946\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte. Las demás causas son inferidas y no se aíslan experimentalmente:
+Entre las causas, varias están verificadas. El 99,946\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte y, a la vez, que cuando esa variable cambia domine el error de reconstrucción del LSTM. Además, el LSTM no aprovecha el orden de los eventos: permutar los 50 eventos de una secuencia no cambia el ordenamiento. Su riesgo correlaciona $-0{,}68$ con el logaritmo del volumen de actividad del usuario, de modo que tiende a marcar a los usuarios poco activos. Las demás causas son inferidas y no se aíslan experimentalmente:
 \begin{itemize}
 	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable.
 	\item El LSTM evalúa secuencias de 50 eventos, por lo que una inyección corta completa a lo sumo una secuencia y su señal se diluye.
-	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales.
+	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales; en el caso del decaimiento, el benchmark confirma que empeora el ordenamiento en ventanas cortas (sección~\ref{sec:decisiones-pruebas}).
 \end{itemize}
 
 La alta proporción de alertas en usuarios con pocos días de historial es consistente con el sesgo conocido del componente de riesgo personal en usuarios con historial escaso. Los resultados deben leerse con cautela: se trata de 15 usuarios por escenario, con una sola inyección por caso, escenarios diseñados por el propio equipo y una referencia de normalidad sin verificación. Una diferencia de un usuario equivale a 6,7 puntos porcentuales.
@@ -582,9 +582,15 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 	\item La ejecución real de las mitigaciones en el \emph{endpoint} se verifica en forma manual y no tiene pruebas automatizadas.
 	\item La latencia se mide con Redis en memoria y sin carga concurrente; no representa el desempeño con un Redis gestionado ni con varios agentes simultáneos.
 	\item La evaluación del modelo carece de etiquetas, y la validación por escenarios usa una muestra de 15 usuarios con ataques diseñados por el equipo.
+	\item Los escenarios del benchmark de detección son sintéticos: ráfagas uniformes en la exfiltración y reubicación lineal en el uso fuera de horario.
+	\item El benchmark trabaja con el día cerrado, sin el agregado parcial ni la línea base personal que aplica la producción.
+	\item El benchmark tiene pocas víctimas (62 en DEV y 57 en HOLDOUT), con intervalos de $\pm$0,05 a 0,10 de ROC-AUC, por lo que las diferencias pequeñas entre variantes no son significativas.
+	\item Las cifras del LSTM en el benchmark son optimistas, porque la mayoría de las víctimas forma parte de su entrenamiento.
+	\item No se mide la tasa de falsos positivos ante cambios de ubicación legítimos, como viajes o una VPN corporativa: los días negativos del benchmark no tienen país.
+	\item Ninguna cifra del benchmark se transfiere sin más al agente, por la brecha de dominio entre los registros de una plataforma en la nube y la telemetría de un equipo Windows.
 	\item La integración con Keycloak no está validada contra un servidor real.
 \end{itemize}
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
-Las 306 pruebas automatizadas se ejecutan sin fallas, y la integración continua verifica la API, el subconjunto del agente independiente del sistema operativo, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación cumple holgadamente el umbral de RNF-01. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, calibración de umbrales con escenarios etiquetados y explicabilidad del LSTM (capítulo~\ref{chap:conclusiones}).
+Las 306 pruebas automatizadas se ejecutan sin fallas, y la integración continua verifica la API, el subconjunto del agente independiente del sistema operativo, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación cumple holgadamente el umbral de RNF-01. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
