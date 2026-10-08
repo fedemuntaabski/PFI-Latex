@@ -89,13 +89,22 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
 \begin{enumerate}
   \item \textbf{Capacidad de detección}: incorporar variables con granularidad menor al día,
         evaluar secuencias más cortas o solapadas en el LSTM, y calibrar umbrales y pesos con
-        escenarios etiquetados más amplios (sección~\ref{sec:interpretacion}).
+        escenarios etiquetados más amplios (sección~\ref{sec:interpretacion}), y revisar el componente
+        personal en usuarios con historial escaso.
   \item \textbf{Datos propios}: reentrenar el modelo con telemetría de equipos Windows, para
         eliminar la traducción de vocabulario y la variable de país sin información.
   \item \textbf{Explicabilidad del LSTM}: hoy un puntaje impulsado por ese componente no identifica
         qué lo causó.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
+  \item \textbf{Reversión acotada}: registrar las entradas de denegación que crea el agente y
+        revertir solo esas.
+  \item \textbf{Correcciones del agente}: informar como fallida la suspensión que no se pudo
+        registrar y no intentar envíos nuevos con el \emph{circuit breaker} abierto.
+  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend} y a los requerimientos sin prueba
+        registrada, automatizar la verificación de las mitigaciones y medir la latencia con el
+        Redis gestionado y varios agentes concurrentes. [[CODIGO: ajustar según el resultado de la
+        cobertura]]
   \item \textbf{Validación comercial}: medir la disposición a pagar y el costo de adquisición a
         través del canal de MSSP, que son las variables que más influyen en la viabilidad.
   \item [[CODIGO: limitaciones de seguridad que queden abiertas después del trabajo del repo de
