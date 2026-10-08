@@ -1,21 +1,112 @@
 \chapter{Introducción}
 
-Este capítulo presenta el objetivo del proyecto, su alcance y una descripción general del sistema propuesto y de sus componentes.
+Este capítulo presenta los objetivos del proyecto, su alcance, una descripción general del sistema propuesto y de sus componentes, la metodología de desarrollo y la estructura del documento.
 
-\section{Objetivo}
-El objetivo principal del proyecto es desarrollar un sistema que permita analizar el comportamiento de los usuarios mediante el uso de un \emph{score} dinámico que evalúe la desviación respecto a la conducta habitual de cada usuario y, en función de ello, tomar un conjunto de decisiones de forma inmediata.
+\section{Objetivos}
+
+\subsection{Objetivo general}
+Desarrollar un sistema de seguridad conductual que evalúe de forma continua, durante toda la
+sesión, la desviación del comportamiento de cada usuario respecto de su conducta habitual mediante
+un puntaje de riesgo dinámico, y que ejecute en el propio equipo una respuesta proporcional a ese
+riesgo, siguiendo la separación entre punto de decisión y punto de aplicación de políticas
+propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
+
+\subsection{Objetivos específicos}
+\begin{enumerate}
+  \item Implementar un agente para equipos Windows que recolecte únicamente metadatos de actividad
+        (procesos, archivos y conexiones de red), los envíe a una API central por un canal cifrado
+        y autenticado, y consuma como máximo el 5\,\% de la CPU y 150\,MB de memoria residente.
+  \item Entrenar un modelo híbrido de detección de anomalías (Isolation Forest y LSTM Autoencoder)
+        sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo contra las metas
+        de detección y de alertas sobre actividad normal definidas en la sección \ref{sec:metas-modelo}.
+  \item Calcular un puntaje de riesgo de 0 a 100 por evento, con continuidad entre sesiones y
+        decaimiento temporal, con una latencia de evaluación de percentil 95 menor o igual a 500\,ms.
+  \item Ejecutar en el equipo una respuesta graduada según el nivel de riesgo, desde una alerta hasta
+        la terminación de procesos y la denegación de acceso a carpetas, reversible cuando el sistema
+        operativo lo permita.
+  \item Proveer un panel de administración que muestre el estado de riesgo de cada usuario con su
+        explicación y permita modificar umbrales, acciones y notificaciones sin reiniciar componentes.
+  \item Mantener la vigencia del modelo mediante un reentrenamiento periódico aislado del servicio de
+        producción, y tratar a los usuarios nuevos con un período de aprendizaje.
+  \item Proteger las credenciales del sistema y el canal entre sus componentes mediante cifrado en
+        tránsito y autenticación mutua entre el agente y la API.
+  \item Analizar el tratamiento de datos personales que realiza el sistema a la luz de la Ley 25.326
+        y de la normativa laboral argentina, e identificar los controles que lo hacen viable.
+  \item Verificar el sistema con pruebas automatizadas que alcancen una cobertura de código mínima
+        del 85\,\%, pruebas de extremo a extremo y una evaluación de usabilidad del panel.
+\end{enumerate}
 
 \section{Alcance}
-El proyecto consiste en el desarrollo de un agente autónomo UEBA que trabaja en conjunto con una API. En esta última se implementa un motor de Inteligencia Artificial que detecta anomalías en el comportamiento de los usuarios. Finalmente, el sistema cuenta con un \emph{dashboard} que permite visualizar el nivel de confianza de cada usuario y modificar los umbrales que definen las acciones a realizar.
+El proyecto consiste en el desarrollo de un agente UEBA que trabaja en conjunto con una API central.
+La API incorpora un modelo de inteligencia artificial entrenado por el equipo para detectar
+anomalías en el comportamiento de los usuarios, y el sistema incluye un panel de administración
+para visualizar el nivel de riesgo de cada usuario y modificar los umbrales que definen las acciones
+a ejecutar. El agente se desarrolla para equipos con Windows y el producto se orienta a pequeñas y
+medianas empresas de Argentina. El alcance incluye el análisis del tratamiento de datos personales
+que realiza el sistema según la normativa argentina, pero no la implementación de los procesos
+organizacionales que esa normativa exige a la empresa que lo adopte (por ejemplo, la información a
+los empleados o la inscripción de la base de datos).
 
 \section{Descripción}
-Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante, ya que las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.  
+Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante, ya que las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.
 
-Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API, que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
+Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube [[CODIGO: confirmar estado del despliegue]] y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API [[CODIGO: confirmar según el resultado del Prompt C]], que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
 
 Dicho nivel de confianza no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
 
 Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de confianza y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el modelo de inteligencia artificial se reentrena para incorporar nuevos comportamientos de los usuarios, lo que permite mantener su precisión a lo largo del tiempo. El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
-% Puedes descomentar y adaptar este párrafo según los requerimientos de tus docentes:
-% El presente documento se estructura de la siguiente manera: en el Capítulo 2 se detalla el Marco Teórico, en el Capítulo 3 se presenta el Diseño de la Solución...
+\section{Metodología de desarrollo}
+El proyecto se desarrolla mediante un proceso iterativo e incremental guiado por casos de uso
+\parencite{Larman2003}. Cada incremento toma un conjunto de casos de uso, lo lleva a través de
+análisis, diseño, implementación y prueba, y entrega una versión ejecutable del sistema completo
+sobre la que se planifica el incremento siguiente. Se elige este enfoque por tres motivos. Primero,
+el comportamiento del modelo de detección no puede conocerse antes de entrenarlo y probarlo
+contra la telemetría real del agente, de modo que los requerimientos se ajustan a partir de los
+resultados de cada iteración. Segundo, el sistema tiene tres componentes desplegados en forma
+independiente (agente, API y panel), y un incremento vertical que atraviesa los tres permite
+verificar la integración temprano. Tercero, un equipo de dos personas no justifica los roles y
+ceremonias de un marco como Scrum, pero sí la entrega frecuente de versiones verificables.
+
+Se organizan dos incrementos principales. El primero cubre la detección y la mitigación en el
+equipo (CU-01) y el ajuste de políticas desde el panel (CU-02). El segundo incorpora el
+reentrenamiento periódico del modelo (CU-03), el alta de usuarios nuevos con período de
+aprendizaje (CU-04), la integración con sistemas de gestión de identidad y el endurecimiento de la
+ingesta, la autenticación y el canal. El cronograma de ambos incrementos se presenta en el
+Anexo~A.
+
+El \emph{pipeline} de entrenamiento del modelo se organiza en seis fases sucesivas, desde la
+preparación del conjunto de datos hasta la exportación de los artefactos que consume la API,
+y se ejecuta en forma separada del ciclo de desarrollo del software. [[CODIGO: nombres de las seis
+fases del pipeline]]
+
+La gestión del trabajo se apoya en el control de versiones con ramas por funcionalidad, la
+revisión de cada cambio antes de integrarlo y un \emph{pipeline} de integración continua que ejecuta el
+análisis estático, la compilación y las pruebas automatizadas en cada cambio (sección
+\ref{sec:integracion-continua}). La división de tareas responde a la especialización de cada
+integrante: uno concentra el entrenamiento del modelo y el otro el agente, la API y el panel.
+
+\section{Estructura del documento}
+El documento se organiza en trece capítulos. El capítulo~\ref{chap:antecedentes} presenta el marco
+teórico (el punto ciego posterior a la autenticación, la arquitectura Zero Trust, el análisis de
+comportamiento de usuarios y entidades, los modelos de control de acceso, los algoritmos de detección
+de anomalías y el marco legal de protección de datos personales) y el estado del arte en soluciones
+comerciales y trabajos académicos. El capítulo~\ref{chap:comparativo} compara el proyecto con esas
+alternativas y contrasta el diseño con entrevistas a profesionales de seguridad y con una encuesta a
+usuarios finales. El capítulo~\ref{chap:requerimientos} define los actores, los requerimientos
+funcionales y no funcionales, los casos de uso y las historias de usuario. El
+capítulo~\ref{chap:diseno} justifica el diseño del panel de administración con sus wireframes y
+pantallas, y el capítulo~\ref{chap:uml} presenta los diagramas UML.
+El capítulo~\ref{chap:arquitectura} describe la arquitectura, las tecnologías elegidas, el despliegue y
+los protocolos de comunicación. El capítulo~\ref{chap:datos} presenta el conjunto de datos, la
+preparación, los modelos y el modelo de datos del sistema. El capítulo~\ref{chap:producto} describe
+el producto implementado, el cumplimiento de los requerimientos, el tratamiento de datos personales y
+las limitaciones conocidas. El capítulo~\ref{chap:pruebas} reúne las pruebas automatizadas, funcionales,
+de rendimiento, la evaluación del modelo y la evaluación de usabilidad. El
+capítulo~\ref{chap:mercado} analiza el mercado y la competencia, el capítulo~\ref{chap:negocio}
+presenta el modelo de negocio, la viabilidad económico-financiera y la identidad de marca, y el
+capítulo~\ref{chap:conclusiones} expone las conclusiones y el trabajo futuro.
+
+Los anexos complementan el cuerpo del documento. El Anexo~A presenta el cronograma de
+actividades; el Anexo~B, los resultados completos de la encuesta; y los Anexos~C a G, las
+transcripciones de las entrevistas a los cinco profesionales consultados.
