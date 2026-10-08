@@ -74,3 +74,164 @@ tarifan por volumen de datos o por usuario con montos dimensionados para grandes
 contrasta con la encuesta, donde el costo aparece como factor determinante de adopción para el
 17\,\% de los participantes. Validar el precio con clientes potenciales es la primera acción
 comercial prevista.
+
+\section{Viabilidad económico-financiera}\label{sec:viabilidad-fin}
+
+\subsection{Supuestos}
+El análisis se realiza sobre el flujo de fondos anual, en dólares estadounidenses constantes para
+aislarlo de la inflación local, con un horizonte de cinco años. El horizonte se justifica porque
+el ingreso es recurrente y el costo de adquirir cada cliente se recupera a lo largo de varios meses:
+en tres años los escenarios todavía reflejan sobre todo la etapa de adquisición. No se considera
+valor residual al final del horizonte, lo que hace que la evaluación sea conservadora.
+
+\begin{longtable}{p{6cm}p{8.3cm}}
+\caption{Supuestos del análisis económico-financiero}\label{tab:supuestos-fin}\\
+\hline
+\textbf{Supuesto} & \textbf{Valor y fundamento} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Supuesto} & \textbf{Valor y fundamento} \\
+\hline
+\endhead
+Inversión inicial & USD 23.000: horas del equipo valorizadas (1.000 h a USD 15/h, USD 15.000),
+pasaje del prototipo a producto (instalador, firma de código, endurecimiento; USD 6.000),
+constitución de la sociedad y asesoramiento legal (USD 1.500) y certificado de firma de código
+(USD 500). \\
+Precio y mezcla de planes & USD 5,20 por equipo y por mes (70\,\% Business a USD 4, 30\,\% Enterprise a
+USD 8), dentro de los rangos de la sección de precio. \\
+Tamaño del cliente & 75 equipos, punto medio del segmento de 50 a 100. \\
+Costo variable & Nube: USD 0,60 por equipo y por mes; procesador de pagos 3\,\%; impuesto sobre los
+ingresos brutos 3\,\% (supuesto conservador); comisión del 20\,\% al MSSP sobre la mitad de las
+ventas. \\
+Costo fijo & Equipo y soporte: USD 3.500 por mes el primer año (dos integrantes a tiempo parcial),
+que crece hasta USD 12.000 en el quinto; infraestructura base de nube: USD 250 por mes. \\
+Impuesto a las ganancias & 25\,\% sobre el resultado positivo de cada año (supuesto simplificado,
+sin quebrantos trasladables). \\
+Tasa de descuento & 25\,\% anual en dólares, construida por acumulación (ver el párrafo
+siguiente), con sensibilidad entre 20\,\% y 35\,\%. \\
+\hline
+\end{longtable}
+{\small Fuente: elaboración propia.\par}
+
+La tasa de descuento se construye por acumulación. Parte del rendimiento
+del bono del Tesoro de los Estados Unidos a diez años, cercano al 5,35\,\%
+a comienzos de octubre de 2026 según la serie DGS10 de la Reserva Federal
+de St.~Louis, y le suma el riesgo país de Argentina, que en la misma semana
+osciló entre 573 y 650 puntos básicos según el índice EMBI de J.\,P.~Morgan.
+El resultado, entre el 11\,\% y el 12\,\%, representa el costo del
+financiamiento en dólares para un emisor argentino. A ese valor se agrega
+una prima por riesgo de emprendimiento de 13 a 14 puntos, que refleja que
+el producto no tiene clientes ni historial comercial. Esa prima es un
+supuesto del equipo y es el componente menos fundamentado de la tasa; por
+eso el valor actual neto se informa también con tasas del 20\,\%, 30\,\% y
+35\,\%.
+
+\subsection{Escenarios}
+Los tres escenarios difieren en la velocidad de adopción, la tasa de abandono y el costo de
+adquisición (tablas~\ref{tab:clientes-fin} y~\ref{tab:flujos-fin}), y cada uno responde a una
+hipótesis sobre el mercado:
+\begin{itemize}
+  \item \textbf{Pesimista}: la resistencia a la adopción observada en la encuesta (el 41\,\% de los
+        participantes considera improbable que su empresa adopte el sistema) se traduce en un ciclo
+        de venta largo y caro. Se incorpora un cliente cada dos meses el primer año y dos por mes desde
+        el tercero, con un abandono del 3\,\% mensual y un costo de adquisición de USD 2.500.
+  \item \textbf{Base}: el canal de MSSP empieza a aportar clientes desde el segundo año. Se
+        incorporan 1, 3, 5, 6 y 6 clientes por mes en cada año, con un abandono del 2\,\% mensual y
+        un costo de adquisición de USD 1.500.
+  \item \textbf{Optimista}: el canal se activa desde el primer año y el producto se recomienda entre
+        clientes. Se incorporan 2, 5, 8, 10 y 10 clientes por mes, con un abandono del 1,5\,\% mensual
+        y un costo de adquisición de USD 1.000.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Clientes activos al cierre de cada año por escenario}
+\label{tab:clientes-fin}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Escenario} & \textbf{Año 1} & \textbf{Año 2} & \textbf{Año 3} & \textbf{Año 4} & \textbf{Año 5} \\
+\hline
+Pesimista & 5 & 14 & 30 & 41 & 49 \\
+Base & 11 & 41 & 86 & 132 & 168 \\
+Optimista & 22 & 74 & 150 & 236 & 307 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero.\par}
+\end{table}
+\FloatBarrier
+
+\begin{table}[h]
+\centering
+\caption{Flujo neto de fondos por escenario (USD)}
+\label{tab:flujos-fin}
+\begin{tabular}{lrrrrrr}
+\hline
+\textbf{Escenario} & \textbf{Año 0} & \textbf{Año 1} & \textbf{Año 2} & \textbf{Año 3} & \textbf{Año 4} & \textbf{Año 5} \\
+\hline
+Pesimista & $-$23.000 & $-$50.105 & $-$70.935 & $-$92.966 & $-$71.640 & $-$52.192 \\
+Base & $-$23.000 & $-$42.496 & $-$35.398 & 17.228 & 101.831 & 195.938 \\
+Optimista & $-$23.000 & $-$27.251 & 28.086 & 140.224 & 311.523 & 500.375 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero.\par}
+\end{table}
+\FloatBarrier
+
+\subsection{Indicadores}
+
+\begin{table}[h]
+\centering
+\caption{Indicadores económico-financieros por escenario}
+\label{tab:indicadores-fin}
+\begin{tabular}{p{1.9cm}>{\raggedleft\arraybackslash}p{2.2cm}>{\raggedleft\arraybackslash}p{1.7cm}>{\raggedleft\arraybackslash}p{2.1cm}>{\raggedleft\arraybackslash}p{2.2cm}>{\raggedleft\arraybackslash}p{2.4cm}}
+\hline
+\textbf{Escenario} & \textbf{VAN al 25\,\%\newline (USD)} & \textbf{TIR} & \textbf{Payback simple} & \textbf{Payback descontado} & \textbf{Necesidad máx. de fondos (USD)} \\
+\hline
+Pesimista & $-$202.527 & no existe & no recupera & no recupera & 360.837 \\
+Base & 35.084 & 38,8 \% & 3,8 años & 4,5 años & 100.894 \\
+Optimista & 336.532 & 131,8 \% & 2,2 años & 2,4 años & 50.251 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero.\par}
+\end{table}
+\FloatBarrier
+
+\begin{table}[h]
+\centering
+\caption{Sensibilidad del VAN a la tasa de descuento (USD)}
+\label{tab:sensibilidad-fin}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Escenario} & \textbf{20\,\%} & \textbf{30\,\%} & \textbf{35\,\%} \\
+\hline
+Pesimista & $-$223.337 & $-$184.970 & $-$170.030 \\
+Base & 54.826 & 19.633 & 7.456 \\
+Optimista & 406.266 & 280.320 & 234.598 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero.\par}
+\end{table}
+\FloatBarrier
+
+El punto de equilibrio operativo es de 13 clientes activos el primer año y crece hasta 43 en el
+quinto, a medida que aumenta el costo fijo del equipo: con un margen de contribución de USD 283 por
+cliente, cada USD 1.000 de costo fijo mensual adicional exige entre tres y cuatro clientes más.
+
+\subsection{Interpretación}
+En el escenario base (tabla~\ref{tab:indicadores-fin}), el proyecto genera valor: el VAN al 25\,\% es
+de USD 35.084, la TIR de 38,8\,\% supera la tasa de descuento y la inversión se recupera en 3,8 años
+(4,5 años con flujos descontados). Sin embargo, el resultado es sensible a la tasa
+(tabla~\ref{tab:sensibilidad-fin}): al 35\,\% el VAN se reduce a
+USD 7.456. Además, los dos primeros años tienen flujos negativos, por lo que el proyecto requiere
+financiar hasta USD 100.894 acumulados antes de generar caja. En el escenario optimista el VAN es
+de USD 336.532 y la inversión se recupera en 2,2 años. En el pesimista el proyecto no recupera la
+inversión en el horizonte y acumula una necesidad de fondos de USD 360.837: con una adopción tan
+lenta, el costo fijo crece más rápido que la base de clientes.
+
+La viabilidad depende, por lo tanto, de la velocidad de adopción y del costo de adquirir cada
+cliente, más que del precio o del costo de infraestructura. Esto define qué validar primero: la
+disposición a pagar de las PyMEs y la capacidad de los MSSP de aportar clientes a un costo menor
+que la venta directa. Como regla de decisión, si al cabo del primer año la base de clientes queda
+por debajo del punto de equilibrio y el costo de adquisición observado supera los USD 2.000, se
+replantea el canal o el segmento antes de aumentar el costo fijo.
