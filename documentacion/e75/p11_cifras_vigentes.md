@@ -111,7 +111,7 @@ chapter01.tex:53, el marcador del despliegue queda.
 - pruebas.tex:346: "el 93,3 % de los usuarios parte por encima" en el umbral 40.
 - Figura `curva_umbral` (10.6.3): generada con el modelo anterior (incluye la tasa de alertas a 70 del 16,8 %).
 - pruebas.tex:331: "ninguno en crítico" en los días sin inyección (el prompt no lo confirma con el juego vigente).
-- datos.tex:59 frente a datos.tex:82: 61.283 pares usuario-día ≠ 49.048 + 12.236 = 61.284. Es una inconsistencia que apareció al unificar 12.236.
+- datos.tex:82: el entrenamiento de Isolation Forest se corrigió de 49.048 a 49.047 usuario-días, para que la suma con 12.236 de prueba cierre con el total de 61.283 de datos.tex:59, que es una cifra del conjunto de datos. Es un valor derivado: falta confirmarlo contra el juego vigente.
 - datos.tex:82-86: 111.742 y 20.741 secuencias, detención en la época 22, pérdida de validación 0,0805 y 67.375 parámetros. Pueden provenir del candidato del 23/08; no hay dato vigente.
 - datos.tex (8.1 y 8.3): el entrenamiento se describe solo con CLUE-LDS; la aclaración de 10.5 menciona 92 eventos reales del agente.
 - arquitectura.tex:243, fila "Buckets de almacenamiento" (Dashboard estático): no se sabe si el bucket del panel sigue en uso con Caddy.
