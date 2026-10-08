@@ -89,7 +89,7 @@ El \emph{dashboard} consulta la API cada 2 segundos y se organiza en ocho pantal
 \end{itemize}
 
 \subsection{Reentrenamiento periódico}
-Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda los modelos vigentes. Luego compara las métricas del modelo nuevo con las del vigente y lo promueve solo si las iguala o las mejora: en ese caso, la API recarga los modelos en memoria sin reiniciarse. Si no, restaura el respaldo. Cada corrida queda registrada con la fecha, la cantidad de eventos y la variación de las métricas. El administrador puede registrar también reentrenamientos realizados en forma manual.
+Un planificador integrado en la API verifica si se cumplió la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados desde el último entrenamiento y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda los modelos vigentes. Luego compara las métricas del modelo nuevo con las del vigente y lo promueve solo si las iguala o las mejora: en ese caso, la API recarga los modelos en memoria sin reiniciarse. Si no, restaura el respaldo. [[CODIGO: regla de promoción vigente tras el cierre de los modelos]] Cada corrida queda registrada con la fecha, la cantidad de eventos y la variación de las métricas. El administrador puede registrar también reentrenamientos realizados en forma manual.
 
 \subsection{Usuarios nuevos y período de aprendizaje}
 Un usuario se da de alta automáticamente con su primer evento y permanece en período de aprendizaje hasta acumular la cantidad de eventos configurada (20 por defecto, entre 1 y 1000). Durante ese período sus eventos se evalúan normalmente y el nivel informado no cambia, pero la acción se atenúa a \texttt{alertar}, salvo en los eventos sobre archivos, que reciben la política normal. El \emph{dashboard} muestra el progreso de cada usuario respecto del umbral, y la salida del período es automática.
@@ -128,7 +128,7 @@ La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcio
 
 De los 15 requerimientos no funcionales, 8 se encuentran implementados, 5 en estado parcial (RNF-03, RNF-05, RNF-06, RNF-09 y RNF-11) y 1 no implementado (RNF-13, cifrado TLS). RNF-02 [[ESTADO SEGÚN RNF-02]].
 
-Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 está implementado en su lógica, pero el canal entre el agente y la API no está cifrado. RF-21 está implementado y se verifica con modelos controlados; sin embargo, la única corrida real del planificador produjo un modelo peor que el vigente y, por lo tanto, todavía no se observa una promoción con un modelo genuinamente nuevo.
+Los dos requerimientos funcionales parciales tienen causas distintas. RF-02 está implementado en su lógica, pero el canal entre el agente y la API no está cifrado. RF-21 está implementado y se verifica con modelos controlados; sin embargo, la única corrida real del planificador produjo un modelo peor que el vigente, las dos corridas manuales tampoco produjeron un modelo mejor y, por lo tanto, todavía no se observa una promoción con un modelo genuinamente nuevo.
 
 \section{Estado del despliegue}
 \label{sec:estado-despliegue}
