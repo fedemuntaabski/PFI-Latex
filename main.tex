@@ -13,9 +13,11 @@
 \usepackage[T1]{fontenc} % Para poder copiar y pegar el texto desde un pdf
 \usepackage{lmodern}
 
-\usepackage[backend=biber, style=iso-authoryear, language=spanish, uniquelist=false]{biblatex}
+\usepackage[backend=biber, style=iso-authoryear, language=spanish, uniquelist=false, maxcitenames=2, mincitenames=1]{biblatex}
 \DeclareUnicodeCharacter{202F}{~} % Para reemplazar el caracter 202F por un espacio
 \bibliography{biblio.bib}
+% ISO 690 en las citas: dos autores unidos por "y" (el estilo usa "; " entre nombres)
+\DeclareDelimFormat[cite,parencite,textcite,citeauthor]{finalnamedelim}{\addspace\bibstring{and}\space}
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 % Esto último es para la cantidad de niveles en el índice
