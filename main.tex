@@ -16,6 +16,7 @@
 
 \usepackage[backend=biber, style=iso-authoryear, language=spanish, uniquelist=false, maxcitenames=2, mincitenames=1]{biblatex}
 \DeclareUnicodeCharacter{202F}{~} % Para reemplazar el caracter 202F por un espacio
+\DeclareUnicodeCharacter{2026}{\textellipsis\unkern} % Puntos suspensivos sin el espacio extra final
 \bibliography{biblio.bib}
 % ISO 690 en las citas: dos autores unidos por "y" (el estilo usa "; " entre nombres)
 \DeclareDelimFormat[cite,parencite,textcite,citeauthor]{finalnamedelim}{\addspace\bibstring{and}\space}
