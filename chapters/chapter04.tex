@@ -434,15 +434,14 @@ un incidente, que se contrasta con el catálogo de acciones del proyecto en la s
 \section{Contraste con la percepción de los usuarios finales: resultados de la encuesta}
 \label{sec:encuesta-usuarios}
 
-La encuesta se difunde [[COMPLETAR: canal, por ejemplo redes sociales y contactos personales y
-laborales del equipo]] entre [[COMPLETAR: fechas]]. Se trata de una muestra no probabilística por
+La encuesta se elabora en Google Forms y se difunde a través de grupos de WhatsApp. Se trata de una muestra no probabilística por
 conveniencia: los participantes no se seleccionan al azar de una población definida, sino entre las
 personas que el equipo puede alcanzar y que deciden responder. Por lo tanto, los porcentajes que
 siguen describen a los participantes y no pueden generalizarse a la población de empleados de
 empresas argentinas; se utilizan como indicio del problema y como insumo de diseño, no como
 estimación estadística. La muestra tampoco se estratifica por tamaño de empresa ni por sector.
 
-Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta. Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a empleados que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (Figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
+Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta. Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a participantes que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (Figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
 
 \subsection{La autenticación como portón, no como control continuo}
 
@@ -468,17 +467,17 @@ Una situación similar se observa respecto de la detección de comportamientos i
 
 La importancia asignada a que las herramientas actúen preventivamente mediante bloqueos, en lugar de limitarse a generar alertas, se encuentra distribuida entre niveles bajos, medios y altos, sin un predominio claro (Figura~\ref{fig:encuesta-12}, Anexo B).
 
-Sin embargo, ante un escenario de riesgo moderado, el 40\% considera que una notificación push para confirmar la identidad sería la respuesta menos disruptiva, seguida por el bloqueo temporal de la aplicación (31\%) y la reautenticación biométrica (29\%) (Figura~\ref{fig:encuesta-13}, Anexo B). Este resultado respalda el esquema de respuesta graduada implementado en el sistema, con niveles de riesgo bajo, medio, alto y crítico que desencadenan acciones diferenciadas. La preferencia de los usuarios sugiere que la respuesta debería ajustarse al nivel de riesgo en lugar de aplicar siempre la máxima restricción.
+Sin embargo, ante un escenario de riesgo moderado, el 40\% considera que una notificación push para confirmar la identidad sería la respuesta menos disruptiva, seguida por el bloqueo temporal de la aplicación (31\%) y la reautenticación biométrica (29\%) (Figura~\ref{fig:encuesta-13}, Anexo B). Este resultado respalda el esquema de respuesta graduada implementado en el sistema, con niveles de riesgo bajo, medio, alto y crítico que desencadenan acciones diferenciadas. La preferencia de los participantes sugiere que la respuesta debería ajustarse al nivel de riesgo en lugar de aplicar siempre la máxima restricción.
 
 \subsection{Las funcionalidades priorizadas coinciden con lo implementado}
 
 Al consultar las funcionalidades prioritarias de un sistema de monitoreo de comportamiento, los resultados son relativamente equilibrados: detección de procesos no habituales (66\%), horarios anómalos (61\%), restricción automática de acceso (59\%), accesos inusuales a archivos (54\%), historial de auditoría completo (54\%) y alertas inmediatas a IT (53\%) (Figura~\ref{fig:encuesta-14}, Anexo B).
 
-La ausencia de una funcionalidad claramente dominante sugiere que los participantes valoran un sistema integral. Esto coincide con el alcance funcional del agente implementado, que incorpora recolección de procesos y de accesos al sistema de archivos, detección de horarios inusuales, denegación de acceso a carpetas, historial de puntajes y notificación al administrador. En este sentido, las funcionalidades definidas para el sistema encuentran respaldo en las prioridades expresadas por la población objetivo.
+La ausencia de una funcionalidad claramente dominante sugiere que los participantes valoran un sistema integral. Esto coincide con el alcance funcional del agente implementado, que incorpora recolección de procesos y de accesos al sistema de archivos, detección de horarios inusuales, denegación de acceso a carpetas, historial de puntajes y notificación al administrador. En este sentido, las funcionalidades definidas para el sistema encuentran respaldo en las prioridades expresadas por los participantes.
 
 \subsection{Privacidad: una preocupación real y heterogénea}
 
-Respecto de la información que los usuarios considerarían intrusiva o inaceptable, las seis categorías consultadas (ubicación/IP, contenido de correos, rutas de archivos, capturas de pantalla, \emph{keylogging} y nombre de procesos) se ubican entre el 54\% y el 66\%. A su vez, el 57\% indica que ninguna de las categorías le parecía intrusiva (Figura~\ref{fig:encuesta-15}, Anexo B).
+Respecto de la información que los participantes considerarían intrusiva o inaceptable, las seis categorías consultadas (ubicación/IP, contenido de correos, rutas de archivos, capturas de pantalla, \emph{keylogging} y nombre de procesos) se ubican entre el 54\% y el 66\%. A su vez, el 57\% indica que ninguna de las categorías le parecía intrusiva (Figura~\ref{fig:encuesta-15}, Anexo B).
 
 Dado que cada participante podía seleccionar distintas opciones, estos resultados muestran una percepción de la privacidad heterogénea: mientras un grupo rechaza determinados tipos de recolección, otro no considera problemática ninguna de las categorías consultadas. Para el proyecto, esto refuerza la importancia de comunicar qué información se recolecta y con qué finalidad. En este sentido, la explicación que acompaña a cada evento, con las tres variables de Isolation Forest que más se apartan de lo habitual, constituye un elemento relevante para la adopción del sistema.
 
@@ -494,10 +493,10 @@ Por lo tanto, los resultados no muestran un consenso favorable, sino una oportun
 
 En relación con incidentes de seguridad ocurridos previamente, solo el 42\% de quienes poseen información al respecto estima que fueron detectados durante las primeras 24 horas. El resto señala períodos de días, semanas o meses, o incluso casos en los que la detección ocurrió únicamente cuando el daño ya era visible (16\%) (Figura~\ref{fig:encuesta-18}, Anexo B).
 
-Este resultado aporta evidencia cuantitativa sobre el problema que motiva el proyecto: la distancia temporal entre el compromiso de una cuenta y su detección puede ser considerable. El scoring continuo con decaimiento temporal busca precisamente reducir esta ventana de exposición.
+Este resultado aporta un indicio, entre los participantes, del problema que motiva el proyecto: la distancia temporal entre el compromiso de una cuenta y su detección puede ser considerable. El scoring continuo con decaimiento temporal busca precisamente reducir esta ventana de exposición.
 
 \subsection{Síntesis}
 
-En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los participantes, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante frente a una percepción de privacidad heterogénea.
+En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida por los participantes principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los participantes, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante frente a una percepción de privacidad heterogénea.
 
-Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen mayor peso que la garantía de privacidad como criterio de decisión, y la percepción sobre una posible adopción se encuentra prácticamente dividida. Por lo tanto, existe una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.
+Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen, para los participantes, mayor peso que la garantía de privacidad como criterio de decisión, y la percepción sobre una posible adopción se encuentra prácticamente dividida. Por lo tanto, las respuestas sugieren una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.
