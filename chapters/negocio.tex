@@ -219,9 +219,32 @@ Optimista & 406.266 & 280.320 & 234.598 \\
 \end{table}
 \FloatBarrier
 
-El punto de equilibrio operativo es de 13 clientes activos el primer año y crece hasta 43 en el
+El punto de equilibrio operativo es de 14 clientes activos el primer año y crece hasta 44 en el
 quinto, a medida que aumenta el costo fijo del equipo: con un margen de contribución de USD 283 por
-cliente, cada USD 1.000 de costo fijo mensual adicional exige entre tres y cuatro clientes más.
+cliente, cada USD 1.000 de costo fijo mensual adicional exige entre tres y cuatro clientes más. La
+tabla~\ref{tab:equilibrio-fin} calcula el equilibrio de cada año como el costo fijo mensual dividido
+por el margen de contribución, redondeado hacia arriba, y lo compara con los clientes activos al
+cierre del año en cada escenario. En negrita figuran los valores que alcanzan o superan el
+equilibrio.
+
+\begin{table}[h]
+\centering
+\caption{Punto de equilibrio operativo frente a los clientes activos al cierre de cada año}
+\label{tab:equilibrio-fin}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Año} & \textbf{Costo fijo mensual (USD)} & \textbf{Equilibrio} & \textbf{Pesimista} & \textbf{Base} & \textbf{Optimista} \\
+\hline
+1 & 3.750 & 14 & 5 & 11 & \textbf{22} \\
+2 & 6.250 & 23 & 14 & \textbf{41} & \textbf{74} \\
+3 & 9.250 & 33 & 30 & \textbf{86} & \textbf{150} \\
+4 & 11.250 & 40 & \textbf{41} & \textbf{132} & \textbf{236} \\
+5 & 12.250 & 44 & \textbf{49} & \textbf{168} & \textbf{307} \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero.\par}
+\end{table}
+\FloatBarrier
 
 \subsection{Interpretación}
 En el escenario base (tabla~\ref{tab:indicadores-fin}), el proyecto genera valor: el VAN al 25\,\% es
@@ -233,6 +256,24 @@ financiar hasta USD 100.894 acumulados antes de generar caja. En el escenario op
 de USD 336.532 y la inversión se recupera en 2,2 años. En el pesimista el proyecto no recupera la
 inversión en el horizonte y acumula una necesidad de fondos de USD 360.837: con una adopción tan
 lenta, el costo fijo crece más rápido que la base de clientes.
+
+La comparación con la adopción proyectada (tabla~\ref{tab:equilibrio-fin}) muestra en cuánto tiempo
+se llega al equilibrio. En el escenario optimista se alcanza en el octavo mes y el primer año cierra
+con 22 clientes frente a 14. En el base se alcanza en el mes 17, es decir, a mitad del segundo año,
+que cierra con 41 clientes frente a 23. En el pesimista recién se alcanza en el cuarto año (41 frente
+a 40) y en el quinto queda apenas por encima (49 frente a 44). Que los flujos sigan negativos después
+de superar el equilibrio es coherente con el modelo, por dos razones. Primero, el equilibrio es
+operativo: no incluye el costo de adquisición ni el impuesto a las ganancias. Segundo, la tabla compara
+los clientes al cierre del año, mientras que el flujo se calcula con la base de clientes de cada mes.
+En el escenario base, el segundo año tiene en promedio 28 clientes activos y USD 54.000 de costo de
+adquisición, por lo que el flujo todavía es negativo y la necesidad de fondos llega a USD 100.894;
+desde el tercer año, la base supera con holgura el equilibrio y el flujo pasa a ser positivo. En el
+pesimista, aun por encima del equilibrio, los USD 60.000 anuales de adquisición de los años 4 y 5 no
+se cubren, y por eso la inversión no se recupera y la necesidad de fondos acumula USD 360.837. Llegar
+al equilibrio en algo menos de un año y medio, como en el escenario base, es razonable para una
+suscripción que depende de un canal de MSSP que recién empieza a aportar clientes en el segundo año;
+llegar recién en el cuarto año, como en el pesimista, no lo es, y es el caso que la regla de decisión
+del párrafo siguiente busca detectar a tiempo.
 
 La viabilidad depende, por lo tanto, de la velocidad de adopción y del costo de adquirir cada
 cliente, más que del precio o del costo de infraestructura. Esto define qué validar primero: la
