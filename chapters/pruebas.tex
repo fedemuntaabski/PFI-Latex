@@ -125,7 +125,7 @@ La tabla~\ref{tab:cobertura-requerimientos} relaciona los requerimientos del cap
 	\hline
 	Verificación manual o medición & RF-08 (ejecución real de acciones en el \emph{endpoint}); RNF-01 y RNF-02 (mediciones de la sección~\ref{sec:pruebas-rendimiento}); RNF-09 (verificación de la cadena de \emph{hashes}); RNF-10 (corrida real de reentrenamiento); RNF-12 (ejecución en Windows); RNF-14 (ensayos de concurrencia); RNF-15 (evaluación heurística) \\
 	\hline
-	Sin prueba registrada & RF-18 (ventana horaria del reentrenamiento), RF-19 (captura de eventos crudos), RF-22 (registro de reentrenamientos) y RF-26 (indicador de aprendizaje en el \emph{dashboard}) \\
+	Sin prueba registrada & RF-18 (ventana horaria del reentrenamiento), RF-19 (captura de eventos crudos), RF-22 (registro de reentrenamientos), RF-26 (indicador de aprendizaje en el \emph{dashboard}) y RF-31 (redacción asistida del correo) \\
 	\hline
 	No implementado & RNF-13 (cifrado TLS entre agente y API) \\
 	\hline
@@ -583,7 +583,7 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 \begin{itemize}
 	\item La prueba de regresión del puntaje no se encuentra en verde: presenta seis diferencias contra el cálculo fuera de línea, y una de ellas no tiene causa atribuida.
 	\item No se mide la cobertura de código y el \emph{frontend} no tiene pruebas automatizadas.
-	\item Cuatro requerimientos funcionales (RF-18, RF-19, RF-22 y RF-26) no tienen una prueba registrada.
+	\item Cinco requerimientos funcionales (RF-18, RF-19, RF-22, RF-26 y RF-31) no tienen una prueba registrada.
 	\item La ejecución real de las mitigaciones en el \emph{endpoint} se verifica en forma manual y no tiene pruebas automatizadas.
 	\item La latencia se mide con Redis en memoria y sin carga concurrente; no representa el desempeño con un Redis gestionado ni con varios agentes simultáneos.
 	\item El consumo de recursos del agente (RNF-02) se mide con uso normal del equipo, sin una ráfaga de eventos de archivo como la del escenario de exfiltración.

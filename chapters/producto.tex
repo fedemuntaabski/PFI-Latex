@@ -121,7 +121,7 @@ La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcio
 	\endhead
 	CU-01 Detección y mitigación & RF-01 a RF-11 & 10 & RF-02 (TLS sin verificar) \\
 	\hline
-	CU-02 Ajuste de políticas & RF-12 a RF-17 & 6 & -- \\
+	CU-02 Ajuste de políticas & RF-12 a RF-17 y RF-31 & 7 & -- \\
 	\hline
 	CU-03 Reentrenamiento & RF-18 a RF-22 & 4 & RF-21 (sin promoción real) \\
 	\hline
@@ -129,7 +129,7 @@ La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcio
 	\hline
 	Integración IAM (transversal) & RF-28 a RF-30 & 3 & -- \\
 	\hline
-	\textbf{Total} & \textbf{30} & \textbf{28} & \textbf{2} \\
+	\textbf{Total} & \textbf{31} & \textbf{29} & \textbf{2} \\
 	\hline
 \end{longtable}
 
@@ -166,7 +166,7 @@ El sistema actúa como herramienta de una organización que monitorea los equipo
 	\hline
 	Confidencialidad (art.~10) & Acceso al panel con inicio de sesión y roles diferenciados de consulta y administración; registro de auditoría de los cambios de configuración. & Limitar el acceso al personal de seguridad. \\
 	\hline
-	Transferencia internacional (art.~12) & Los servicios gestionados que usa el sistema procesan datos fuera de Argentina: la API corre en una instancia de AWS en Estados Unidos (región us-east-2), mientras que PostgreSQL (Supabase) y Redis (Upstash) están en la región de São Paulo, Brasil. El servicio opcional de redacción de correos (Gemini) recibe el puntaje y los eventos recientes de la alerta. & Ni Estados Unidos ni Brasil figuran en la lista de países con legislación adecuada de la Disposición 60-E/2016, por lo que la transferencia requiere las cláusulas contractuales tipo. Formalizar la transferencia con esas cláusulas, o desplegar en una región con protección adecuada; desactivar o minimizar lo que se envía al servicio de redacción. \\
+	Transferencia internacional (art.~12) & Los servicios gestionados que usa el sistema procesan datos fuera de Argentina: la API corre en una instancia de AWS en Estados Unidos (región us-east-2), mientras que PostgreSQL (Supabase) y Redis (Upstash) están en la región de São Paulo, Brasil. El servicio opcional de redacción de correos (Gemini) recibe el puntaje y los eventos recientes de la alerta. & Ni Estados Unidos ni Brasil figuran en la lista de países con legislación adecuada de la Disposición 60-E/2016, por lo que la transferencia requiere las cláusulas contractuales tipo. Formalizar la transferencia con esas cláusulas, o desplegar en una región con protección adecuada; desactivar o minimizar lo que se envía al servicio de redacción. Pendiente: aplicar los controles contra la inyección de instrucciones (sección~\ref{sec:prompt-injection}) y enviar variables agregadas en lugar de nombres de proceso, rutas y destinos crudos. \\
 	\hline
 	Acceso, rectificación y supresión (arts.~14 a 16) & El panel permite consultar el historial de un usuario. La API permite eliminar su estado y su historial de puntajes, pero conserva los eventos crudos y las alertas de corrimiento asociadas, por lo que no constituye un mecanismo de supresión completo. & Pendiente: definir un plazo de conservación y un procedimiento de supresión que alcance a los eventos crudos. Ese procedimiento entra en tensión con la cadena de hashes por usuario, porque borrar una fila impide verificar las siguientes (sección~\ref{sec:conservacion-datos}). \\
 	\hline
@@ -242,8 +242,26 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Sin plazo de conservación ni supresión completa de datos & Los eventos crudos y las alertas de corrimiento de un usuario no se suprimen, y suprimir los eventos crudos rompería la verificación de la cadena de \emph{hashes}. & Trabajo futuro: plazo de conservación, procedimiento de supresión que alcance a los eventos crudos y cierre de la cadena por período (sección~\ref{sec:conservacion-datos}). \\
 	\hline
+	Prompt injection en la redacción asistida & Los nombres de proceso, las rutas de archivo y los destinos de red de los eventos llegan al modelo de lenguaje y pueden contener instrucciones dirigidas a él. El peor caso es un correo engañoso o con contenido inyectado y el envío de esos datos al proveedor; el nivel y la acción no cambian, porque los decide el motor de \emph{scoring} (RNF-04). & El servicio es opcional y tiene un texto predefinido de respaldo. Controles recomendados y trabajo futuro: separación de instrucciones y datos, delimitación y validación de los campos y de la salida (sección~\ref{sec:prompt-injection}). \\
+	\hline
 \end{longtable}
+
+\subsection{Inyección de instrucciones en la redacción asistida}
+\label{sec:prompt-injection}
+La redacción asistida del correo de notificación (RF-31) envía a un modelo de lenguaje externo (Gemini) el puntaje y los eventos recientes de la alerta. Esos eventos provienen de la telemetría del \emph{endpoint} e incluyen nombres de proceso, rutas de archivo y destinos de red, es decir, datos que un atacante con acceso al equipo controla. Basta, por ejemplo, con crear un archivo cuyo nombre contenga instrucciones dirigidas al modelo, como pedirle que informe la alerta como un falso positivo. Si el texto de esos campos se concatena con las instrucciones del sistema, el modelo no tiene forma confiable de distinguir unas de otras. Este riesgo corresponde a la inyección indirecta de instrucciones, que OWASP ubica en el primer lugar de los riesgos de las aplicaciones basadas en modelos de lenguaje y que NIST clasifica entre los ataques a los sistemas de IA generativa \parencite{OWASP2025LLM, NIST_AI100_2_2025}.
+
+El impacto está acotado por diseño. El modelo solo redacta el correo: el nivel de riesgo y la acción de mitigación los determina el motor de \emph{scoring} antes de la notificación (RNF-04), y la respuesta del modelo no vuelve al agente ni modifica la configuración. Una inyección exitosa no altera la decisión ni ejecuta acciones en el equipo. El peor caso es un correo engañoso que lee el administrador: un texto que minimiza la alerta, atribuye la actividad a una tarea legítima o incluye enlaces o instrucciones del atacante. A esto se suma la exposición de los datos de la alerta al proveedor del modelo, ya tratada como transferencia internacional en la tabla~\ref{tab:tratamiento-datos}. Además, el servicio es opcional y, si no está configurado o no responde, el correo se arma con un texto predefinido.
+
+Fuera de la opcionalidad, el texto de respaldo y la decisión en el motor de \emph{scoring}, el documento no da por implementado ningún control específico. Se recomiendan los siguientes, como trabajo futuro:
+\begin{itemize}
+	\item Separar las instrucciones del sistema de los datos de telemetría, enviándolos en mensajes o campos distintos y declarando en las instrucciones que los datos no contienen órdenes.
+	\item Delimitar cada campo de telemetría con marcadores explícitos y escapar en su contenido los caracteres que puedan cerrar el delimitador.
+	\item Limitar la longitud de cada campo y restringir su conjunto de caracteres, truncando o sustituyendo lo que exceda esos límites.
+	\item Enviar variables agregadas (cantidad de eventos por tipo, variables que más contribuyen al puntaje, franja horaria) en lugar de nombres de proceso, rutas y destinos crudos. Esto reduce a la vez la superficie de inyección y los datos personales que recibe el proveedor.
+	\item Validar la salida del modelo antes del envío: formato esperado, longitud máxima y ausencia de enlaces, direcciones de correo o instrucciones dirigidas al lector. Si la validación falla, se usa el texto predefinido.
+	\item Mostrar siempre en el correo, fuera del texto generado y con origen en el motor de \emph{scoring}, los datos objetivos de la alerta: usuario, puntaje, nivel, acción aplicada y eventos recientes. Así el administrador puede contrastar la redacción con los datos.
+\end{itemize}
 
 \section{Síntesis}
 \label{sec:sintesis-producto}
-El producto implementa el ciclo completo de detección, decisión y mitigación sobre el \emph{endpoint}, con políticas configurables en tiempo de ejecución, auditoría de cambios, reentrenamiento periódico controlado y tratamiento de usuarios nuevos. De los 30 requerimientos funcionales, 28 están implementados y 2 en estado parcial, ambos con causa identificada. Las limitaciones principales no están en la cobertura funcional sino en la capacidad de detección del modelo y en la seguridad del canal, y orientan el trabajo futuro (capítulo~\ref{chap:conclusiones}).
+El producto implementa el ciclo completo de detección, decisión y mitigación sobre el \emph{endpoint}, con políticas configurables en tiempo de ejecución, auditoría de cambios, reentrenamiento periódico controlado y tratamiento de usuarios nuevos. De los 31 requerimientos funcionales, 29 están implementados y 2 en estado parcial, ambos con causa identificada. Las limitaciones principales no están en la cobertura funcional sino en la capacidad de detección del modelo y en la seguridad del canal, y orientan el trabajo futuro (capítulo~\ref{chap:conclusiones}).

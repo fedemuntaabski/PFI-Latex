@@ -134,6 +134,8 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial de solo inserción, con fecha, valores anteriores y nuevos e identificador del actor (derivado de la clave utilizada), consultable desde una vista de auditoría. & Media & Implementado \\
 	\hline
+	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el puntaje y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado; servicio opcional con texto predefinido de respaldo \\
+	\hline
 \end{longtable}
 
 \subsection{Módulo 5: Ciclo de vida del modelo y reentrenamiento (CU-03)}
@@ -315,7 +317,7 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 
 \noindent\textbf{Postcondición:} La política nueva está activa sin reiniciar servicios y el cambio queda auditado.
 
-\noindent\textbf{Requerimientos asociados:} RF-12 a RF-17. \textbf{Historias de usuario:} HU-05 a HU-07 y HU-14.
+\noindent\textbf{Requerimientos asociados:} RF-12 a RF-17 y RF-31.\textbf{Historias de usuario:} HU-05 a HU-07 y HU-14.
 
 \noindent\textbf{Valor diferencial:} Permite calibrar el sistema a distintos contextos de seguridad sin intervención de desarrollo, y escalonar la respuesta según el nivel de riesgo, en línea con la preferencia por respuestas menos disruptivas relevada en la encuesta (sección~\ref{sec:encuesta-usuarios}).
 
@@ -547,7 +549,7 @@ La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional con el caso
 	\hline
 	RF-12 a RF-14 & CU-02 & HU-06 \\
 	\hline
-	RF-15, RF-17 & CU-02 & HU-07 \\
+	RF-15, RF-17, RF-31 & CU-02 & HU-07 \\
 	\hline
 	RF-16 & CU-02 & HU-05 \\
 	\hline
@@ -569,4 +571,4 @@ La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional con el caso
 	\hline
 \end{longtable}
 
-En síntesis, el sistema comprende 30 requerimientos funcionales, de los cuales 28 se encuentran implementados y 2 en estado parcial (RF-02 y RF-21), y 15 requerimientos no funcionales, cuyo estado se detalla en la tabla~\ref{tab:rnf}.
+En síntesis, el sistema comprende 31 requerimientos funcionales, de los cuales 29 se encuentran implementados y 2 en estado parcial (RF-02 y RF-21), y 15 requerimientos no funcionales, cuyo estado se detalla en la tabla~\ref{tab:rnf}.

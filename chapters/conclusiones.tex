@@ -48,7 +48,7 @@ a extremo y evaluación heurística realizadas & [[CODIGO]] \\
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-De los 30 requerimientos funcionales, 28 están implementados y 2 en estado parcial, y de los 15 no
+De los 31 requerimientos funcionales, 29 están implementados y 2 en estado parcial, y de los 15 no
 funcionales, 9 están implementados, 5 en estado parcial y 1 no implementado [[CODIGO: actualizar conteo con RNF-03 y RNF-13]] (sección~\ref{sec:cumplimiento}).
 
 \section{Resultados principales}
@@ -122,6 +122,9 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         revertir solo esas.
   \item \textbf{Correcciones del agente}: informar como fallida la suspensión que no se pudo
         registrar y no intentar envíos nuevos con el \emph{circuit breaker} abierto.
+  \item \textbf{Redacción asistida del correo}: aplicar los controles contra la inyección de
+        instrucciones (sección~\ref{sec:prompt-injection}), enviar al modelo variables agregadas
+        en lugar de nombres crudos y agregar una prueba del texto predefinido de respaldo.
   \item \textbf{Pruebas}: agregar pruebas al \emph{frontend} y a los requerimientos sin prueba
         registrada, automatizar la verificación de las mitigaciones y medir la latencia con el
         Redis gestionado y varios agentes concurrentes. [[CODIGO: ajustar según el resultado de la
