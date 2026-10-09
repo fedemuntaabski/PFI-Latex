@@ -172,7 +172,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
 	\hline
-	Diferenciador del proyecto propuesto & No aplica (fila de referencia). La síntesis de diferenciadores se presenta en la Sección~\ref{sec:sintesis-diferenciadores}. \\
+	Diferenciador del proyecto propuesto & No aplica (fila de referencia). La síntesis de diferenciadores se presenta en la sección~\ref{sec:sintesis-diferenciadores}. \\
 	\hline
 \end{longtable}
 
@@ -183,7 +183,7 @@ describe el estado del arte; cuando una fuente no se pronuncia sobre una capacid
 
 \section{Matriz de capacidades}
 \label{sec:matriz-capacidades}
-Verificación explícita de qué cubre cada alternativa, usando solo lo que la Sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en caso de no haber información acerca de estas. La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
+Verificación explícita de qué cubre cada alternativa, usando solo lo que la sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en caso de no haber información acerca de estas. La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
 
 \begin{longtable}{p{2.5cm}p{1.8cm}p{1.8cm}p{2.0cm}p{2.4cm}p{2.8cm}}
 	\caption{Matriz de capacidades}
@@ -212,7 +212,7 @@ Verificación explícita de qué cubre cada alternativa, usando solo lo que la S
 	\hline
 \end{longtable}
 
-\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio Estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
+\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
 
 Las valoraciones del proyecto propuesto en esta tabla y en la matriz de capacidades son una
 autoevaluación del equipo basada en lo implementado y verificado en los capítulos de producto y
@@ -221,7 +221,7 @@ describe el estado del arte; cuando una fuente no se pronuncia sobre una capacid
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
-Profundiza lo señalado en la comparación general de alternativas (Sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
+Profundiza lo señalado en la comparación general de alternativas (sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
 
 \subsection{CatBoost (score de riesgo por solicitud)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -391,7 +391,7 @@ Profundiza lo señalado en la comparación general de alternativas (Sección~\re
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}
-A partir de la propia Conclusión del estado del arte de la documentación del proyecto (Sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
+A partir de la propia conclusión del estado del arte de la documentación del proyecto (sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
 
 Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
 
@@ -488,7 +488,7 @@ En cuanto a los factores que podrían determinar la adopción del sistema, la ga
 
 La percepción sobre la probabilidad de adopción del sistema por parte de la propia empresa se encuentra prácticamente dividida: el 43\% la considera probable (niveles 4-5), mientras que el 41\% la considera improbable (niveles 1-2) (Figura~\ref{fig:encuesta-17}, Anexo B).
 
-Por lo tanto, los resultados no muestran un consenso favorable, sino una oportunidad acompañada de una resistencia significativa. Esto coincide con lo observado en las entrevistas a expertos (Sección~\ref{sec:entrevistas-profesionales}) y con el análisis FODA/Porter del Capítulo~\ref{chap:mercado}, donde se identifica un mercado con potencial de crecimiento, pero con una adopción condicionada por factores como la reacción de los empleados y la confianza en el proveedor.
+Por lo tanto, los resultados no muestran un consenso favorable, sino una oportunidad acompañada de una resistencia significativa. Esto coincide con lo observado en las entrevistas a expertos (sección~\ref{sec:entrevistas-profesionales}) y con el análisis FODA/Porter del capítulo~\ref{chap:mercado}, donde se identifica un mercado con potencial de crecimiento, pero con una adopción condicionada por factores como la reacción de los empleados y la confianza en el proveedor.
 
 \subsection{El costo de la detección tardía}
 

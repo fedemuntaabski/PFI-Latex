@@ -214,7 +214,7 @@ El agente cumple el umbral con un margen amplio: su consumo medio de CPU es más
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
 
-Las métricas corresponden al juego de modelos vigente, entrenado en la corrida del 2 de septiembre de 2026 sobre CLUE-LDS más 92 eventos reales del agente, y con las referencias de percentil regeneradas el 6 de octubre de 2026. La regla de promoción anterior rechazó ese juego por diferencias del orden del ruido; se adopta como vigente porque es el único juego completo y coherente (modelo, escaladores, codificación y referencias) disponible, y la evaluación de la sección~\ref{sec:benchmark} se realiza sobre él.
+Las métricas corresponden al juego de modelos vigente, entrenado en la corrida del 2 de septiembre de 2026 sobre CLUE-LDS más 92 eventos reales del agente, y con las referencias de percentil regeneradas el 6 de octubre de 2026. La regla de promoción anterior rechazó ese juego por diferencias del orden del ruido; se adopta como vigente porque es el único juego completo y coherente (modelo, escaladores, codificación y referencias) disponible, y la evaluación de la sección~\ref{sec:benchmark} se realiza sobre él. La sección se organiza en dos partes: primero se fijan las metas de evaluación y se contrasta con ellas el resultado obtenido, y luego se presentan las métricas no supervisadas que describen el comportamiento del modelo híbrido y el acuerdo entre sus dos componentes.
 
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
 El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
@@ -259,7 +259,8 @@ normal a uno de cada diez usuario-días. Los resultados muestran que el sistema 
 rendimiento y de comportamiento del LSTM, pero no las de detección ni de alertas: es la principal
 limitación técnica del proyecto, cuyas causas se analizan en la sección~\ref{sec:interpretacion}.
 
-El conjunto de datos utilizado no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}. Por lo tanto, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evalúa con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}. La sección~\ref{sec:benchmark} supera en parte esta limitación con escenarios de etiqueta conocida.
+\subsection{Métricas no supervisadas}\label{sec:metricas-no-supervisadas}
+Como el conjunto de datos no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}, no es posible calcular precisión, exhaustividad (\emph{recall}), F1 ni curvas ROC, que requieren conocer qué eventos corresponden a un ataque. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. En su lugar, el modelo se evalúa con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}, y con la validación por escenarios de la sección~\ref{sec:validacion-escenarios}. La sección~\ref{sec:benchmark} supera en parte esta limitación con escenarios de etiqueta conocida.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{5.5cm}}
 	\caption{Métricas no supervisadas del modelo híbrido}

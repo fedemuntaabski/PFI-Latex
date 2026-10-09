@@ -6,7 +6,7 @@ El relevamiento cubre las 6 pantallas navegables del \emph{dashboard} (Usuarios,
 \section{Metodología de diseño}
 El diseño de este \emph{dashboard} no parte de un \emph{wireframe} estático, sino que se construye de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-07, RNF-15) y refinando la presentación visual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
 
-Cada \emph{wireframe} de este documento representa la estructura de esa pantalla ya validada (agrupación de información, jerarquía visual y controles disponibles). Se dibujan en formato de un \emph{wireframe} de baja-media fidelidad, sin el detalle de estilo final que sí se justifica por separado en la Sección~\ref{sec:decisiones-transversales-mockups} y que se puede contrastar directamente contra la pantalla real.
+Cada \emph{wireframe} de este documento representa la estructura de esa pantalla ya validada (agrupación de información, jerarquía visual y controles disponibles). Se dibujan en formato de un \emph{wireframe} de baja-media fidelidad, sin el detalle de estilo final que sí se justifica por separado en la sección~\ref{sec:decisiones-transversales-mockups} y que se puede contrastar directamente contra la pantalla real.
 
 \section{Arquitectura de navegación}
 Todas las pantallas comparten una barra superior fija con: el nombre del sistema, 6 accesos directos a las secciones (Usuarios, Con historial, Alertas, Umbrales, Auditoría, Estado del sistema), un indicador de alertas activas y un selector de tema claro/oscuro. Esta estructura común reduce la carga cognitiva del administrador al moverse entre las distintas vistas operativas: es la misma decisión de \emph{layout} en las 6 pantallas, solo cambia el contenido central.
@@ -81,7 +81,7 @@ Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acció
 	\endhead
 	RF-16 & El listado muestra \emph{score}/nivel de confianza en tiempo real por usuario, con filtro por nivel de riesgo, tal como pide el requerimiento. \\
 	\hline
-	RNF-15 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver Sección~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
+	RNF-15 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo (ver sección~\ref{sec:decisiones-transversales-mockups} para la justificación de la paleta). \\
 	\hline
 	CU-01 (postcondición) & La acción de mitigación decidida por la API queda visible por usuario, sin que el administrador tenga que consultar \emph{logs} por separado. \\
 	\hline
