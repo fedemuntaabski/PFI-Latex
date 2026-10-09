@@ -49,10 +49,14 @@
 \usepackage{textcase}
 \usepackage{pdfpages}
 
+% Título de la tesis: única definición. Lo usan la portada (chapters/title.tex), el encabezado,
+% los metadatos del PDF y cover/generar_caratula.js, que lo lee de esta línea para la carátula.
+\newcommand{\UmbralTitulo}{UMBRAL: agente inteligente de vigilancia conductual y mitigación de riesgo de identidad para PyMEs argentinas (2026)}
+
 % \parbox[b] es para poner texto sobre el bottom
 \newpagestyle{ruled}{
 	\sethead{\includegraphics[width=3.7cm]{./images/UADE_LARGE}}
-			{\parbox[b]{0.43\textwidth}{\raggedright\MakeUppercase{UMBRAL --- Vigilancia conductual y riesgo de identidad}}} % El parámetro 0.43 puede modificarse para tener más espacio en la columan del medio, y que así el título de la tesis entre mejor.
+			{\parbox[b]{0.43\textwidth}{\raggedright\footnotesize\UmbralTitulo}} % El parámetro 0.43 puede modificarse para tener más espacio en la columan del medio, y que así el título de la tesis entre mejor.
 			{
 				\raisebox{1.5ex}{%
 					\parbox[b]{0.26\textwidth}{\raggedleft
@@ -223,6 +227,8 @@
 \hypersetup{
     colorlinks = false,
     pdfborder = {0 0 0},
+    pdftitle = {\UmbralTitulo},
+    pdfauthor = {Santiago Mociulsky; Federico Muntaabski},
 }
 % Para la entrega final:
 %\usepackage[hidelinks]{hyperref}
