@@ -52,7 +52,7 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 Esta sección presenta el inventario de pruebas automatizadas, los resultados de su ejecución, la integración continua y la cobertura de los requerimientos.
 
 \subsection{Inventario}
-El repositorio contiene 529 pruebas automatizadas, 352 de la API y 177 del agente (algunas funciones de prueba se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
+El repositorio contiene 530 pruebas automatizadas, 353 de la API y 177 del agente (algunas funciones de prueba se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{7.5cm}}
 	\caption{Inventario de pruebas automatizadas por componente}
@@ -65,7 +65,7 @@ El repositorio contiene 529 pruebas automatizadas, 352 de la API y 177 del agent
 	\textbf{Componente} & \textbf{Archivos} & \textbf{Pruebas} & \textbf{Tipos y foco} \\
 	\hline
 	\endhead
-	API de \emph{scoring} & 35 & 352 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP, el criterio de promoción del modelo y la paridad de las variables entre versiones. \\
+	API de \emph{scoring} & 35 & 353 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP, el criterio de promoción del modelo y la paridad de las variables entre versiones. \\
 	\hline
 	Agente local & 14 & 177 & Unitarias con el sistema operativo simulado: colectores, filtro de procesos, \emph{buffer} local, \emph{circuit breaker}, exigencia de HTTPS, confirmación de acciones, reversión de la ACL y contrato del evento. \\
 	\hline
@@ -87,9 +87,9 @@ La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución comp
 	\textbf{Suite} & \textbf{Resultado} \\
 	\hline
 	\endhead
-	API, suite completa con los modelos entrenados & 352 aprobadas, 0 fallidas, 0 omitidas \\
+	API, suite completa con los modelos entrenados & 353 aprobadas, 0 fallidas, 0 omitidas \\
 	\hline
-	API, configuración de integración continua (sin los modelos entrenados) & 328 aprobadas, 15 omitidas, 0 fallidas \\
+	API, configuración de integración continua (sin los modelos entrenados) & 326 aprobadas, 18 omitidas, 0 fallidas \\
 	\hline
 	Agente, suite completa en Windows & 177 aprobadas, 0 fallidas \\
 	\hline
@@ -99,7 +99,7 @@ La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución comp
 	\hline
 \end{longtable}
 
-Las 15 pruebas omitidas en la configuración de integración continua son las que requieren los artefactos de modelo, que no están versionados. La cobertura de código se mide y se informa en la sección~\ref{sec:cobertura-codigo}.
+Las 18 pruebas omitidas en la configuración de integración continua dependen de artefactos que no están versionados: 15 requieren los modelos entrenados y 3 verifican la paridad de las variables con la segunda versión del modelo. La cobertura de código se mide y se informa en la sección~\ref{sec:cobertura-codigo}.
 
 \subsection{Integración continua}\label{sec:integracion-continua}
 El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por cuatro trabajos independientes:
@@ -110,7 +110,7 @@ El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en
 	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato, inicialización y validación de la configuración sin aplicar cambios; sin umbral.
 \end{itemize}
 
-Una corrida del trabajo de la API había fallado porque faltaba la dependencia de lectura de archivos Parquet que usa el criterio de promoción; se agregó a los requisitos de la API y el umbral de la API se fijó en el 74\,\%. La integración continua no ejecuta las pruebas que requieren los modelos entrenados (15 omitidas y cuatro archivos excluidos), entre ellas la prueba de extremo a extremo PDP$\rightarrow$PEP, ni la prueba de regresión. Esas suites se ejecutan localmente.
+Una corrida del trabajo de la API falló porque faltaba la dependencia de lectura de archivos Parquet que usa el criterio de promoción; se agregó a los requisitos de la API. Con esa corrección, el \emph{pipeline} finaliza con los cuatro trabajos aprobados. La integración continua no ejecuta las pruebas que requieren artefactos de modelo no versionados (18 omitidas y cuatro archivos excluidos), entre ellas la prueba de extremo a extremo PDP$\rightarrow$PEP, ni la prueba de regresión. Esas suites se ejecutan localmente.
 
 \subsection{Cobertura de código}\label{sec:cobertura-codigo}
 La cobertura se mide con \emph{coverage.py} 7.16 (mediante \emph{pytest-cov} 7.1), con medición de ramas activada, sobre todo el código del producto que se ejecuta en operación:
@@ -134,11 +134,11 @@ Cada componente se mide por separado con su propia suite: la API con los artefac
 	\textbf{Componente} & \textbf{Pruebas} & \textbf{Sentencias} & \textbf{\% líneas} & \textbf{\% líneas y ramas} \\
 	\hline
 	\endhead
-	API (PDP) & 352 & 2\,465 & \textbf{93,9} & 92,4 \\
+	API (PDP) & 353 & 2\,469 & \textbf{93,9} & 92,4 \\
 	\hline
 	Agente (PEP) & 177 & 1\,116 & \textbf{89,3} & 88,1 \\
 	\hline
-	\textbf{Total} & \textbf{529} & 3\,581 & \textbf{92,5} & 91,1 \\
+	\textbf{Total} & \textbf{530} & 3\,585 & \textbf{92,5} & 91,1 \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -649,4 +649,4 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
-Las 529 pruebas automatizadas (352 de la API y 177 del agente) se ejecutan sin fallas, con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente, y la integración continua verifica la API, el agente en Windows, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
+Las 530 pruebas automatizadas (353 de la API y 177 del agente) se ejecutan sin fallas, con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente, y la integración continua verifica la API, el agente en Windows, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
