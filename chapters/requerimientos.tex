@@ -9,7 +9,7 @@ Este capítulo presenta el análisis funcional del sistema: un agente local que 
 
 El análisis se organiza en cuatro casos de uso que cubren la lógica de negocio completa: detección y mitigación (CU-01), ajuste de políticas (CU-02), reentrenamiento periódico del modelo (CU-03) y alta de usuarios nuevos con período de aprendizaje (CU-04). La integración con sistemas de gestión de identidad (IAM) se trata como un módulo transversal. Los requerimientos se presentan en tablas por módulo, seguidos de los requerimientos no funcionales, los casos de uso, las historias de usuario y una matriz de trazabilidad.
 
-Cada requerimiento indica su prioridad y su estado de implementación según la siguiente convención: \emph{Implementado} (cumple lo especificado), \emph{Parcial} (cumple con una limitación declarada), \emph{No implementado} y \emph{No verificable} (no existe todavía un criterio medible para evaluarlo). Las limitaciones declaradas se retoman en el capítulo de producto implementado y en las conclusiones.
+Cada requerimiento indica su prioridad y su estado de implementación según la siguiente convención: \emph{Implementado} (cumple lo especificado), \emph{Parcial} (cumple con una limitación declarada), \emph{No implementado} y \emph{No verificable} (no existe todavía un criterio medible para evaluarlo). Las limitaciones declaradas se retoman en el capítulo de producto implementado y en las conclusiones. Cuando un requerimiento cumple lo especificado pero su verificación es limitada (sin prueba contra un servicio real o sin prueba automatizada), esa limitación se indica junto al estado sin modificarlo.
 
 \section{Actores del sistema}
 \label{sec:actores}
@@ -26,9 +26,9 @@ La tabla~\ref{tab:actores} describe los actores del sistema.
 	\textbf{Actor} & \textbf{Tipo} & \textbf{Rol} \\
 	\hline
 	\endhead
-	Administrador de seguridad & Humano & Opera el \emph{dashboard}: monitorea a los usuarios, ajusta umbrales y políticas, configura el reentrenamiento y consulta la auditoría. \\
+	Administrador de seguridad & Humano & Opera el \emph{dashboard}: monitorea a los usuarios, ajusta umbrales y políticas, configura el reentrenamiento y consulta la auditoría (rol admin del \emph{dashboard}). \\
 	\hline
-	Analista de seguridad & Humano & Consulta el historial y la explicación de cada puntaje para justificar decisiones posteriores. \\
+	Analista de seguridad & Humano & Consulta el historial y la explicación de cada puntaje para justificar decisiones posteriores (rol operador del \emph{dashboard}, de solo lectura). \\
 	\hline
 	Usuario monitoreado & Humano (indirecto) & Genera actividad en su \emph{endpoint}; es el sujeto de la observación y no interactúa directamente con el sistema. \\
 	\hline
@@ -58,11 +58,15 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\textbf{ID} & \textbf{Requerimiento} & \textbf{Prioridad} & \textbf{Estado} \\
 	\hline
 	\endhead
-	RF-01 & El agente local (PEP) debe ejecutarse en segundo plano y recolectar metadatos de actividad del usuario: procesos ejecutados, accesos a archivos y carpetas, aplicaciones utilizadas y conexiones a recursos de red. No captura contenido, pantallas ni pulsaciones de teclado. Los metadatos incluyen nombres de archivo y de proceso, IP y puerto remotos y el identificador host-usuario. & Alta & Implementado \\
+	RF-01 & El agente local (PEP) debe ejecutarse en segundo plano y recolectar metadatos de actividad del usuario: procesos ejecutados (incluidas las aplicaciones de una lista vigilada), cambios en los archivos del primer nivel de las carpetas vigiladas (alta, baja, modificación y renombre) y conexiones a recursos de red. No captura contenido, pantallas ni pulsaciones de teclado. Los metadatos incluyen nombres de archivo y de proceso, IP y puerto remotos y el identificador host-usuario. & Alta & Implementado \\
 	\hline
-	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado: cada agente se autentica con una clave propia, de la que la API guarda solo el \emph{hash} junto con el identificador del agente y la lista de usuarios que puede reportar; se da de alta y se revoca con una herramienta de línea de comandos, y cada cambio queda registrado en una tabla de solo inserción. La API rechaza con 403 un evento cuyo agente o usuario no corresponde a la clave, y una confirmación de acción para un usuario ajeno, antes de la deduplicación. Fuera de la red local, el agente solo acepta URLs \texttt{https://}, verifica el certificado del servidor y no usa la clave de administración como respaldo. Un 401 o un 403 abre un \emph{circuit breaker} y los eventos se guardan en un \emph{buffer} local con vigencia limitada hasta que el servicio responde. El 10 de octubre de 2026 se verificó con un agente real contra la instancia por HTTPS, con credencial individual: la API rechazó con 403 el usuario, el identificador de agente y la confirmación ajenos, y el agente abortó al configurarse con \texttt{http://} fuera de \emph{loopback}. \\
+	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado (ver nota a) \\
 	\hline
 \end{longtable}
+
+\noindent Notas:
+
+\noindent a) Implementado: cada agente se autentica con una clave propia, de la que la API guarda solo el \emph{hash} junto con el identificador del agente y la lista de usuarios que puede reportar; se da de alta y se revoca con una herramienta de línea de comandos, y cada cambio queda registrado en una tabla de solo inserción. La API rechaza con 403 un evento cuyo agente o usuario no corresponde a la clave, y una confirmación de acción para un usuario ajeno, antes de la deduplicación. Fuera de la red local, el agente solo acepta URLs \texttt{https://}, verifica el certificado del servidor y no usa la clave de administración como respaldo. Un 401 o un 403 abre un \emph{circuit breaker} y los eventos se guardan en un \emph{buffer} local con vigencia limitada hasta que el servicio responde. El 10 de octubre de 2026 se verificó con un agente real contra la instancia por HTTPS, con credencial individual: la API rechazó con 403 el usuario, el identificador de agente y la confirmación ajenos, y el agente abortó al configurarse con \texttt{http://} fuera de \emph{loopback}.
 
 \subsection{Módulo 2: Motor de scoring y decisión (CU-01)}
 \begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
@@ -82,7 +86,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-05 & La API debe asignar a cada evento un nivel de riesgo a partir de los umbrales vigentes (por defecto: bajo $[0,40)$, medio $[40,70)$, alto $[70,90)$ y crítico $[90,100]$). & Alta & Implementado \\
 	\hline
-	RF-06 & La API debe aplicar una regla de piso que eleve el nivel mínimo cuando al menos uno de los dos modelos marca anomalía, evitando que la combinación diluya una señal fuerte. & Media & Implementado \\
+	RF-06 & La API debe aplicar una regla de piso que eleve el nivel mínimo (por defecto, alto) cuando al menos uno de los dos modelos marca anomalía, evitando que la combinación diluya una señal fuerte. & Media & Implementado \\
 	\hline
 	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel\,$\rightarrow$\,acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
 	\hline
@@ -128,11 +132,11 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-14 & El administrador debe poder configurar qué acción de mitigación se ejecuta para cada nivel de riesgo, validada contra los niveles vigentes. & Alta & Implementado \\
 	\hline
-	RF-15 & El administrador debe poder configurar qué niveles de riesgo disparan una notificación por correo, con un intervalo mínimo entre notificaciones por usuario. & Media & Implementado \\
+	RF-15 & El administrador debe poder configurar qué niveles de riesgo disparan una notificación por correo, con un intervalo mínimo entre notificaciones por usuario (10 minutos por defecto, definido en la configuración del servidor). & Media & Implementado \\
 	\hline
 	RF-16 & El \emph{dashboard} debe mostrar el listado de usuarios monitoreados con su puntaje, nivel, estado de aprendizaje e historial, y el detalle de los eventos recientes de cada uno. & Alta & Implementado \\
 	\hline
-	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial de solo inserción, con fecha, valores anteriores y nuevos e identificador del actor (derivado de la clave utilizada), consultable desde una vista de auditoría. & Media & Implementado \\
+	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial de solo inserción, con fecha, valores anteriores y nuevos e identificador del actor (el rol de la sesión del panel o, para las claves que usan los scripts, un identificador derivado de la clave), consultable desde una vista de auditoría. & Media & Implementado \\
 	\hline
 	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el puntaje y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado; servicio opcional con texto predefinido de respaldo y con controles de entrada y de salida (sección~\ref{sec:prompt-injection}) \\
 	\hline
@@ -202,7 +206,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-29 & La respuesta del proveedor IAM debe almacenarse en caché durante 30 minutos y, ante una falla o indisponibilidad del proveedor, el cálculo del puntaje debe continuar sin ese contexto. & Media & Implementado \\
 	\hline
-	RF-30 & El contexto obtenido del proveedor IAM debe conservarse como último valor por usuario e incluirse en la respuesta del evento evaluado, como información para el administrador; no es una variable de entrada del modelo. & Baja & Implementado \\
+	RF-30 & El contexto obtenido del proveedor IAM debe conservarse como último valor por usuario e incluirse en la respuesta del evento evaluado y mostrarse en el detalle del usuario del \emph{dashboard}, como información para el administrador; no es una variable de entrada del modelo. & Baja & Implementado \\
 	\hline
 \end{longtable}
 
@@ -225,13 +229,13 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-02 & Eficiencia & El agente opera con un consumo acotado que preserva el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & Implementado: CPU media 0,09\,\% y memoria residente de 33~MB \\
 	\hline
-	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado: el panel se autentica con usuario y contraseña, que son obligatorias (se rechazan los valores de ejemplo y los marcadores de posición). El inicio de sesión devuelve un token de sesión opaco y aleatorio de 256~bits, del que la API guarda solo el \emph{hash} junto con el rol y el vencimiento (8 horas); el token se invalida al cerrar sesión y el rol operador no accede a los \emph{endpoints} de administración (403). Las claves fijas de los niveles de acceso no viajan al navegador ni se incluyen en el \emph{bundle} del \emph{frontend}. Limitación: el token se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión; no se implementa una política de seguridad de contenido (CSP) que lo mitigue \\
+	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado (ver nota a) \\
 	\hline
 	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
 	\hline
 	RNF-05 & Disponibilidad & Ante una caída de la API o un error de autenticación, el agente continúa el monitoreo y conserva los eventos no enviados en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos), que reenvía al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
-	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado: la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo tomado antes de aplicarla (\texttt{icacls /save} y \texttt{/restore}), con lo que se preservan las denegaciones que el usuario ya tenía; la suspensión de procesos se revierte reanudándolos. La terminación de procesos no es reversible por limitación del sistema operativo. La prueba manual de reversión dio resultado satisfactorio en una consola elevada: \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador. \\
+	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado (ver nota b) \\
 	\hline
 	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
@@ -247,11 +251,17 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & Implementado en el despliegue (TLS con certificado público, redirección a HTTPS, API solo en \emph{loopback} detrás del proxy); el agente rechaza URLs \texttt{http} fuera de \emph{loopback}. Verificado de punta a punta el 10 de octubre de 2026 con un agente real: certificado de Let's Encrypt válido, redirección 308 y puerto de la API cerrado desde afuera. \\
 	\hline
-	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado \\
+	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado: el estado de cada usuario se guarda en claves separadas y se actualiza con transacciones optimistas con reintentos; verificado con un ensayo manual de contención sobre un usuario, sin prueba automatizada con varios usuarios \\
 	\hline
 	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado; evaluación heurística en el capítulo de pruebas \\
 	\hline
 \end{longtable}
+
+\noindent Notas:
+
+\noindent a) Implementado: el panel se autentica con usuario y contraseña, que son obligatorias (se rechazan los valores de ejemplo y los marcadores de posición). El inicio de sesión devuelve un token de sesión opaco y aleatorio de 256~bits, del que la API guarda solo el \emph{hash} junto con el rol y el vencimiento (8 horas); el token se invalida al cerrar sesión y el rol operador no accede a los \emph{endpoints} de administración (403). Las claves fijas de los niveles de acceso no viajan al navegador ni se incluyen en el \emph{bundle} del \emph{frontend}. Limitación: el token se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión; no se implementa una política de seguridad de contenido (CSP) que lo mitigue.
+
+\noindent b) Implementado: la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo tomado antes de aplicarla (\texttt{icacls /save} y \texttt{/restore}), con lo que se preservan las denegaciones que el usuario ya tenía; la suspensión de procesos se revierte reanudándolos. La terminación de procesos no es reversible por limitación del sistema operativo. La prueba manual de reversión dio resultado satisfactorio en una consola elevada: \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador.
 
 \section{Casos de uso}
 \label{sec:casos-de-uso}
@@ -262,7 +272,7 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 \label{sec:cu01}
 \noindent\textbf{Actor principal:} Agente local (PEP). Actor secundario: API de \emph{scoring} (PDP).
 
-\noindent\textbf{Disparador:} El usuario realiza una actividad en el equipo monitoreado (ejecuta un proceso, accede a un archivo, abre una aplicación o se conecta a un recurso de red).
+\noindent\textbf{Disparador:} El usuario realiza una actividad en el equipo monitoreado (ejecuta un proceso, crea, modifica, renombra o borra un archivo en una carpeta vigilada, o se conecta a un recurso de red).
 
 \noindent\textbf{Precondiciones:} El agente está instalado y autenticado ante la API con su clave; los modelos están cargados en la API.
 
@@ -271,10 +281,10 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 	\item El agente captura el evento y lo envía a la API.
 	\item La API valida el esquema, descarta reenvíos duplicados, actualiza el estado del usuario y persiste el evento crudo.
 	\item La API calcula el puntaje híbrido, lo combina con la línea base personal del usuario, aplica el decaimiento temporal y asigna el nivel según los umbrales y la regla de piso.
-	\item La API genera la explicación del puntaje y determina la acción según el mapeo nivel\,$\rightarrow$\,acción. Si hay un proveedor IAM configurado (por defecto, ninguno), resuelve el rol y el departamento del usuario con caché y tolerancia a fallas; este dato se muestra en el \emph{dashboard} y no interviene en el modelo.
+	\item La API genera la explicación del puntaje y determina la acción según el mapeo nivel\,$\rightarrow$\,acción. Si hay un proveedor IAM configurado (por defecto, ninguno), resuelve el rol y el departamento del usuario con caché y tolerancia a fallas; este dato se muestra en el detalle del usuario del \emph{dashboard} y no interviene en el modelo.
 	\item La API responde al agente con el puntaje, el nivel y la acción.
 	\item El agente ejecuta la acción localmente y confirma el resultado.
-	\item Si el nivel está configurado para notificar, la API envía un correo al administrador; una falla en el envío no afecta la respuesta al agente.
+	\item Si el nivel está configurado para notificar, la API envía un correo al administrador antes de responder; una falla en el envío no afecta la respuesta al agente, pero un servidor de correo lento la demora.
 \end{enumerate}
 
 \noindent\textbf{Flujos alternativos:}
@@ -342,15 +352,15 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 \noindent\textbf{Flujos alternativos:}
 \begin{itemize}
 	\item 1a. El administrador registra manualmente un reentrenamiento realizado fuera del planificador.
-	\item 3a. El proceso se interrumpe: no se escribe ningún registro parcial y el planificador reintenta en el ciclo siguiente.
+	\item 3a. Un paso del \emph{pipeline} falla: se restauran los artefactos del modelo vigente, que sigue en servicio; el intento queda registrado en el historial como no finalizado y el próximo reentrenamiento se dispara al cumplirse nuevamente el período, lo que evita reintentos en bucle ante una falla persistente.
 	\item 4a. El modelo nuevo no cumple el criterio de promoción, faltan escenarios, su corte temporal no coincide o el puntuado falla: se conserva el vigente y se registra el motivo del rechazo.
 \end{itemize}
 
-\noindent\textbf{Postcondición:} El modelo vigente es el de mejores métricas y el reentrenamiento quedó registrado.
+\noindent\textbf{Postcondición:} El modelo vigente es el que cumple el criterio de promoción y el reentrenamiento quedó registrado.
 
 \noindent\textbf{Requerimientos asociados:} RF-18 a RF-22. \textbf{Historias de usuario:} HU-08 a HU-10.
 
-\noindent\textbf{Valor diferencial:} Mitiga la degradación del modelo por \emph{concept drift} sin interrumpir el servicio y sin aceptar modelos de menor desempeño.
+\noindent\textbf{Valor diferencial:} Mitiga la degradación del modelo por \emph{concept drift} sin interrumpir el servicio y sin aceptar modelos cuyo desempeño empeore más allá del margen de tolerancia.
 
 \subsection{CU-04: Alta de usuario nuevo y período de aprendizaje (cold-start)}
 \label{sec:cu04}
@@ -440,7 +450,7 @@ Como administrador de seguridad, quiero configurar umbrales, cantidad de niveles
 \end{itemize}
 
 \subsubsection{HU-07: Notificaciones y auditoría}
-Como administrador de seguridad, quiero recibir notificaciones por correo en los niveles que elija y consultar la auditoría de cambios, para enterarme de los casos relevantes y saber cuándo, qué y con qué nivel de clave se modificó la política.
+Como administrador de seguridad, quiero recibir notificaciones por correo en los niveles que elija y consultar la auditoría de cambios, para enterarme de los casos relevantes y saber cuándo, qué y con qué rol o clave se modificó la política.
 \begin{itemize}
 	\item Dado un nivel marcado para notificar, cuando un usuario lo alcanza, entonces se envía un correo con puntaje, nivel y eventos recientes, como máximo uno por intervalo mínimo por usuario (10 minutos por defecto).
 	\item Dado un cambio de política, entonces queda registrado con fecha y valores en la vista de auditoría.
@@ -458,7 +468,7 @@ Como administrador de seguridad, quiero configurar cada cuánto y en qué franja
 \end{itemize}
 
 \subsubsection{HU-09: Reentrenamiento aislado y promoción controlada}
-Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si no detecta peor que el vigente, para mantener la precisión frente a cambios de comportamiento sin arriesgar el servicio.
+Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si no detecta peor que el vigente, para incorporar cambios de comportamiento sin degradar la detección más allá del margen tolerado ni arriesgar el servicio.
 \begin{itemize}
 	\item Dado que se cumplió el período, cuando se ejecuta el planificador, entonces el \emph{pipeline} se ejecuta en un proceso aparte.
 	\item Dado un modelo nuevo que cumple el criterio de no inferioridad sobre los escenarios de referencia, entonces reemplaza al vigente sin reiniciar la API.
@@ -525,7 +535,7 @@ Como administrador de seguridad, quiero que el sistema obtenga el rol y el depar
 
 \section{Matriz de trazabilidad}
 \label{sec:matriz-trazabilidad}
-La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional con el caso de uso y las historias de usuario que lo soportan. El estado de cada requerimiento figura en las tablas de la sección~\ref{sec:requerimientos-funcionales}.
+La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional, y el requerimiento no funcional RNF-03 que origina HU-14, con el caso de uso y las historias de usuario que lo soportan. El estado de cada requerimiento figura en las tablas de la sección~\ref{sec:requerimientos-funcionales}.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{4.2cm}}
 	\caption{Matriz de trazabilidad entre requerimientos, casos de uso e historias de usuario}
@@ -569,6 +579,8 @@ La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional con el caso
 	RF-27 & CU-04 & HU-13 \\
 	\hline
 	RF-28 a RF-30 & Transversal & HU-16 \\
+	\hline
+	RNF-03 & CU-02 & HU-14 \\
 	\hline
 \end{longtable}
 
