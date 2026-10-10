@@ -22,34 +22,52 @@ Objetivo & Evidencia & Estado \\
 \hline
 \endhead
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
-RNF-08); canal [[CODIGO: TLS y autenticación mutua]]; consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02) & [[CODIGO]] \\
+RNF-08); canal con TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13);
+credencial individual por agente, revocable y ligada a su identidad, sin respaldo en la clave de
+administración (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02)
+[[EN\_VIVO: verificación de punta a punta con un agente real contra la instancia]] & Cumplido, con la
+verificación en la nube pendiente \\
 2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
-comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); evaluación con escenarios
-etiquetados en una partición reservada (sección~\ref{sec:benchmark}) & Parcial \\
+comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); con el umbral de 70, la
+detección atribuible es de 0 a 13,3\,\% por escenario frente a un 14,2\,\% de días normales que lo
+superan (sección~\ref{sec:validacion-escenarios}); evaluación con escenarios etiquetados en una
+partición reservada, con un ROC-AUC de 0,80 (sección~\ref{sec:benchmark}) & Parcial \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
-(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms en entorno local & Cumplido \\
+(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms, medidos en el servidor de la API sin incluir el
+envío de notificaciones, en entorno local con Redis en memoria & Cumplido \\
 4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,
-RF-08); la ejecución real de las mitigaciones en el equipo se verifica en forma manual
-(sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del
-sistema operativo (RNF-06) & Cumplido con limitación \\
+RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
+unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
+automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
+reversible por limitación del sistema operativo [[EN\_VIVO: prueba manual de revert]] & Cumplido \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
 RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
 corridas reales del reentrenamiento (una automática y dos manuales) produjeron modelos candidatos
 que no superaron al vigente y no se promovieron (RF-21); el juego de la corrida del 2 de septiembre
-se adoptó después como vigente por consistencia, no por promoción & Parcial \\
-7. Credenciales y canal protegidos & [[CODIGO: resultado de seguridad]] & [[CODIGO]] \\
+se adoptó después como vigente por consistencia, no por promoción [[GATE: estado según el criterio
+de promoción que se entregue]] & Parcial \\
+7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
+\emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
+corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión,
+sin claves de administración en el navegador; secretos en el almacén de parámetros de la nube; la
+autenticación mutua por certificado queda diseñada como extensión (RF-02, RNF-03, RNF-13)
+[[EN\_VIVO: verificación de TLS, inicio de sesión y claves de agente contra la instancia]] & Cumplido,
+con la verificación en la nube pendiente \\
 8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y
 análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de
 conservación y la supresión completa de los datos de un usuario & Cumplido \\
-9. Pruebas con cobertura $\geq$ 85\,\% & [[CODIGO: cantidad de pruebas y cobertura]]; pruebas de extremo
-a extremo y evaluación heurística realizadas & [[CODIGO]] \\
+9. Pruebas con cobertura $\geq$ 85\,\% & 512 pruebas automatizadas (335 de la API y 177 del agente),
+con una cobertura de líneas del 91,6\,\% en la API y del 89,3\,\% en el agente, medida por separado
+(sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, se declara fuera del
+umbral; prueba automatizada de extremo a extremo del ciclo de decisión y aplicación, y evaluación
+heurística de usabilidad realizada & Cumplido \\
 \hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-De los 31 requerimientos funcionales, 29 están implementados y 2 en estado parcial, y de los 15 no
-funcionales, 9 están implementados, 5 en estado parcial y 1 no implementado [[CODIGO: actualizar conteo con RNF-03 y RNF-13]] (sección~\ref{sec:cumplimiento}).
+De los 31 requerimientos funcionales, 30 están implementados y 1 en estado parcial (RF-21), y de los 15 no
+funcionales, 12 están implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11) (sección~\ref{sec:cumplimiento}).
 
 \section{Resultados principales}
 El resultado técnico más relevante es la arquitectura: el sistema cierra el ciclo de detección,
@@ -118,19 +136,18 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         criterio de promoción para que los datos nuevos no lo desplacen.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
-  \item \textbf{Reversión acotada}: registrar las entradas de denegación que crea el agente y
-        revertir solo esas.
   \item \textbf{Correcciones del agente}: informar como fallida la suspensión que no se pudo
         registrar y no intentar envíos nuevos con el \emph{circuit breaker} abierto.
-  \item \textbf{Redacción asistida del correo}: aplicar los controles contra la inyección de
-        instrucciones (sección~\ref{sec:prompt-injection}), enviar al modelo variables agregadas
-        en lugar de nombres crudos y agregar una prueba del texto predefinido de respaldo.
-  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend} y a los requerimientos sin prueba
-        registrada, automatizar la verificación de las mitigaciones y medir la latencia con el
-        Redis gestionado y varios agentes concurrentes. [[CODIGO: ajustar según el resultado de la
-        cobertura]]
+  \item \textbf{Redacción asistida del correo}: sacar la llamada al modelo del procesamiento del
+        evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
+        controles contra el servicio real (sección~\ref{sec:prompt-injection}).
+  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend} y al módulo de métricas de la promoción de
+        modelos, automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
+        el Redis gestionado y varios agentes concurrentes.
+  \item \textbf{Seguridad}: implementar la autenticación mutua por certificado (un segundo sitio del
+        proxy en un subdominio, con una autoridad certificadora propia y la huella del certificado
+        asociada a la clave del agente), agregar una política de seguridad de contenido al
+        \emph{dashboard} e integrar un proveedor de identidad real (sección~\ref{sec:sintesis-limitaciones}).
   \item \textbf{Validación comercial}: medir la disposición a pagar y el costo de adquisición a
         través del canal de MSSP, que son las variables que más influyen en la viabilidad.
-  \item{} [[CODIGO: limitaciones de seguridad que queden abiertas después del trabajo del repo de
-        código; integración con un proveedor de identidad real.]]
 \end{enumerate}

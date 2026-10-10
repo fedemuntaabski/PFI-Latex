@@ -60,7 +60,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\endhead
 	RF-01 & El agente local (PEP) debe ejecutarse en segundo plano y recolectar metadatos de actividad del usuario: procesos ejecutados, accesos a archivos y carpetas, aplicaciones utilizadas y conexiones a recursos de red. No captura contenido, pantallas ni pulsaciones de teclado. Los metadatos incluyen nombres de archivo y de proceso, IP y puerto remotos y el identificador host-usuario. & Alta & Implementado \\
 	\hline
-	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Parcial: canal sin TLS (ver RNF-13) [[CODIGO: resultado del Prompt C]] \\
+	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado: cada agente se autentica con una clave propia, de la que la API guarda solo el \emph{hash} junto con el identificador del agente y la lista de usuarios que puede reportar; se da de alta y se revoca con una herramienta de línea de comandos, y cada cambio queda registrado en una tabla de solo inserción. La API rechaza con 403 un evento cuyo agente o usuario no corresponde a la clave, y una confirmación de acción para un usuario ajeno, antes de la deduplicación. Fuera de la red local, el agente solo acepta URLs \texttt{https://}, verifica el certificado del servidor y no usa la clave de administración como respaldo. Un 401 o un 403 abre un \emph{circuit breaker} y los eventos se guardan en un \emph{buffer} local con vigencia limitada hasta que el servicio responde. [[EN\_VIVO: verificación con un agente real contra la instancia en la nube]] \\
 	\hline
 \end{longtable}
 
@@ -134,7 +134,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial de solo inserción, con fecha, valores anteriores y nuevos e identificador del actor (derivado de la clave utilizada), consultable desde una vista de auditoría. & Media & Implementado \\
 	\hline
-	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el puntaje y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado; servicio opcional con texto predefinido de respaldo \\
+	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el puntaje y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado; servicio opcional con texto predefinido de respaldo y con controles de entrada y de salida (sección~\ref{sec:prompt-injection}) \\
 	\hline
 \end{longtable}
 
@@ -225,13 +225,13 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-02 & Eficiencia & El agente opera con un consumo acotado que preserva el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & Implementado: CPU media 0,09\,\% y memoria residente de 33~MB \\
 	\hline
-	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Parcial: credenciales fijas por rol \\
+	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado: el panel se autentica con usuario y contraseña, que son obligatorias (se rechazan los valores de ejemplo y los marcadores de posición). El inicio de sesión devuelve un token de sesión opaco y aleatorio de 256~bits, del que la API guarda solo el \emph{hash} junto con el rol y el vencimiento (8 horas); el token se invalida al cerrar sesión y el rol operador no accede a los \emph{endpoints} de administración (403). Las claves fijas de los niveles de acceso no viajan al navegador ni se incluyen en el \emph{bundle} del \emph{frontend}. Limitación: el token se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión; no se implementa una política de seguridad de contenido (CSP) que lo mitigue \\
 	\hline
 	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
 	\hline
 	RNF-05 & Disponibilidad & Ante una caída de la API o un error de autenticación, el agente continúa el monitoreo y conserva los eventos no enviados en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos), que reenvía al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
-	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Parcial: la terminación de procesos no es reversible \\
+	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado: la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo tomado antes de aplicarla (\texttt{icacls /save} y \texttt{/restore}), con lo que se preservan las denegaciones que el usuario ya tenía; la suspensión de procesos se revierte reanudándolos. La terminación de procesos no es reversible por limitación del sistema operativo. [[EN\_VIVO: prueba manual de revert]] \\
 	\hline
 	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
@@ -245,7 +245,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-12 & Portabilidad / despliegue & El agente corre como un proceso nativo por dispositivo Windows, sin servidor propio ni contenedores. & Implementado \\
 	\hline
-	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & No implementado [[CODIGO: resultado del Prompt C]] \\
+	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & Implementado en el despliegue (TLS con certificado público, redirección a HTTPS, API solo en \emph{loopback} detrás del proxy); el agente rechaza URLs \texttt{http} fuera de \emph{loopback}. [[EN\_VIVO: verificación de punta a punta con un agente real]] \\
 	\hline
 	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado \\
 	\hline
@@ -311,7 +311,7 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 
 \noindent\textbf{Flujos alternativos:}
 \begin{itemize}
-	\item 3a. La clave de administrador no es válida: la API rechaza la operación. La sesión del \emph{dashboard} es un control de la interfaz; la autorización efectiva la valida la API mediante la clave.
+	\item 3a. El token de sesión no es válido, venció o corresponde a un rol sin permiso de administración: la API rechaza la operación (401 o 403). La autorización efectiva la valida siempre la API a partir del rol asociado al token; la sesión del \emph{dashboard} no reemplaza esa validación.
 	\item 4a. La configuración es inválida: la API rechaza el cambio con un mensaje específico y la política vigente no se modifica.
 \end{itemize}
 
@@ -505,7 +505,8 @@ Esta épica agrupa las historias de usuario que no dependen de un único caso de
 Como administrador de seguridad, quiero que el acceso al \emph{dashboard} y a la configuración requiera autenticación, para que nadie sin autorización modifique las políticas.
 \begin{itemize}
 	\item Dado un usuario sin sesión iniciada, entonces no accede al \emph{dashboard}.
-	\item Dada una operación de configuración sin clave de administrador válida, entonces la API la rechaza.
+	\item Dada una operación de configuración sin un token de sesión de rol administrador vigente, entonces la API la rechaza.
+	\item Dado un token de sesión cuya sesión se cerró o venció, entonces la API lo rechaza.
 \end{itemize}
 
 \subsubsection{HU-15: Explicación persistida}
@@ -571,4 +572,4 @@ La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional con el caso
 	\hline
 \end{longtable}
 
-En síntesis, el sistema comprende 31 requerimientos funcionales, de los cuales 29 se encuentran implementados y 2 en estado parcial (RF-02 y RF-21), y 15 requerimientos no funcionales, cuyo estado se detalla en la tabla~\ref{tab:rnf}.
+En síntesis, el sistema comprende 31 requerimientos funcionales, de los cuales 30 se encuentran implementados y 1 en estado parcial (RF-21), y 15 requerimientos no funcionales, de los cuales 12 se encuentran implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11); su estado se detalla en la tabla~\ref{tab:rnf}.

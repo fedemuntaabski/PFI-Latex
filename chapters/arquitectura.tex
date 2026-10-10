@@ -9,7 +9,7 @@ La arquitectura sigue la separación entre el punto de decisión de políticas (
 
 El sistema no es una aplicación monolítica sino un conjunto de componentes con funciones y entornos de ejecución distintos, organizados en un único repositorio con cinco subsistemas: la API de \emph{scoring}, el agente, el \emph{dashboard}, el \emph{pipeline} de entrenamiento y los \emph{scripts} de demostración, ensayo y validación. La API es el único punto de acceso al estado y a la configuración, y la utilizan cuatro tipos de consumidores con distintos niveles de acceso:
 \begin{itemize}
-	\item \textbf{Agente:} envía eventos y confirma las acciones ejecutadas, con una clave propia que solo habilita esas dos operaciones.
+	\item \textbf{Agente:} envía eventos y confirma las acciones ejecutadas, con una clave propia, ligada a su identificador y a los usuarios que puede reportar, que solo habilita esas dos operaciones.
 	\item \textbf{\emph{Dashboard} en modo consulta:} lee el estado de los usuarios, el historial y la configuración.
 	\item \textbf{\emph{Dashboard} en modo administración:} además, modifica la configuración y reinicia usuarios.
 	\item \textbf{Público:} solo accede a la salud del servicio y al inicio de sesión.
@@ -211,6 +211,7 @@ La arquitectura de la nube, descripta con Terraform, ejecuta la API en una insta
 	\item Los secretos se guardan en el almacén de parámetros y no en el código.
 	\item La administración y la publicación de versiones se realizan mediante el almacenamiento de objetos y el administrador de sistemas del proveedor (SSM), sin acceso SSH.
 	\item La API se ejecuta en modo de autenticación estricta y sin la documentación interactiva expuesta.
+	\item Las contraseñas del \emph{dashboard} son obligatorias y el inicio de sesión entrega un \emph{token} de sesión con vencimiento, de modo que ninguna clave de administración llega al navegador.
 \end{itemize}
 
 \begin{figure}[ht]
@@ -246,13 +247,13 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\hline
 	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia, con una versión anterior al criterio de promoción vigente; el reentrenamiento se ejecuta en el entorno local \\
 	\hline
-	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Sin evidencia: no se registró un evento de un agente en la instancia ni un inicio de sesión en el \emph{dashboard} desplegado [[CODIGO: resultado del Prompt C]] \\
+	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y cubierto por pruebas locales; faltan la verificación con un agente real contra la instancia y un inicio de sesión en el \emph{dashboard} desplegado [[EN\_VIVO: evento de un agente en la instancia e inicio de sesión en el \emph{dashboard} desplegado]] \\
 	\hline
 	Despliegue continuo & -- & No implementado: la integración continua no despliega \\
 	\hline
 \end{longtable}
 
-Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. Falta la verificación de extremo a extremo: no hay evidencia de un evento enviado por un agente a la instancia ni de un inicio de sesión en el \emph{dashboard} desplegado. Por eso se mantienen el estado parcial de RF-02 y el no implementado de RNF-13 [[CODIGO: resultado del Prompt C]]. La instancia se mantiene apagada fuera de las pruebas.
+Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. Falta la verificación de extremo a extremo con un agente real: no hay evidencia de un evento enviado por un agente a la instancia ni de un inicio de sesión en el \emph{dashboard} desplegado [[EN\_VIVO: evento de un agente en la instancia e inicio de sesión desplegado]]. RF-02 y RNF-13 se declaran implementados por el diseño del despliegue y por las pruebas automatizadas, con esa verificación pendiente. La instancia se mantiene apagada fuera de las pruebas.
 
 \subsection{Contenedores}
 Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
@@ -287,7 +288,7 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 	\endhead
 	HTTP/REST con JSON & Agente $\rightarrow$ API; \emph{dashboard} $\rightarrow$ API & Cada evento es un mensaje discreto con su respuesta, sin necesidad de una conexión persistente. Los contratos están definidos con Pydantic en la API y con Zod en el \emph{dashboard}. \\
 	\hline
-	Claves en encabezados HTTP & Agente, \emph{dashboard} y administración & Cada agente tiene una clave propia, almacenada como \emph{hash} y revocable. El \emph{dashboard} usa claves separadas para consulta y administración, además del inicio de sesión. Las claves del navegador quedan expuestas al usuario del \emph{dashboard}: un esquema basado en sesiones o \emph{tokens} queda como trabajo futuro. \\
+	Claves en encabezados HTTP & Agente, \emph{dashboard} y administración & Cada agente tiene una clave propia, almacenada como \emph{hash}, revocable y ligada a su identificador y a los usuarios que puede reportar. El \emph{dashboard} inicia sesión con usuario y contraseña y recibe un \emph{token} de sesión opaco, con rol y vencimiento, que envía en cada solicitud. Las claves fijas de los niveles de acceso no salen del servidor y quedan para las herramientas de línea de comandos del administrador. \\
 	\hline
 	Consulta periódica (2~s) & \emph{Dashboard} $\rightarrow$ API & El puntaje cambia con cada evento, pero ningún caso de uso requiere una notificación instantánea. WebSockets habría agregado manejo de conexión persistente y reconexión sin un beneficio proporcional. \\
 	\hline
@@ -295,13 +296,13 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 	\hline
 	Protocolo de PostgreSQL & API $\rightarrow$ PostgreSQL & Protocolo estándar, con grupo de conexiones y tiempos de espera acotados. \\
 	\hline
-	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube (diseñado) & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el canal del agente por HTTPS no tiene verificación de extremo a extremo con un agente [[CODIGO: resultado del Prompt C]]. \\
+	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube (diseñado) & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, aunque el canal no tiene verificación de extremo a extremo con un agente real [[EN\_VIVO: verificación de punta a punta con un agente real]]. \\
 	\hline
 	OAuth 2.0 con credenciales de cliente & API $\rightarrow$ Keycloak & Autenticación de la API ante el proveedor IAM, con el \emph{token} en caché hasta su vencimiento. \\
 	\hline
 	SMTP con STARTTLS & API $\rightarrow$ servidor de correo & Envío de notificaciones con cifrado del canal. \\
 	\hline
-	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP; en la nube el diseño usa HTTPS, sin verificación de extremo a extremo con un agente. No existe autenticación mutua entre el agente y la API. Se declara como limitación (RNF-13) [[CODIGO: resultado del Prompt C]]. \\
+	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP, aceptable en \emph{loopback}; fuera de \emph{loopback} el agente exige HTTPS. No existe autenticación mutua por certificado entre el agente y la API: el agente se autentica con una clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}) [[EN\_VIVO: verificación de punta a punta con un agente real]]. \\
 	\hline
 \end{longtable}
 

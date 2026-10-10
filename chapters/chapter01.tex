@@ -21,25 +21,39 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
 \begin{enumerate}
   \item Implementar un agente para equipos Windows que recolecte únicamente metadatos de actividad
         (procesos, archivos y conexiones de red), los envíe a una API central por un canal cifrado
-        y autenticado, y consuma como máximo el 5\,\% de la CPU y 150\,MB de memoria residente.
+        con TLS, autenticándose con una credencial individual y revocable por agente, ligada a su
+        identidad y sin respaldo en la clave de administración, y consuma como máximo el 5\,\% de la
+        CPU y 150\,MB de memoria residente.
   \item Entrenar un modelo híbrido de detección de anomalías (Isolation Forest y LSTM Autoencoder)
-        sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo contra las metas
-        de detección y de alertas sobre actividad normal definidas en la sección \ref{sec:metas-modelo}.
+        sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo con escenarios
+        de ataque inyectados y un conjunto reservado (\emph{holdout}), informando la tasa de detección
+        y la de alertas sobre actividad normal frente a las metas definidas en la sección
+        \ref{sec:metas-modelo}.
   \item Calcular un puntaje de riesgo de 0 a 100 por evento, con continuidad entre sesiones y
-        decaimiento temporal, con una latencia de evaluación de percentil 95 menor o igual a 500\,ms.
+        decaimiento temporal, con una latencia de evaluación de percentil 95 menor o igual a 500\,ms,
+        medida en el servidor de la API sin incluir el envío de notificaciones por correo.
   \item Ejecutar en el equipo una respuesta graduada según el nivel de riesgo, desde una alerta hasta
         la terminación de procesos y la denegación de acceso a carpetas, reversible cuando el sistema
-        operativo lo permita.
+        operativo lo permita: la suspensión se reanuda y el acceso a la carpeta se restaura al estado
+        previo exacto desde un respaldo de la lista de control de acceso (ACL); la terminación de
+        procesos no es reversible.
   \item Proveer un panel de administración que muestre el estado de riesgo de cada usuario con su
         explicación y permita modificar umbrales, acciones y notificaciones sin reiniciar componentes.
-  \item Mantener la vigencia del modelo mediante un reentrenamiento periódico aislado del servicio de
-        producción, y tratar a los usuarios nuevos con un período de aprendizaje.
+  \item Mantener la vigencia del modelo mediante un reentrenamiento periódico que se ejecuta en
+        procesos separados del servicio de producción y promueve el modelo nuevo solo si mejora las
+        métricas de comparación, y tratar a los usuarios nuevos con un período de aprendizaje.
   \item Proteger las credenciales del sistema y el canal entre sus componentes mediante cifrado en
-        tránsito y autenticación mutua entre el agente y la API.
+        tránsito (TLS con certificado verificado), autenticación del agente con una credencial
+        individual ligada a su identidad y a los usuarios que monitorea, y sesiones del panel
+        revocables que no expongan claves de administración al navegador. La autenticación mutua a
+        nivel TLS (mTLS) queda diseñada como extensión.
   \item Analizar el tratamiento de datos personales que realiza el sistema a la luz de la Ley 25.326
-        y de la normativa laboral argentina, e identificar los controles que lo hacen viable.
+        y de la normativa laboral argentina, e identificar los controles que lo hacen viable,
+        distinguiendo los implementados en el prototipo de los requeridos para un despliegue
+        productivo.
   \item Verificar el sistema con pruebas automatizadas que alcancen una cobertura de código mínima
-        del 85\,\%, pruebas de extremo a extremo y una evaluación de usabilidad del panel.
+        del 85\,\% de las líneas, medida en la API y en el agente, pruebas de extremo a extremo y una
+        evaluación de usabilidad del panel.
 \end{enumerate}
 
 \section{Alcance}
@@ -56,7 +70,7 @@ los empleados o la inscripción de la base de datos).
 \section{Descripción}
 Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante, ya que las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.
 
-Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube [[CODIGO: confirmar estado del despliegue]] y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API [[CODIGO: confirmar según el resultado del Prompt C]], que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
+Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube [[EN\_VIVO: estado del despliegue de la instancia]] y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API [[EN\_VIVO: verificación de punta a punta con un agente real]], que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
 
 Dicho nivel de confianza no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
 
