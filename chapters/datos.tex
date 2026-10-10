@@ -132,7 +132,7 @@ Esta correspondencia es una decisión de diseño que permite reutilizar un model
 \begin{itemize}
 	\item Ninguno de los tipos utilizados describe de forma nativa un proceso o una conexión de red. Los eventos de aplicación de CLUE-LDS se refieren a aplicaciones de la propia plataforma, y el acceso a un recurso compartido públicamente es una aproximación semántica para una conexión saliente.
 	\item El modelo evalúa el tipo de evento y su distribución temporal, no el nombre del proceso, el archivo o el destino de la conexión. Por eso, no reconoce por sí mismo un proceso inusual ni un destino de red sospechoso: detecta cambios en el volumen, la variedad y el horario de la actividad.
-	\item El 99,946\,\% de los eventos utilizados tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía en el entrenamiento.
+	\item El 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía en el entrenamiento.
 	\item El indicador de dirección local que envía el agente describe la red del equipo y no la de la conexión. El modelo no lo utiliza.
 \end{itemize}
 

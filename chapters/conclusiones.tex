@@ -26,9 +26,9 @@ RNF-08); canal con TLS en el despliegue y rechazo de \texttt{http} fuera de \emp
 credencial individual por agente, revocable y ligada a su identidad y a los usuarios que monitorea (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02); verificado el 10 de octubre de 2026 con un agente real contra la instancia por HTTPS, con credencial individual (sección~\ref{sec:estado-despliegue}) & Cumplido \\
 2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
 comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); con el umbral de 70, la
-detección atribuible es de 0 a 13,3\,\% por escenario frente a un 14,2\,\% de días normales que lo
-superan (sección~\ref{sec:validacion-escenarios}); evaluación con escenarios etiquetados en una
-partición reservada, con un ROC-AUC de 0,80 (sección~\ref{sec:benchmark}) & Parcial \\
+detección atribuible es de 0 a 13,3\,\% por escenario frente a un 15,4\,\% de días normales que terminan en nivel
+alto (sección~\ref{sec:validacion-escenarios}); evaluación con escenarios etiquetados en una
+partición reservada, con un ROC-AUC del híbrido entre 0,58 y 0,80 según el escenario (sección~\ref{sec:benchmark}) & Parcial \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
 (RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms, medidos de extremo a extremo desde el cliente, en entorno local con Redis en memoria & Cumplido \\
 4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,

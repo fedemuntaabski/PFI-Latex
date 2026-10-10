@@ -40,7 +40,7 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 	\hline
 	Pruebas de rendimiento & Scripts de medición con requests y psutil & Latencia de evaluación de eventos (RNF-01) y consumo de recursos del agente (RNF-02). \\
 	\hline
-	Evaluación del modelo & Métricas no supervisadas y escenarios inyectados & Comportamiento del modelo híbrido sobre el conjunto de datos y sensibilidad ante escenarios de ataque simulados. \\
+	Evaluación del modelo & Métricas no supervisadas, escenarios inyectados y escenarios etiquetados & Comportamiento del modelo híbrido sobre el conjunto de datos y sensibilidad ante escenarios de ataque simulados; detección y falsos positivos sobre escenarios con etiqueta conocida en una partición reservada (sección~\ref{sec:benchmark}). \\
 	\hline
 	Evaluación de usabilidad & Evaluación heurística & Interfaz del \emph{dashboard} contra las diez heurísticas de usabilidad de Nielsen. \\
 	\hline
@@ -163,9 +163,9 @@ La tabla~\ref{tab:cobertura-requerimientos} relaciona los requerimientos del cap
 	\textbf{Evidencia} & \textbf{Requerimientos} \\
 	\hline
 	\endhead
-	Prueba automatizada & RF-01 a RF-07, RF-09 a RF-25, RF-27 a RF-31; RNF-03 a RNF-08 y RNF-11 \\
+	Prueba automatizada & RF-01 a RF-07, RF-09 a RF-25, RF-27 a RF-31; RNF-03, RNF-04, RNF-06 a RNF-08 y RNF-11 \\
 	\hline
-	Prueba parcial & RF-26 (el campo que expone la API tiene prueba automatizada; el indicador del \emph{dashboard} se verifica en forma manual) \\
+	Prueba parcial & RF-26 (el campo que expone la API tiene prueba automatizada; el indicador del \emph{dashboard} se verifica en forma manual); RNF-05 (el \emph{buffer}, el reenvío y el \emph{circuit breaker} tienen prueba automatizada; el descarte por vencimiento y por tope se verifica en el código) \\
 	\hline
 	Verificación manual o medición & RF-08 (ejecución real de acciones en el \emph{endpoint}); RNF-01 y RNF-02 (mediciones de la sección~\ref{sec:pruebas-rendimiento}); RNF-09 (verificación de la cadena de \emph{hashes}); RNF-13 (TLS del despliegue; el rechazo de URLs \texttt{http} fuera de \emph{loopback} por el agente tiene prueba automatizada); RNF-10 (corrida real de reentrenamiento); RNF-12 (ejecución en Windows); RNF-14 (ensayos de concurrencia); RNF-15 (evaluación heurística) \\
 	\hline
@@ -183,9 +183,10 @@ Para verificar el sistema contra la infraestructura real se realizan pruebas fun
 	\item \textbf{Demostración de seis escenas (agosto de 2026).} Se ejecutaron contra Redis y PostgreSQL reales seis escenarios que recorren el caso de uso CU-01 y el CU-02: un usuario de bajo riesgo, una exfiltración de archivos con mitigación en el \emph{endpoint}, una aplicación no monitoreada, el catálogo de acciones de mitigación, una conexión de red y la configuración de umbrales con un rechazo por validación. Cada corrida generó un reporte de auditoría automático.
 	\item \textbf{Ensayo de la cadena de decisión.} Un script envía una secuencia de eventos de exfiltración y registra la evolución del nivel. En la última ejecución, el primer evento quedó en nivel medio, el nivel alto se alcanzó en el evento 15 y el crítico en el evento 44, con la acción correspondiente devuelta al agente en cada caso.
 	\item \textbf{Período de aprendizaje (agosto y septiembre de 2026).} Contra la API conectada a los servicios reales, se verificó la lectura y modificación del umbral de aprendizaje, el rechazo de valores fuera de rango y la exigencia de autenticación de administrador.
-	\item \textbf{Reentrenamiento y promoción (agosto de 2026).} Se verificó en vivo el reemplazo del modelo sin reiniciar la API cuando el modelo nuevo iguala al vigente y el rechazo cuando empeora. Además, una corrida real disparada por el planificador completó el \emph{pipeline} en aproximadamente 1~h~50~min y no promovió el modelo, porque el error de reconstrucción del LSTM empeoró de 0,1155 a 0,1175. Estas verificaciones corresponden al criterio de promoción anterior; el vigente se describe en la sección~\ref{sec:reentrenamiento-producto}.
+	\item \textbf{Reentrenamiento y promoción (agosto de 2026).} Se verificó en vivo el reemplazo del modelo sin reiniciar la API cuando el modelo nuevo iguala al vigente y el rechazo cuando empeora. Además, una corrida real disparada por el planificador el 25 de agosto completó el \emph{pipeline} en aproximadamente 1~h~50~min y no promovió el modelo, porque el error de reconstrucción del LSTM empeoró de 0,1155 a 0,1175. Estas verificaciones corresponden al criterio de promoción anterior; el vigente se describe en la sección~\ref{sec:reentrenamiento-producto}.
 	\item \textbf{Integridad de los eventos crudos (agosto de 2026).} La verificación de la cadena de \emph{hashes} sobre la tabla de eventos crudos resultó correcta en el 100\,\% de las filas, antes y después de registrar un evento nuevo.
 	\item \textbf{Concurrencia (septiembre de 2026).} Con hasta 50 escrituras concurrentes sobre PostgreSQL no se produjeron errores, y el disparador que calcula la cadena de \emph{hashes} agregó en promedio 0,042~ms por inserción.
+	\item \textbf{Concurrencia sobre Redis (agosto de 2026).} Contra el Redis gestionado, con hasta 15 escrituras simultáneas sobre el estado de un mismo usuario, entre 3 y 4 de cada 20 fallaban por conflicto de transacción. Con 20 reintentos y una espera aleatoria entre ellos, se completaron sin error 70 de 70 escrituras concurrentes. Este ensayo respalda RNF-14.
 \end{itemize}
 
 Como complemento, el código del agente, de la API y del \emph{frontend} se somete a revisiones estáticas de seguridad y mantenibilidad, con rondas de correcciones posteriores. La auditoría de dependencias del \emph{frontend} finalizó sin vulnerabilidades reportadas.
@@ -291,7 +292,7 @@ Latencia de evaluación, percentil 95 (RNF-01) & $\leq$ 500\,ms & 14,9\,ms & Sí
 \end{table}
 \FloatBarrier
 
-Las metas se fijan antes de cualquier reentrenamiento posterior del modelo; si este cambia los resultados, se informan contra estas mismas metas.
+Las metas se fijan después de una primera evaluación exploratoria, en la que las de detección y de alertas tampoco se cumplían, y no se modifican al pasar al juego de modelos vigente; cualquier reentrenamiento posterior se informa contra estas mismas metas.
 
 Las tasas de anomalías se comparan con el parámetro que cada modelo usa para fijar su umbral: una
 tasa muy por debajo indica que el umbral es más estricto en prueba que en entrenamiento. La meta
@@ -325,7 +326,7 @@ Como el conjunto de datos no incluye etiquetas de actividad maliciosa \parencite
 	\hline
 	Correlación entre modelos & $-0{,}22$ (Pearson; 234 usuarios con cobertura completa, $p < 0{,}001$) & Correlación débil y negativa: los modelos capturan aspectos distintos del comportamiento. \\
 	\hline
-	Coincidencia de anomalías & Índice de Jaccard 0,111 (15 usuarios en común) & Las anomalías que marca cada modelo casi no se superponen. \\
+	Coincidencia de anomalías & Índice de Jaccard 0,111 (6 usuarios marcados por ambos modelos) & Las anomalías que marca cada modelo casi no se superponen. \\
 	\hline
 \end{longtable}
 
@@ -373,7 +374,7 @@ La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, 
 
 Sobre los días sin inyección, el 15,4\,\% de los usuario-días (100 de 650) terminó en nivel alto y ninguno en crítico. La proporción fue del 14,3\,\% (79 de 553) para los días con cobertura completa de ambos modelos y del 21,6\,\% (21 de 97) para los días con cobertura parcial, y se concentró en los usuarios con pocos días de historial. Estas proporciones corresponden al nivel de cierre del día (alto o superior), que incluye la regla de piso: con el puntaje numérico de cierre y el umbral de 70, la proporción es del 14,2\,\% en total (12,8\,\% con cobertura completa y 21,6\,\% con cobertura parcial). Los 8 días de diferencia son de cobertura completa, en los que un modelo marcó anomalía y la regla de piso elevó el nivel.
 
-Las inyecciones elevaron la mediana del puntaje entre 3,9 y 5,6 puntos respecto del valor previo, pero el puntaje máximo mediano de cada escenario quedó entre 63,7 y 65,8, por debajo del umbral del nivel alto. Las tres detecciones atribuibles corresponden a dos usuarios con cobertura completa (Isolation Forest y LSTM): \texttt{civilian-gray-weasel-garagemanager} en el escenario combinado (de 64,4 a 70,6) y \texttt{vivacious-aquamarine-prawn-streettrader} en los escenarios fuera de horario y combinado (de 68,8 a 72,9 y a 72,8). Las tres cruzan apenas el límite del nivel alto (70), sin regla de piso, y se explican solo por variables de Isolation Forest. Todas las explicaciones generadas provinieron de las variables de Isolation Forest (proporción de actividad fuera de horario, hora promedio y entropía de tipos de evento); en 7 de los 60 casos ninguna variable superó el umbral de explicación.
+Las inyecciones elevaron la mediana del puntaje entre 3,5 y 5,6 puntos respecto del valor previo, pero el puntaje máximo mediano de cada escenario quedó entre 63,5 y 65,6, por debajo del umbral del nivel alto. Las tres detecciones atribuibles corresponden a dos usuarios con cobertura completa (Isolation Forest y LSTM): \texttt{civilian-gray-weasel-garagemanager} en el escenario combinado (de 64,4 a 70,6) y \texttt{vivacious-aquamarine-prawn-streettrader} en los escenarios fuera de horario y combinado (de 68,8 a 72,9 y a 72,8). Las tres cruzan apenas el límite del nivel alto (70), sin regla de piso, y se explican solo por variables de Isolation Forest. Todas las explicaciones generadas provinieron de las variables de Isolation Forest (proporción de actividad fuera de horario, hora promedio y entropía de tipos de evento); en 7 de los 60 casos ninguna variable superó el umbral de explicación.
 
 \subsection{Sensibilidad según el umbral}
 Para analizar el compromiso entre sensibilidad y alertas sobre actividad normal sin modificar la configuración del sistema, se recalcula la detección atribuible para umbrales entre 40 y 90. La figura~\ref{fig:curva-umbral} muestra el resultado.
@@ -392,7 +393,7 @@ La detección atribuible alcanza su máximo en la zona de 55 a 65 puntos, con un
 \label{sec:interpretacion}
 Con la política vigente, el sistema detecta pocos de los escenarios inyectados y ninguno alcanza el nivel crítico, de modo que la mitigación más severa no se dispara ante estos ataques simulados. Esto es consistente con una política conservadora, que reserva la terminación de procesos y la denegación de acceso para el nivel crítico, pero también indica una sensibilidad baja ante ataques de corta duración.
 
-Entre las causas, varias están verificadas. El 99,946\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte y, a la vez, que cuando esa variable cambia domine el error de reconstrucción del LSTM. Además, el LSTM no aprovecha el orden de los eventos: permutar los 50 eventos de una secuencia no cambia el ordenamiento. Su riesgo correlaciona $-0{,}68$ con el logaritmo del volumen de actividad del usuario, de modo que tiende a marcar a los usuarios poco activos. Las demás causas son inferidas y no se aíslan experimentalmente:
+Entre las causas, varias están verificadas. El 99,95\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte y, a la vez, que cuando esa variable cambia domine el error de reconstrucción del LSTM. Además, el LSTM no aprovecha el orden de los eventos: permutar los 50 eventos de una secuencia no cambia el ordenamiento. Su riesgo correlaciona $-0{,}68$ con el logaritmo del volumen de actividad del usuario, de modo que tiende a marcar a los usuarios poco activos. Las demás causas son inferidas y no se aíslan experimentalmente:
 \begin{itemize}
 	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable.
 	\item El LSTM evalúa secuencias de 50 eventos, por lo que una inyección corta completa a lo sumo una secuencia y su señal se diluye.
@@ -582,7 +583,7 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	El componente de riesgo personal presenta un sesgo en usuarios con historial escaso; se evalúan cinco alternativas de cálculo y ninguna lo corrige sin degradar otros casos. & Mantener el cálculo vigente y documentar el sesgo como limitación conocida. \\
 	\hline
-	En una corrida real de reentrenamiento el error del LSTM empeoró (de 0,1155 a 0,1175). & Conservar el modelo vigente; el ciclo automático de reentrenamiento quedó verificado de punta a punta, sin una promoción real. \\
+	En una corrida real de reentrenamiento el error del LSTM empeoró (de 0,1155 a 0,1175) (corrida automática del 25 de agosto). & No promover ese juego; el ciclo automático de reentrenamiento quedó verificado de punta a punta, sin una promoción real. El juego en servicio es el de la corrida manual del 2 de septiembre, también rechazado, que se adopta después por consistencia (sección~\ref{sec:evaluacion-modelo}). \\
 	\hline
 	Diferencias de redondeo del orden de $10^{-16}$ hacían fallar la comparación de métricas en casos de empate. & Redondear las métricas a seis decimales antes de comparar. Ese criterio de comparación se reemplaza después por el de no inferioridad sobre escenarios etiquetados (sección~\ref{sec:reentrenamiento-producto}). \\
 	\hline
@@ -606,7 +607,7 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	Un agente con una clave válida podía enviar eventos a nombre de cualquier usuario, el agente aceptaba \texttt{http://} hacia cualquier servidor, usaba la clave de administración como respaldo y el inicio de sesión del panel entregaba esa clave al navegador. & Ligar cada clave de agente a su identificador y a sus usuarios (403 si no corresponde, antes de la deduplicación), exigir HTTPS fuera de \emph{loopback}, quitar el respaldo en la clave de administración y reemplazar la clave del panel por un \emph{token} de sesión opaco, con vencimiento de 8 horas y cierre de sesión. Las dos limitaciones asociadas dejan de figurar entre las abiertas (sección~\ref{sec:sintesis-limitaciones}). \\
 	\hline
-	La reversión de la denegación de una carpeta eliminaba todas las denegaciones del usuario en el árbol, incluidas las que existían antes de la intervención del agente. & Restaurar la ACL previa desde un respaldo tomado antes de denegar (\texttt{icacls /save} y \texttt{/restore}), usar la eliminación amplia solo como respaldo registrado en el \emph{log} y en el resultado, y tratar un éxito parcial de \texttt{icacls} como fallo, con código de salida 1. La limitación queda resuelta. \\
+	La reversión de la denegación de una carpeta eliminaba todas las denegaciones del usuario en el árbol, incluidas las que existían antes de la intervención del agente. & Restaurar la ACL previa desde un respaldo tomado antes de denegar (\texttt{icacls /save} y \texttt{/restore}), usar la eliminación amplia solo como respaldo registrado en el \emph{log} y en el resultado, y tratar un éxito parcial de \texttt{icacls} como fallo, con código de salida 1. La limitación queda resuelta ejecutando el agente con privilegios de administrador. \\
 	\hline
 	El modelo de lenguaje de la redacción asistida del correo recibe telemetría controlada por el usuario vigilado, que podía contener instrucciones. & Separar las instrucciones de los datos, delimitar, truncar y limitar la telemetría, validar la salida con un texto predefinido de respaldo y mostrar siempre un bloque fijo con nivel, puntaje, acción y explicación (sección~\ref{sec:prompt-injection}). \\
 	\hline
