@@ -24,9 +24,7 @@ Objetivo & Evidencia & Estado \\
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
 RNF-08); canal con TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13);
 credencial individual por agente, revocable y ligada a su identidad, sin respaldo en la clave de
-administración (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02)
-[[EN\_VIVO: verificación de punta a punta con un agente real contra la instancia]] & Cumplido, con la
-verificación en la nube pendiente \\
+administración (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02); verificado el 10 de octubre de 2026 con un agente real contra la instancia por HTTPS, con credencial individual (sección~\ref{sec:estado-despliegue}) & Cumplido \\
 2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
 comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); con el umbral de 70, la
 detección atribuible es de 0 a 13,3\,\% por escenario frente a un 14,2\,\% de días normales que lo
@@ -39,26 +37,27 @@ envío de notificaciones, en entorno local con Redis en memoria & Cumplido \\
 RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
 unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
 automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
-reversible por limitación del sistema operativo [[EN\_VIVO: prueba manual de revert]] & Cumplido \\
+reversible por limitación del sistema operativo; la prueba manual de reversión dio resultado satisfactorio en una consola elevada, porque \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador & Cumplido \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
 RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
 corridas reales del reentrenamiento (una automática y dos manuales) produjeron modelos candidatos
 que no superaron al vigente y no se promovieron (RF-21); el juego de la corrida del 2 de septiembre
-se adoptó después como vigente por consistencia, no por promoción [[GATE: estado según el criterio
-de promoción que se entregue]] & Parcial \\
+se adoptó después como vigente por consistencia, no por promoción; el criterio de promoción de no
+inferioridad está implementado y cubierto por 11 pruebas automatizadas, y se verificó con el script de
+evaluación: el modelo vigente contra sí mismo se promueve y el juego v2 se rechaza por la tasa de falsos
+positivos (RF-21). Limitación: todavía no se ejecutó una promoción desde el planificador con un modelo
+genuinamente nuevo & Cumplido \\
 7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
 \emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
 corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión,
 sin claves de administración en el navegador; secretos en el almacén de parámetros de la nube; la
-autenticación mutua por certificado queda diseñada como extensión (RF-02, RNF-03, RNF-13)
-[[EN\_VIVO: verificación de TLS, inicio de sesión y claves de agente contra la instancia]] & Cumplido,
-con la verificación en la nube pendiente \\
+autenticación mutua por certificado queda diseñada como extensión (RF-02, RNF-03, RNF-13); verificado el 10 de octubre de 2026 contra la instancia (certificado válido, redirección 308, rechazos 403 y cierre de sesión que invalida el \emph{token}) & Cumplido \\
 8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y
 análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de
 conservación y la supresión completa de los datos de un usuario & Cumplido \\
-9. Pruebas con cobertura $\geq$ 85\,\% & 512 pruebas automatizadas (335 de la API y 177 del agente),
-con una cobertura de líneas del 91,6\,\% en la API y del 89,3\,\% en el agente, medida por separado
+9. Pruebas con cobertura $\geq$ 85\,\% & 529 pruebas automatizadas (352 de la API y 177 del agente),
+con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente, medida por separado
 (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, se declara fuera del
 umbral; prueba automatizada de extremo a extremo del ciclo de decisión y aplicación, y evaluación
 heurística de usabilidad realizada & Cumplido \\
@@ -66,7 +65,7 @@ heurística de usabilidad realizada & Cumplido \\
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-De los 31 requerimientos funcionales, 30 están implementados y 1 en estado parcial (RF-21), y de los 15 no
+De los 31 requerimientos funcionales, los 31 están implementados, y de los 15 no
 funcionales, 12 están implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11) (sección~\ref{sec:cumplimiento}).
 
 \section{Resultados principales}

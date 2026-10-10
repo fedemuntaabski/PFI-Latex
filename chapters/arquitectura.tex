@@ -247,13 +247,13 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\hline
 	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia, con una versión anterior al criterio de promoción vigente; el reentrenamiento se ejecuta en el entorno local \\
 	\hline
-	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y cubierto por pruebas locales; faltan la verificación con un agente real contra la instancia y un inicio de sesión en el \emph{dashboard} desplegado [[EN\_VIVO: evento de un agente en la instancia e inicio de sesión en el \emph{dashboard} desplegado]] \\
+	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y verificado el 10 de octubre de 2026 con un agente real contra la instancia, con credencial individual; el inicio de sesión se verificó contra la API desplegada \\
 	\hline
 	Despliegue continuo & -- & No implementado: la integración continua no despliega \\
 	\hline
 \end{longtable}
 
-Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. Falta la verificación de extremo a extremo con un agente real: no hay evidencia de un evento enviado por un agente a la instancia ni de un inicio de sesión en el \emph{dashboard} desplegado [[EN\_VIVO: evento de un agente en la instancia e inicio de sesión desplegado]]. RF-02 y RNF-13 se declaran implementados por el diseño del despliegue y por las pruebas automatizadas, con esa verificación pendiente. La instancia se mantiene apagada fuera de las pruebas.
+Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. El 10 de octubre de 2026 se verificó el canal de extremo a extremo con un agente real, que envió sus eventos por HTTPS con una credencial individual y llegó a ejecutar la acción del nivel crítico. El certificado es de Let's Encrypt, HTTP redirige con un 308, el puerto de la API está cerrado desde afuera y la documentación interactiva no está expuesta. La instancia se mantiene apagada fuera de las pruebas y las demostraciones.
 
 \subsection{Contenedores}
 Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
@@ -296,13 +296,13 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 	\hline
 	Protocolo de PostgreSQL & API $\rightarrow$ PostgreSQL & Protocolo estándar, con grupo de conexiones y tiempos de espera acotados. \\
 	\hline
-	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube (diseñado) & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, aunque el canal no tiene verificación de extremo a extremo con un agente real [[EN\_VIVO: verificación de punta a punta con un agente real]]. \\
+	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, y el canal se verificó de extremo a extremo con un agente real el 10 de octubre de 2026. \\
 	\hline
 	OAuth 2.0 con credenciales de cliente & API $\rightarrow$ Keycloak & Autenticación de la API ante el proveedor IAM, con el \emph{token} en caché hasta su vencimiento. \\
 	\hline
 	SMTP con STARTTLS & API $\rightarrow$ servidor de correo & Envío de notificaciones con cifrado del canal. \\
 	\hline
-	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP, aceptable en \emph{loopback}; fuera de \emph{loopback} el agente exige HTTPS. No existe autenticación mutua por certificado entre el agente y la API: el agente se autentica con una clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}) [[EN\_VIVO: verificación de punta a punta con un agente real]]. \\
+	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP, aceptable en \emph{loopback}; fuera de \emph{loopback} el agente exige HTTPS. No existe autenticación mutua por certificado entre el agente y la API: el agente se autentica con una clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}). \\
 	\hline
 \end{longtable}
 

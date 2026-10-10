@@ -52,7 +52,7 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 Esta sección presenta el inventario de pruebas automatizadas, los resultados de su ejecución, la integración continua y la cobertura de los requerimientos.
 
 \subsection{Inventario}
-El repositorio contiene 512 pruebas automatizadas, 335 de la API y 177 del agente (algunas funciones de prueba se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
+El repositorio contiene 529 pruebas automatizadas, 352 de la API y 177 del agente (algunas funciones de prueba se ejecutan con varios juegos de parámetros). La tabla~\ref{tab:inventario-pruebas} las agrupa por componente.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{7.5cm}}
 	\caption{Inventario de pruebas automatizadas por componente}
@@ -65,7 +65,7 @@ El repositorio contiene 512 pruebas automatizadas, 335 de la API y 177 del agent
 	\textbf{Componente} & \textbf{Archivos} & \textbf{Pruebas} & \textbf{Tipos y foco} \\
 	\hline
 	\endhead
-	API de \emph{scoring} & 32 & 335 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP. \\
+	API de \emph{scoring} & 35 & 352 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP, el criterio de promoción del modelo y la paridad de las variables entre versiones. \\
 	\hline
 	Agente local & 14 & 177 & Unitarias con el sistema operativo simulado: colectores, filtro de procesos, \emph{buffer} local, \emph{circuit breaker}, exigencia de HTTPS, confirmación de acciones, reversión de la ACL y contrato del evento. \\
 	\hline
@@ -74,7 +74,7 @@ El repositorio contiene 512 pruebas automatizadas, 335 de la API y 177 del agent
 \end{longtable}
 
 \subsection{Resultados de la ejecución}
-La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución completa realizada el 9 de octubre de 2026 sobre Windows~10 con Python~3.12, sin servicios externos configurados y sin ejecución real de mitigaciones.
+La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución completa realizada el 10 de octubre de 2026, en un entorno aislado, sin servicios externos configurados y sin ejecución real de mitigaciones.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}p{8.4cm}}
 	\caption{Resultados de la ejecución de las pruebas automatizadas}
@@ -87,9 +87,9 @@ La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución comp
 	\textbf{Suite} & \textbf{Resultado} \\
 	\hline
 	\endhead
-	API, suite completa con los modelos entrenados & 335 aprobadas, 0 fallidas, 0 con error \\
+	API, suite completa con los modelos entrenados & 352 aprobadas, 0 fallidas, 0 omitidas \\
 	\hline
-	API, configuración de integración continua (sin los modelos entrenados) & 311 aprobadas, 15 omitidas, 0 fallidas \\
+	API, configuración de integración continua (sin los modelos entrenados) & 328 aprobadas, 15 omitidas, 0 fallidas \\
 	\hline
 	Agente, suite completa en Windows & 177 aprobadas, 0 fallidas \\
 	\hline
@@ -104,13 +104,13 @@ Las 15 pruebas omitidas en la configuración de integración continua son las qu
 \subsection{Integración continua}\label{sec:integracion-continua}
 El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por cuatro trabajos independientes:
 \begin{itemize}
-	\item \textbf{\emph{Frontend}:} instalación de dependencias, análisis estático y compilación.
-	\item \textbf{API:} ejecución de la suite de la API sin los modelos entrenados, que se reemplazan por artefactos simulados, con medición de cobertura y un umbral mínimo del 75\,\% como protección contra regresiones.
-	\item \textbf{Agente en Windows (\texttt{agent-windows}):} ejecución de la suite completa del agente en el sistema operativo que soporta, con un umbral del 85\,\% de líneas.
-	\item \textbf{Infraestructura:} verificación de formato y validación sintáctica de la configuración de Terraform, sin aplicar cambios.
+	\item \textbf{\emph{Frontend}} (Ubuntu, Node~24): análisis estático y compilación; no tiene umbral de cobertura, porque el \emph{frontend} no tiene pruebas.
+	\item \textbf{API} (Ubuntu, Python~3.11): ejecución de las pruebas de la API sin los artefactos de modelo, que no están versionados, con medición de la cobertura combinada de líneas y ramas del código de la API y de los dos módulos auxiliares que importa. El umbral es del 74\,\% de cobertura combinada y funciona como protección contra regresiones. El mismo informe se publica además por líneas, solo a título informativo (sin umbral), y cuatro archivos de pruebas del agente que no dependen del sistema operativo se ejecutan allí sin medir cobertura y deben pasar.
+	\item \textbf{Agente en Windows (\texttt{agent-windows}):} ejecución de la suite completa del agente en Windows (Python~3.11), con un umbral del 85\,\% de cobertura de líneas.
+	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato, inicialización y validación de la configuración sin aplicar cambios; sin umbral.
 \end{itemize}
 
-Los cuatro trabajos finalizaron correctamente en la corrida de la rama de entrega, con el umbral de la API y el del agente cumplidos sin ajustes. La integración continua no ejecuta las pruebas que requieren los modelos entrenados (15 omitidas y cuatro archivos excluidos), entre ellas la prueba de extremo a extremo PDP$\rightarrow$PEP, ni la prueba de regresión. Esas suites se ejecutan localmente.
+Una corrida del trabajo de la API había fallado porque faltaba la dependencia de lectura de archivos Parquet que usa el criterio de promoción; se agregó a los requisitos de la API y el umbral de la API se fijó en el 74\,\%. La integración continua no ejecuta las pruebas que requieren los modelos entrenados (15 omitidas y cuatro archivos excluidos), entre ellas la prueba de extremo a extremo PDP$\rightarrow$PEP, ni la prueba de regresión. Esas suites se ejecutan localmente.
 
 \subsection{Cobertura de código}\label{sec:cobertura-codigo}
 La cobertura se mide con \emph{coverage.py} 7.16 (mediante \emph{pytest-cov} 7.1), con medición de ramas activada, sobre todo el código del producto que se ejecuta en operación:
@@ -121,7 +121,7 @@ La cobertura se mide con \emph{coverage.py} 7.16 (mediante \emph{pytest-cov} 7.1
 \end{itemize}
 El alcance está versionado en el repositorio. Las únicas exclusiones son el envoltorio de ejecución del punto de entrada del agente y una función que solo usa un análisis fuera de línea. No se excluyó ningún módulo del producto por depender de servicios externos: la persistencia en PostgreSQL, el planificador de reentrenamiento, los colectores y la aplicación de acciones se prueban con dobles (un motor de base de datos simulado, subprocesos triviales, bibliotecas del sistema simuladas y carpetas temporales).
 
-Cada componente se mide por separado con su propia suite: la API con los artefactos de modelo entrenados y el agente en Windows, su sistema operativo soportado. El umbral del 85\,\% se fija sobre la cobertura de líneas; la cobertura combinada de líneas y ramas se informa como dato adicional.
+Cada componente se mide por separado con su propia suite: la API con los artefactos de modelo entrenados y el agente en Windows, su sistema operativo soportado. La evidencia del objetivo del 85\,\% es esta medición local completa, con artefactos, que se realiza con un \emph{script} del repositorio. El umbral se fija sobre la cobertura de líneas; la cobertura combinada de líneas y ramas se informa como dato adicional.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.9cm}}
 	\caption{Cobertura de código por componente}
@@ -134,18 +134,18 @@ Cada componente se mide por separado con su propia suite: la API con los artefac
 	\textbf{Componente} & \textbf{Pruebas} & \textbf{Sentencias} & \textbf{\% líneas} & \textbf{\% líneas y ramas} \\
 	\hline
 	\endhead
-	API (PDP) & 335 & 2\,440 & \textbf{91,6} & 89,7 \\
+	API (PDP) & 352 & 2\,465 & \textbf{93,9} & 92,4 \\
 	\hline
 	Agente (PEP) & 177 & 1\,116 & \textbf{89,3} & 88,1 \\
 	\hline
-	\textbf{Total} & \textbf{512} & 3\,556 & \textbf{90,9} & -- \\
+	\textbf{Total} & \textbf{529} & 3\,581 & \textbf{92,5} & 91,1 \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-El informe de evidencia (HTML, XML y resumen) se genera con un \emph{script} del repositorio. En integración continua, el trabajo del agente en Windows exige el 85\,\% de líneas en cada \emph{push}. El trabajo de la API mide la cobertura sin los artefactos de modelo, que no están versionados: el núcleo de \emph{scoring} no se ejercita allí y el 75\,\% que exige funciona como protección contra regresiones, no como evidencia del objetivo.
+El informe de evidencia (HTML, XML y resumen) se genera con un \emph{script} del repositorio. En integración continua, el trabajo del agente en Windows exige el 85\,\% de líneas en cada \emph{push}. El trabajo de la API mide la cobertura sin los artefactos de modelo, que no están versionados: el núcleo de \emph{scoring} no se ejercita allí y el 74\,\% que exige funciona como protección contra regresiones, no como evidencia del objetivo; esa evidencia es la medición local completa.
 
-Antes de agregar las pruebas de este ciclo, la misma suite daba 84,2\,\% de líneas en la API y 69,4\,\% en el agente. El único módulo de la API con cobertura baja dentro de ese total es el de las métricas de la promoción de modelos, que se deja sin pruebas nuevas hasta definir el criterio de promoción entregado (RF-21).
+Antes de agregar las pruebas de este ciclo, la misma suite daba 84,2\,\% de líneas en la API y 69,4\,\% en el agente. Con el criterio de promoción implementado y probado (RF-21), el módulo de métricas de la promoción de modelos alcanza el 98,8\,\% de líneas.
 
 \textbf{\emph{Frontend}.} El \emph{dashboard} queda fuera del umbral, y se declara así explícitamente. Por una invariante de la arquitectura, el \emph{frontend} no contiene lógica de negocio: no calcula el puntaje, no aplica el decaimiento ni combina modelos. Solo muestra lo que expone la API y edita la configuración operativa, que la API valida. El riesgo funcional del sistema reside en la API y en el agente, que son los componentes medidos. El \emph{frontend} se valida con análisis estático y verificación de tipos en cada \emph{push}, y de forma manual contra la API.
 
@@ -441,7 +441,7 @@ Se calculan el área bajo la curva ROC (ROC-AUC), el PR-AUC, el \emph{recall} y 
 Los intervalos de confianza al 95\,\% se obtienen por \emph{bootstrap} con 1\,000 remuestreos sobre víctimas y no sobre días, porque los días de una misma víctima están correlacionados. Para comparar dos variantes se utiliza el mismo remuestreo, lo que da intervalos pareados de la diferencia.
 
 \subsection{Resultados en HOLDOUT}
-El sistema evaluado es el vigente en producción: los modelos de la versión v1, el riesgo del LSTM calculado como media acumulada de las secuencias cerradas, la combinación en partes iguales, el decaimiento temporal y los umbrales 40/70/90. Como en todo el benchmark, cada día se evalúa cerrado, sin el agregado parcial ni la línea base personal que la producción aplica en cada evento. La tabla~\ref{tab:bench-auc} presenta el ROC-AUC de cada componente y del híbrido en los escenarios sin país.
+El sistema evaluado es el vigente en producción: los modelos de la versión v1, el riesgo del LSTM calculado como media acumulada de las secuencias cerradas, la combinación en partes iguales, el decaimiento temporal y los umbrales 40/70/90. El conjunto de variables del modelo quedó versionado y, con la versión 1, la salida del puntaje es idéntica byte a byte a la anterior: una comparación A/B sobre la repetición de 800 eventos reales produjo la misma huella en ambos árboles de código. Como en todo el benchmark, cada día se evalúa cerrado, sin el agregado parcial ni la línea base personal que la producción aplica en cada evento. La tabla~\ref{tab:bench-auc} presenta el ROC-AUC de cada componente y del híbrido en los escenarios sin país.
 
 \begin{table}[h]
 \centering
@@ -649,4 +649,4 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
-Las 512 pruebas automatizadas (335 de la API y 177 del agente) se ejecutan sin fallas, con una cobertura de líneas del 91,6\,\% en la API y del 89,3\,\% en el agente, y la integración continua verifica la API, el agente en Windows, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
+Las 529 pruebas automatizadas (352 de la API y 177 del agente) se ejecutan sin fallas, con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente, y la integración continua verifica la API, el agente en Windows, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirmaron el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02. La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (capítulo~\ref{chap:conclusiones}).
