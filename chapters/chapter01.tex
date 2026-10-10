@@ -22,8 +22,8 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
   \item Implementar un agente para equipos Windows que recolecte únicamente metadatos de actividad
         (procesos, archivos y conexiones de red), los envíe a una API central por un canal cifrado
         con TLS, autenticándose con una credencial individual y revocable por agente, ligada a su
-        identidad y sin respaldo en la clave de administración, y consuma como máximo el 5\,\% de la
-        CPU y 150\,MB de memoria residente.
+        identidad y a los usuarios que monitorea, y consuma como máximo el 5\,\% de la CPU y
+        150\,MB de memoria residente.
   \item Entrenar un modelo híbrido de detección de anomalías (Isolation Forest y LSTM Autoencoder)
         sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo con escenarios
         de ataque inyectados y un conjunto reservado (\emph{holdout}), informando la tasa de detección
@@ -31,17 +31,18 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
         \ref{sec:metas-modelo}.
   \item Calcular un puntaje de riesgo de 0 a 100 por evento, con continuidad entre sesiones y
         decaimiento temporal, con una latencia de evaluación de percentil 95 menor o igual a 500\,ms,
-        medida en el servidor de la API sin incluir el envío de notificaciones por correo.
+        medida de extremo a extremo en un entorno local.
   \item Ejecutar en el equipo una respuesta graduada según el nivel de riesgo, desde una alerta hasta
         la terminación de procesos y la denegación de acceso a carpetas, reversible cuando el sistema
-        operativo lo permita: la suspensión se reanuda y el acceso a la carpeta se restaura al estado
-        previo exacto desde un respaldo de la lista de control de acceso (ACL); la terminación de
-        procesos no es reversible.
+        operativo lo permita: la suspensión se reanuda y, cuando el agente se ejecuta con privilegios
+        de administrador, el acceso a la carpeta se restaura al estado previo exacto desde un
+        respaldo de la lista de control de acceso (ACL); la terminación de procesos no es reversible.
   \item Proveer un panel de administración que muestre el estado de riesgo de cada usuario con su
         explicación y permita modificar umbrales, acciones y notificaciones sin reiniciar componentes.
   \item Mantener la vigencia del modelo mediante un reentrenamiento periódico que se ejecuta en
-        procesos separados del servicio de producción y promueve el modelo nuevo solo si mejora las
-        métricas de comparación, y tratar a los usuarios nuevos con un período de aprendizaje.
+        procesos separados del servicio de producción y promueve el modelo nuevo solo si sus métricas
+        de comparación no empeoran más allá de un margen de tolerancia (criterio de no
+        inferioridad), y tratar a los usuarios nuevos con un período de aprendizaje.
   \item Proteger las credenciales del sistema y el canal entre sus componentes mediante cifrado en
         tránsito (TLS con certificado verificado), autenticación del agente con una credencial
         individual ligada a su identidad y a los usuarios que monitorea, y sesiones del panel
