@@ -352,7 +352,7 @@ Esta sección describe los cuatro casos de uso del sistema: la detección de des
 \noindent\textbf{Flujos alternativos:}
 \begin{itemize}
 	\item 1a. El administrador registra manualmente un reentrenamiento realizado fuera del planificador.
-	\item 3a. Un paso del \emph{pipeline} falla: se restauran los artefactos del modelo vigente, que sigue en servicio; el intento queda registrado en el historial con la leyenda «pipeline en curso», que no se actualiza, y el próximo reentrenamiento se dispara al cumplirse nuevamente el período, contado desde ese intento. Si el intento termina por una excepción, no se registra y el planificador lo reintenta en el chequeo siguiente, a los 5 minutos. Ambos comportamientos figuran como corrección prevista (sección~\ref{sec:sintesis-limitaciones}).
+	\item 3a. Un paso del \emph{pipeline} falla: se restauran los artefactos del modelo vigente, que sigue en servicio; el intento queda registrado en el historial con la leyenda ``\emph{pipeline} en curso'', que no se actualiza, y el próximo reentrenamiento se dispara al cumplirse nuevamente el período, contado desde ese intento. Si el intento termina por una excepción, no se registra y el planificador lo reintenta en el chequeo siguiente, a los 5 minutos. Ambos comportamientos figuran como corrección prevista (sección~\ref{sec:sintesis-limitaciones}).
 	\item 4a. El modelo nuevo no cumple el criterio de promoción, faltan escenarios, su corte temporal no coincide o el puntuado falla: se conserva el vigente y se registra el motivo del rechazo.
 \end{itemize}
 

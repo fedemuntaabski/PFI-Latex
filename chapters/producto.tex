@@ -236,7 +236,7 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Envío con el \emph{circuit breaker} abierto & Los eventos nuevos siguen intentando enviarse y, con el \emph{buffer} lleno, se descartan los más recientes. & Corrección prevista en el agente. \\
 	\hline
-	Reentrenamiento fallido registrado como en curso & Si un paso del \emph{pipeline} falla, el intento queda en el historial como «pipeline en curso»; si termina por una excepción, no se registra y se reintenta a los 5 minutos, y el \emph{pipeline} no tiene un tiempo máximo. En todos los casos se restaura el modelo vigente. & Corrección prevista en el planificador. \\
+	Reentrenamiento fallido registrado como en curso & Si un paso del \emph{pipeline} falla, el intento queda en el historial como ``\emph{pipeline} en curso''; si termina por una excepción, no se registra y se reintenta a los 5 minutos, y el \emph{pipeline} no tiene un tiempo máximo. En todos los casos se restaura el modelo vigente. & Corrección prevista en el planificador. \\
 	\hline
 	Autenticación permisiva sin claves configuradas & Fuera del modo estricto y sin claves configuradas, la API acepta solicitudes sin autenticar.  & El modo estricto, activo en el despliegue en la nube, rechaza las solicitudes sin claves configuradas. \\
 	\hline
