@@ -62,7 +62,7 @@ Las acciones pueden revertirse con un comando del agente que restituye los permi
 \subsection{Motor de \emph{scoring}}
 La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 días en el pasado y 5 minutos en el futuro), descarta reenvíos duplicados durante 6 horas y lo evalúa en los siguientes pasos:
 \begin{enumerate}
-	\item Isolation Forest evalúa el día en curso del usuario a partir de ocho variables agregadas (cantidad y variedad de eventos, actividad sobre archivos y de autenticación, hora promedio, proporción fuera de horario y entropía de los tipos de evento).
+	\item Isolation Forest evalúa el día en curso del usuario a partir de ocho variables agregadas (cantidad y variedad de eventos, países distintos, actividad sobre archivos y de autenticación, hora promedio, proporción fuera de horario y entropía de los tipos de evento).
 	\item El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos del usuario a partir del error de reconstrucción.
 	\item Con ambos modelos disponibles (cobertura completa), los puntajes se combinan en partes iguales; mientras el usuario no completa su primera secuencia de 50 eventos (cobertura parcial), se utiliza solo Isolation Forest.
 	\item El puntaje se combina con una línea base personal del usuario, que se actualiza en forma incremental con el algoritmo de Welford y gana peso a medida que el usuario acumula historial.
