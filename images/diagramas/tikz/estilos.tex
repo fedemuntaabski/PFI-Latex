@@ -1,0 +1,14 @@
+% Estilos comunes de las figuras TikZ (despliegue y modelo relacional).
+\definecolor{acento}{HTML}{1F4E79}
+\hyphenpenalty=10000 \exhyphenpenalty=10000
+\tikzset{
+	caja/.style={draw=black!60, line width=0.4pt, fill=white, rounded corners=1pt, align=center, font=\footnotesize, inner sep=4pt, minimum height=0.9cm, text width=3.2cm},
+	cajaacento/.style={caja, draw=acento, line width=0.7pt},
+	opc/.style={caja, dashed, draw=black!55},
+	almacen/.style={draw=black!60, line width=0.4pt, fill=black!6, cylinder, shape border rotate=90, aspect=0.22, align=center, font=\footnotesize, inner sep=3pt, minimum height=1.5cm, text width=2.6cm},
+	zona/.style={draw=black!45, line width=0.4pt, fill=black!3, rounded corners=2pt, inner sep=8pt},
+	zonaint/.style={draw=black!45, line width=0.4pt, fill=white, rounded corners=2pt, inner sep=7pt},
+	flecha/.style={-{Stealth[length=5pt,width=4pt]}, line width=0.5pt, draw=black!70},
+	rotulo/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+	titulo/.style={font=\footnotesize\bfseries, text=black!75, anchor=south west},
+}

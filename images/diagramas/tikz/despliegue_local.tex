@@ -1,0 +1,20 @@
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.6\textheight, center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+\input{images/diagramas/tikz/estilos}
+\node[caja] (agente) at (0,1.3) {Agente (PEP)};
+\node[caja] (dash) at (0,-1.3) {\emph{Dashboard} (servidor de desarrollo Vite)};
+\node[cajaacento] (api) at (7.0,0) {API (uvicorn)};
+\begin{scope}[on background layer]
+\node[zona, inner xsep=14pt, fit=(agente)(dash)(api)] (pc) {};
+\end{scope}
+\node[titulo] at (pc.north west) {Equipo Windows};
+\node[almacen] (redis) at (12.4,3.4) {Redis\\(Upstash)};
+\node[almacen] (pg) at (12.4,1.4) {PostgreSQL\\(Supabase)};
+\node[opc] (gem) at (12.4,-0.6) {Gemini\\\scriptsize opcional};
+\node[opc] (smtp) at (12.4,-2.4) {SMTP\\\scriptsize opcional};
+\node[opc] (iam) at (12.4,-4.2) {IAM simulado / Keycloak\\\scriptsize opcional};
+\draw[flecha] (agente) -- node[rotulo, sloped] {POST /eventos (loopback)} (api);
+\draw[flecha] (dash) -- node[rotulo, sloped] {consulta cada 2 s} (api);
+\foreach \d in {redis,pg,gem,smtp,iam} { \draw[flecha] (api.east) to[out=0, in=180] (\d.west); }
+\end{tikzpicture}
+\end{adjustbox}

@@ -1,0 +1,52 @@
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.6\textheight, center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+\input{images/diagramas/tikz/estilos}
+\tikzset{tabla/.style={draw=black!60, line width=0.4pt, fill=white, inner sep=5pt, anchor=north west, font=\scriptsize, text width=9.0cm, align=left}}
+\node[tabla] (sc) at (0,0) {%
+\begin{tabular}{@{}l@{\hspace{8pt}}l@{\hspace{8pt}}l@{}}
+\multicolumn{3}{@{}l@{}}{\textcolor{acento}{\textbf{\texttt{historial\_scores}}}} \\[1pt]
+\hline
+\noalign{\vskip 2pt}
+\textcolor{black!60}{BIGSERIAL} & \texttt{id} & PK \\
+\textcolor{black!60}{TEXT} & \texttt{uid} & UNIQUE(uid, fecha) \\
+\textcolor{black!60}{DATE} & \texttt{fecha} & UNIQUE(uid, fecha) \\
+\textcolor{black!60}{DOUBLE PRECISION} & \texttt{risk\_score\_hibrido} &  \\
+\textcolor{black!60}{TEXT} & \texttt{nivel\_sugerido} &  \\
+\textcolor{black!60}{TEXT} & \texttt{cobertura} &  \\
+\textcolor{black!60}{TEXT} & \texttt{accion\_sugerida} &  \\
+\textcolor{black!60}{BOOLEAN} & \texttt{cierre\_de\_dia} & DEFAULT true \\
+\textcolor{black!60}{TIMESTAMPTZ} & \texttt{created\_at} & DEFAULT now() \\
+\textcolor{black!60}{JSONB} & \texttt{explicacion} &  \\
+\textcolor{black!60}{TEXT} & \texttt{motivo} &  \\
+\end{tabular}};
+\node[tabla] (ev) at (12.2,0) {%
+\begin{tabular}{@{}l@{\hspace{8pt}}l@{\hspace{8pt}}l@{}}
+\multicolumn{3}{@{}l@{}}{\textcolor{acento}{\textbf{\texttt{eventos\_crudos}}}} \\[1pt]
+\hline
+\noalign{\vskip 2pt}
+\textcolor{black!60}{BIGSERIAL} & \texttt{id} & PK \\
+\textcolor{black!60}{TEXT} & \texttt{uid} &  \\
+\textcolor{black!60}{TIMESTAMPTZ} & \texttt{ts} &  \\
+\textcolor{black!60}{TEXT} & \texttt{tipo\_evento} &  \\
+\textcolor{black!60}{JSONB} & \texttt{payload} &  \\
+\textcolor{black!60}{TIMESTAMPTZ} & \texttt{created\_at} & DEFAULT now() \\
+\textcolor{black!60}{TEXT} & \texttt{row\_hash} & disparador \\
+\textcolor{black!60}{TEXT} & \texttt{prev\_hash} & disparador \\
+\end{tabular}};
+\node[tabla] (dr) at (12.2,-4.6) {%
+\begin{tabular}{@{}l@{\hspace{8pt}}l@{\hspace{8pt}}l@{}}
+\multicolumn{3}{@{}l@{}}{\textcolor{acento}{\textbf{\texttt{drift\_alerts}}}} \\[1pt]
+\hline
+\noalign{\vskip 2pt}
+\textcolor{black!60}{BIGSERIAL} & \texttt{id} & PK \\
+\textcolor{black!60}{TEXT} & \texttt{uid} &  \\
+\textcolor{black!60}{DATE} & \texttt{fecha} &  \\
+\textcolor{black!60}{TEXT} & \texttt{lado} & iso\textbar{}lstm \\
+\textcolor{black!60}{JSONB} & \texttt{features} &  \\
+\textcolor{black!60}{DOUBLE PRECISION} & \texttt{corrimiento\_max} &  \\
+\textcolor{black!60}{TIMESTAMPTZ} & \texttt{created\_at} & DEFAULT now() \\
+\end{tabular}};
+\draw[densely dotted, line width=0.5pt, draw=black!70] (sc.east |- ev.west) -- node[rotulo, pos=0.5] {uid (lógica)} (ev.west);
+\draw[densely dotted, line width=0.5pt, draw=black!70] (sc.south) |- node[rotulo, pos=0.75] {uid (lógica)} (dr.west);
+\end{tikzpicture}
+\end{adjustbox}

@@ -1,0 +1,31 @@
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.6\textheight, center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+\input{images/diagramas/tikz/estilos}
+\node[caja, text width=2.6cm] (agente) at (0,1.6) {Equipo Windows: agente};
+\node[caja, text width=2.6cm] (nav) at (0,-1.6) {Navegador del administrador};
+\node[caja, text width=3.4cm, minimum height=1.9cm] (caddy) at (5.2,0) {Caddy\\\scriptsize TLS (ACME), sirve el \emph{dashboard} desde disco, \texttt{/api} $\rightarrow$ \texttt{127.0.0.1:8001}};
+\node[cajaacento, text width=2.0cm, minimum height=1.9cm] (api) at (9.0,0) {API\\(uvicorn)};
+\begin{scope}[on background layer]
+\node[zonaint, fit=(caddy)(api)] (ec2) {};
+\end{scope}
+\node[titulo] (t1) at (ec2.north west) {Instancia EC2 (t3.small)};
+\node[caja, text width=3.2cm] (par) at (4.4,-4.4) {Almacén de parámetros (secretos)};
+\node[caja, text width=3.2cm] (s3) at (8.2,-4.4) {S3: versiones de la API y del \emph{dashboard}};
+\begin{scope}[on background layer]
+\node[zona, fit=(ec2)(t1)(par)(s3)] (aws) {};
+\end{scope}
+\node[titulo] at (aws.north west) {AWS us-east-2};
+\node[almacen] (redis) at (14.6,2.2) {Redis\\(Upstash)};
+\node[almacen] (pg) at (14.6,-0.4) {PostgreSQL (Supabase, São Paulo)};
+\node[opc, text width=2.6cm] (gem) at (14.6,-2.9) {Gemini\\\scriptsize opcional};
+\node[opc, text width=7.4cm] (gh) at (6.4,-8.2) {GitHub Actions: integración continua (no despliega)};
+\draw[flecha] (agente.east) to[out=0, in=170] node[rotulo, pos=0.4] {HTTPS} (caddy.west);
+\draw[flecha] (nav.east) to[out=0, in=190] node[rotulo, pos=0.4] {HTTPS} (caddy.west);
+\draw[flecha] (caddy) -- (api);
+\draw[flecha] (par.north) -- (par.north |- ec2.south);
+\draw[flecha] (s3.north) -- node[rotulo, pos=0.5] {despliegue por SSM} (s3.north |- ec2.south);
+\draw[flecha] (api.east) to[out=0, in=180] (redis.west);
+\draw[flecha] (api.east) to[out=0, in=180] (pg.west);
+\draw[flecha] (api.east) to[out=0, in=180] (gem.west);
+\end{tikzpicture}
+\end{adjustbox}
