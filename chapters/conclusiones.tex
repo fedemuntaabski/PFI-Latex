@@ -37,7 +37,7 @@ unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplic
 automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
 reversible por limitación del sistema operativo; la prueba manual de reversión dio resultado satisfactorio en una consola elevada, porque \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador & Cumplido \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
-RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos & Cumplido \\
+RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el LSTM no tiene explicación (RNF-11, parcial) & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
 corridas reales del reentrenamiento (una automática y dos manuales) produjeron modelos candidatos
 que no superaron al vigente y no se promovieron (RF-21); el juego de la corrida del 2 de septiembre
@@ -69,8 +69,8 @@ funcionales, 12 están implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF
 \section{Resultados principales}
 El resultado técnico más relevante es la arquitectura: el sistema cierra el ciclo de detección,
 decisión y respuesta en el equipo, que es el hueco que el estado del arte identifica en las
-soluciones comerciales, y lo hace con una latencia muy por debajo de la que exige una respuesta en
-tiempo casi real. La separación entre el punto de decisión y el de aplicación permite cambiar
+soluciones comerciales, y lo hace con un percentil 95 de latencia de 14,9\,ms frente al límite de 500\,ms, un consumo medio del agente de 0,09\,\% de CPU y 33~MB de memoria, y 530 pruebas automatizadas con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente.
+ La separación entre el punto de decisión y el de aplicación permite cambiar
 umbrales y acciones sin modificar los agentes.
 
 El resultado más débil es la capacidad de detección. Sobre escenarios de ataque inyectados en el
@@ -92,7 +92,7 @@ concluir que el modelo, tal como está entrenado, no detecta de forma confiable 
 duración.
 
 El análisis económico muestra que el producto puede ser rentable en un escenario de adopción
-moderada, con un VAN de USD 35.084 al 25\,\%, pero que su viabilidad depende de la velocidad de
+moderada, con un VAN de USD 35.084 al 25\,\%; en el escenario pesimista no recupera la inversión (VAN de USD $-$202.527), por lo que su viabilidad depende de la velocidad de
 adopción y del costo de adquirir clientes. El marco legal no impide el uso del sistema, pero exige
 que la organización que lo adopte informe a sus empleados y formalice la transferencia
 internacional de los datos.
@@ -103,8 +103,8 @@ internacional de los datos.
         y sus limitaciones: traducir la telemetría de un equipo Windows al vocabulario de una
         plataforma de archivos compartidos hace que algunos eventos no aporten a las variables del
         modelo, y la falta de etiquetas obliga a construir una evaluación propia.
-  \item Sin etiquetas, la evaluación del modelo necesita metas definidas de antemano y escenarios
-        controlados; las métricas no supervisadas por sí solas no dicen si el sistema detecta.
+  \item Sin etiquetas, la evaluación del modelo necesita metas definidas antes de la primera evaluación y escenarios
+        controlados: en este proyecto las metas se fijaron después de una evaluación exploratoria, lo que le resta fuerza al contraste aunque los resultados no las alcanzaran. Las métricas no supervisadas por sí solas no dicen si el sistema detecta.
   \item El criterio de promoción del reentrenamiento tiene que medir detección: comparar la tasa
         de anomalías o el error de reconstrucción favorece a un modelo que no marca nada.
   \item Las limitaciones de seguridad del propio sistema (credenciales y canal) son parte del
@@ -133,17 +133,16 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         criterio de promoción para que los datos nuevos no lo desplacen.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
-  \item \textbf{Correcciones del agente}: informar como fallida la suspensión que no se pudo
-        registrar y no intentar envíos nuevos con el \emph{circuit breaker} abierto.
-  \item \textbf{Redacción asistida del correo}: sacar la llamada al modelo del procesamiento del
+  \item \textbf{Correcciones del agente y del planificador}: informar como fallida la suspensión que no se pudo
+        registrar, no intentar envíos nuevos con el \emph{circuit breaker} abierto y registrar como fallido el intento de reentrenamiento cuyo \emph{pipeline} no termina, que hoy queda como no finalizado.
+  \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
         evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
         controles contra el servicio real (sección~\ref{sec:prompt-injection}).
-  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend} y al módulo de métricas de la promoción de
-        modelos, automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
+  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09), al descarte del \emph{buffer} local (RNF-05) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
         el Redis gestionado y varios agentes concurrentes.
   \item \textbf{Seguridad}: implementar la autenticación mutua por certificado (un segundo sitio del
         proxy en un subdominio, con una autoridad certificadora propia y la huella del certificado
-        asociada a la clave del agente), agregar una política de seguridad de contenido al
+        asociada a la clave del agente), rechazar la clave de administración en el nivel de los agentes, hacer que el panel vuelva al inicio de sesión cuando el \emph{token} vence, agregar una política de seguridad de contenido al
         \emph{dashboard} e integrar un proveedor de identidad real (sección~\ref{sec:sintesis-limitaciones}).
   \item \textbf{Validación comercial}: medir la disposición a pagar y el costo de adquisición a
         través del canal de MSSP, que son las variables que más influyen en la viabilidad.
