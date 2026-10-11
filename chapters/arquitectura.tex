@@ -12,7 +12,7 @@ El sistema no es una aplicación monolítica sino un conjunto de componentes con
 	\item \textbf{Agente:} envía eventos y confirma las acciones ejecutadas, con una clave propia, ligada a su identificador y a los usuarios que puede reportar, que solo habilita esas dos operaciones.
 	\item \textbf{\emph{Dashboard} en modo consulta:} lee el estado de los usuarios, el historial y la configuración.
 	\item \textbf{\emph{Dashboard} en modo administración:} además, modifica la configuración y reinicia usuarios.
-	\item \textbf{Público:} solo accede a la salud del servicio y al inicio de sesión.
+	\item \textbf{Público:} solo accede a la salud del servicio y al inicio y cierre de sesión.
 \end{itemize}
 
 El flujo principal comienza en el agente, que captura un evento y lo envía a la API. La API lo valida, actualiza el estado del usuario en Redis, persiste el evento crudo en PostgreSQL, calcula el puntaje y responde con el nivel y la acción. El agente ejecuta la acción y confirma el resultado. En paralelo, el \emph{dashboard} consulta periódicamente la API para mostrar el estado actualizado, y el planificador de la API dispara el reentrenamiento cuando corresponde.
@@ -190,10 +190,10 @@ La tabla~\ref{tab:servicios} enumera los servicios externos y la infraestructura
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
-El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, aplicada pero sin verificación de extremo a extremo con un agente.
+El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, aplicada y verificada con un agente real el 10 de octubre de 2026.
 
 \subsection{Despliegue local}
-En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por la interfaz de red local y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
+En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por loopback y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
 
 \begin{figure}[ht]
 	\centering
@@ -245,7 +245,7 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\hline
 	Red de distribución de contenidos & Prevista inicialmente para HTTPS & No utilizada: reemplazada por el proxy en la instancia \\
 	\hline
-	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia, con una versión anterior al criterio de promoción vigente; el reentrenamiento se ejecuta en el entorno local \\
+	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia; el reentrenamiento se ejecuta en el entorno local \\
 	\hline
 	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y verificado el 10 de octubre de 2026 con un agente real contra la instancia, con credencial individual; el inicio de sesión se verificó contra la API desplegada \\
 	\hline
@@ -308,4 +308,4 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
-La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, pero sin verificación de extremo a extremo con un agente.
+La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, y se verificó de extremo a extremo con un agente real.
