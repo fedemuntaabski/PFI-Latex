@@ -40,11 +40,11 @@ reversible por limitación del sistema operativo; la prueba manual de reversión
 RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el LSTM no tiene explicación (RNF-11, parcial) & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
 corridas reales del reentrenamiento (una automática y dos manuales) produjeron modelos candidatos
-que la regla de promoción anterior rechazó, por lo que no se promovieron (RF-21); el juego de la corrida del 2 de septiembre
+que la regla de promoción anterior rechazó, por lo que no se promovieron (\mbox{RF-21}); el juego de la corrida del 2 de septiembre
 se adoptó después como vigente por consistencia, no por promoción; el criterio de promoción de no
 inferioridad está implementado y cubierto por 11 pruebas automatizadas, y se verificó con el script de
 evaluación: el modelo vigente contra sí mismo se promueve y el juego v2 se rechaza por la tasa de falsos
-positivos (RF-21). Limitación: todavía no se ejecutó una promoción desde el planificador con un modelo
+positivos (\mbox{RF-21}). Limitación: todavía no se ejecutó una promoción desde el planificador con un modelo
 genuinamente nuevo & Cumplido \\
 7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
 \emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
@@ -114,7 +114,7 @@ internacional de los datos.
         ejecuta la acción) evita dar por cumplidas funciones que solo se observan en un registro.
 \end{itemize}
 
-\section{Trabajo futuro}
+\section{Trabajo futuro}\label{sec:trabajo-futuro}
 El trabajo futuro se prioriza según el impacto sobre la principal limitación del sistema:
 \begin{enumerate}
   \item \textbf{Capacidad de detección}: incorporar variables con granularidad menor al día,
@@ -134,7 +134,7 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
   \item \textbf{Correcciones del agente y del planificador}: informar como fallida la suspensión que no se pudo
-        registrar, no intentar envíos nuevos con el \emph{circuit breaker} abierto y registrar como fallido el intento de reentrenamiento cuyo \emph{pipeline} no termina, que hoy queda como no finalizado.
+        registrar, no intentar envíos nuevos con el \emph{circuit breaker} abierto, registrar como fallido el intento de reentrenamiento cuyo \emph{pipeline} falla, que hoy queda como «pipeline en curso», registrar también los que terminan por una excepción y fijar un tiempo máximo al \emph{pipeline}.
   \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
         evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
         controles contra el servicio real (sección~\ref{sec:prompt-injection}).
