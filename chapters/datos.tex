@@ -136,7 +136,7 @@ Esta correspondencia es una decisión de diseño que permite reutilizar un model
 	\item El indicador de dirección local que envía el agente describe la red del equipo y no la de la conexión. El modelo no lo utiliza.
 \end{itemize}
 
-La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo.
+La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo, aunque hoy el criterio de promoción rechaza esos reentrenamientos por el corrimiento del corte temporal (sección~\ref{sec:sintesis-limitaciones}).
 
 \section{Modelo de datos}
 \label{sec:modelo-datos}
@@ -224,4 +224,4 @@ Redis almacena catorce tipos de clave, agrupados en la tabla~\ref{tab:claves-red
 
 \section{Síntesis}
 \label{sec:sintesis-datos}
-El modelo se entrena con 8,5 millones de eventos reales de 291 usuarios, sin etiquetas. Isolation Forest trabaja sobre variables diarias y el LSTM sobre secuencias de 50 eventos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
+El modelo se entrena con 8,5 millones de eventos reales de 908 usuarios, sin etiquetas. Isolation Forest trabaja sobre variables diarias y el LSTM sobre secuencias de 50 eventos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
