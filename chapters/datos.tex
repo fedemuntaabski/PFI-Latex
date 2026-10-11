@@ -166,7 +166,7 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	\hline
 	\texttt{historial\_\allowbreak{}reentrenamientos} & Registro de cada reentrenamiento: fecha, cantidad de eventos, variación de las métricas y actor. \\
 	\hline
-	\texttt{metricas\_\allowbreak{}modelo} & Métrica de cada modelo entrenado y cuál es el vigente. \\
+	\texttt{metricas\_\allowbreak{}modelo} & Métrica de cada modelo entrenado, cuál es el vigente y el resultado y el motivo del criterio de promoción. \\
 	\hline
 	\texttt{historial\_\allowbreak{}agent\_\allowbreak{}keys} & Altas y revocaciones de las claves de los agentes. \\
 	\hline
@@ -193,7 +193,7 @@ Las tablas no tienen claves foráneas: se relacionan lógicamente a través del 
 La integridad de los eventos crudos se garantiza con una cadena de \emph{hashes} por usuario. Un disparador de la base de datos calcula, antes de cada inserción, el \emph{hash} SHA-256 de la fila a partir de sus campos y del \emph{hash} de la fila anterior del mismo usuario. Si se modifica o elimina una fila, la cadena deja de verificarse a partir de ese punto.
 
 \subsection{Modelo no relacional}
-Redis almacena catorce tipos de clave, agrupados en la tabla~\ref{tab:claves-redis}. Ninguna utiliza la expiración nativa de Redis: cuando una clave debe vencer, la fecha de vencimiento se guarda dentro del valor y se verifica al leerla. Esta decisión permite ejecutar las pruebas con un Redis simulado en memoria con el mismo comportamiento. El estado de cada usuario se actualiza con transacciones optimistas, con reintentos ante escrituras concurrentes, lo que sostiene el requerimiento RNF-14.
+Redis almacena quince tipos de clave, agrupados en la tabla~\ref{tab:claves-redis}. Ninguna utiliza la expiración nativa de Redis: cuando una clave debe vencer, la fecha de vencimiento se guarda dentro del valor y se verifica al leerla. Esta decisión permite ejecutar las pruebas con un Redis simulado en memoria con el mismo comportamiento. El estado de cada usuario se actualiza con transacciones optimistas, con reintentos ante escrituras concurrentes, lo que sostiene el requerimiento RNF-14.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{7.2cm}>{\raggedright\arraybackslash}p{3.5cm}}
 	\caption{Claves de Redis agrupadas por función}
@@ -215,6 +215,8 @@ Redis almacena catorce tipos de clave, agrupados en la tabla~\ref{tab:claves-red
 	Deduplicación & Respuesta ya calculada para un evento reenviado & 6 horas \\
 	\hline
 	Claves de agentes & \emph{Hash} de cada clave con el identificador del agente y su estado & Hasta su revocación \\
+	\hline
+	Sesiones del panel & Token de sesión opaco con el rol del usuario y su vencimiento & 8 horas, o hasta el cierre de sesión \\
 	\hline
 	Caché IAM & Rol y departamento del usuario, y \emph{token} de acceso al proveedor & 30 minutos para el rol (1 minuto ante fallas); el \emph{token}, según su vencimiento \\
 	\hline
