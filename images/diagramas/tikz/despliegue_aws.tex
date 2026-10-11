@@ -9,8 +9,8 @@
 \node[zonaint, fit=(caddy)(api)] (ec2) {};
 \end{scope}
 \node[titulo] (t1) at (ec2.north west) {Instancia EC2 (t3.small)};
-\node[caja, text width=3.2cm] (par) at (4.4,-4.4) {Almacén de parámetros (secretos)};
-\node[caja, text width=3.2cm] (s3) at (8.2,-4.4) {S3: versiones de la API y del \emph{dashboard}};
+\node[caja, text width=3.2cm] (par) at (8.2,-4.4) {Almacén de parámetros (secretos)};
+\node[caja, text width=3.2cm] (s3) at (4.4,-4.4) {S3: versiones de la API y del \emph{dashboard}};
 \begin{scope}[on background layer]
 \node[zona, fit=(ec2)(t1)(par)(s3)] (aws) {};
 \end{scope}
@@ -18,11 +18,11 @@
 \node[almacen] (redis) at (14.6,2.2) {Redis\\(Upstash)};
 \node[almacen] (pg) at (14.6,-0.4) {PostgreSQL (Supabase, São Paulo)};
 \node[opc, text width=2.6cm] (gem) at (14.6,-2.9) {Gemini\\\scriptsize opcional};
-\node[opc, text width=7.4cm] (gh) at (6.4,-8.2) {GitHub Actions: integración continua (no despliega)};
+\node[opc, anchor=north, text width=7.4cm] (gh) at ([yshift=-1cm]aws.south) {GitHub Actions: integración continua (no despliega)};
 \draw[flecha] (agente.east) to[out=0, in=170] node[rotulo, pos=0.4] {HTTPS} (caddy.west);
 \draw[flecha] (nav.east) to[out=0, in=190] node[rotulo, pos=0.4] {HTTPS} (caddy.west);
 \draw[flecha] (caddy) -- (api);
-\draw[flecha] (par.north) -- (par.north |- ec2.south);
+\draw[flecha] (par.north) -- (par.north |- api.south);
 \draw[flecha] (s3.north) -- node[rotulo, pos=0.5] {despliegue por SSM} (s3.north |- ec2.south);
 \draw[flecha] (api.east) to[out=0, in=180] (redis.west);
 \draw[flecha] (api.east) to[out=0, in=180] (pg.west);
