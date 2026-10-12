@@ -1,0 +1,34 @@
+\begin{adjustbox}{max width=\textwidth, max totalheight=0.6\textheight, center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+\input{images/diagramas/tikz/estilos}
+\definecolor{cF}{HTML}{E3F0E3}\definecolor{cD}{HTML}{F6E4E1}\definecolor{cO}{HTML}{E1ECF6}\definecolor{cA}{HTML}{F8EEDA}
+\tikzset{cuad/.style={draw=black!45, line width=0.4pt, inner sep=5pt, anchor=north west, font=\footnotesize, text width=7.4cm, align=left, minimum height=5.2cm},
+ eje/.style={font=\footnotesize\bfseries, text=black!75, align=center}}
+\newcommand{\itf}[1]{\par\hangindent=1em\hangafter=1 $\bullet$~#1}
+\node[cuad, fill=cF] (F) at (0,0) {\textbf{\textcolor{acento}{Fortalezas}}
+\itf{Separación decisión-aplicación; respuesta en el \emph{endpoint}.}
+\itf{Agente liviano y configurable nativo.}
+\itf{Umbrales y acciones editables desde el \emph{dashboard}.}
+\itf{Costos no atados al volumen ingerido.}
+\itf{Notificación con variables que explican cada alerta.}};
+\node[cuad, fill=cD] (D) at (7.4,0) {\textbf{\textcolor{acento}{Debilidades}}
+\itf{Producto nuevo, sin trayectoria ni certificaciones.}
+\itf{No es un SIEM completo.}
+\itf{Capacidad de detección todavía limitada.}
+\itf{Sin canal comercial ni soporte 24/7.}
+\itf{Menor ecosistema de integraciones prearmadas.}};
+\node[cuad, fill=cO] (O) at (0,-5.2) {\textbf{\textcolor{acento}{Oportunidades}}
+\itf{Segmento PyME desatendido.}
+\itf{Mercado Zero Trust/UEBA en expansión.}
+\itf{Complemento de soluciones IAM existentes.}};
+\node[cuad, fill=cA] (A) at (7.4,-5.2) {\textbf{\textcolor{acento}{Amenazas}}
+\itf{Sentinel percibido como incluido sin costo.}
+\itf{Competidores ofrecen solución todo en uno.}
+\itf{Innovación en IA: riesgo de desactualización.}
+\itf{Requisitos regulatorios sin certificaciones.}};
+\node[eje, rotate=90] at (-0.5,-2.6) {Factores internos};
+\node[eje, rotate=90] at (-0.5,-7.8) {Factores externos};
+\node[eje] at (3.7,0.5) {Favorables};
+\node[eje] at (11.1,0.5) {Desfavorables};
+\end{tikzpicture}
+\end{adjustbox}
