@@ -15,7 +15,7 @@ El sistema no es una aplicación monolítica sino un conjunto de componentes con
 	\item \textbf{Público:} solo accede a la salud del servicio y al inicio y cierre de sesión.
 \end{itemize}
 
-El flujo principal comienza en el agente, que captura un evento y lo envía a la API. La API lo valida, actualiza el estado del usuario en Redis, persiste el evento crudo en PostgreSQL, calcula el puntaje y responde con el nivel y la acción. El agente ejecuta la acción y confirma el resultado. En paralelo, el \emph{dashboard} consulta periódicamente la API para mostrar el estado actualizado, y el planificador de la API dispara el reentrenamiento cuando corresponde.
+El flujo principal comienza en el agente, que captura un evento y lo envía a la API. La API lo valida, actualiza el estado del usuario en Redis, persiste el evento crudo en PostgreSQL, calcula el puntaje y responde con el nivel y la acción. El agente ejecuta la acción y, si modifica el equipo, confirma el resultado. En paralelo, el \emph{dashboard} consulta periódicamente la API para mostrar el estado actualizado, y el planificador de la API dispara el reentrenamiento cuando corresponde.
 
 \section{Lenguajes de programación}
 \label{sec:lenguajes}

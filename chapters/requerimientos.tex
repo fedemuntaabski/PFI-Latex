@@ -156,7 +156,7 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\endhead
 	RF-18 & El administrador debe poder configurar la periodicidad (1 a 365 días) y la ventana horaria del reentrenamiento; el planificador solo dispara el proceso dentro de esa ventana. & Baja & Implementado \\
 	\hline
-	RF-19 & El sistema debe registrar los eventos crudos que recibe y, en cada reentrenamiento, exportar todos los acumulados (sin los de prueba y demostración) junto con el conjunto de datos original, como insumo del \emph{pipeline} de reentrenamiento. & Alta & Implementado \\
+	RF-19 & El sistema debe registrar los eventos crudos que recibe y, en cada reentrenamiento, exportar todos los acumulados (sin los de prueba, de demostración ni las repeticiones del conjunto original) junto con el conjunto de datos original, como insumo del \emph{pipeline} de reentrenamiento. & Alta & Implementado \\
 	\hline
 	RF-20 & El reentrenamiento debe ejecutarse en un proceso aislado del que atiende producción, disparado por un planificador cuando se cumple la periodicidad configurada. & Alta & Implementado \\
 	\hline
