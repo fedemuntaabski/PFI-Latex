@@ -1,0 +1,12 @@
+flowchart LR
+    R[("Redis (Upstash)<br/>prefijo scoring:")]
+    E["Estado por usuario<br/>{uid}: estado en JSON<br/>{uid}:eventos: lista reciente<br/>{uid}:notif_cooldown: 600 s"]
+    D["Deduplicación<br/>dedup:{sha256}: respuesta cacheada, 6 h"]
+    A["Autenticación<br/>agent_key:{sha256}: key del agente<br/>session:{sha256}: sesión del dashboard, 8 h"]
+    I["Identidad (IAM)<br/>iam_cache:{uid}: rol y departamento<br/>iam_keycloak_token:{client_id}: token"]
+    C["Configuración<br/>config:umbrales, acciones, reentrenamiento,<br/>emails_admin, notif_niveles, eventos_recientes,<br/>umbral_aprendizaje, iam"]
+    R --- E
+    R --- D
+    R --- A
+    R --- I
+    R --- C

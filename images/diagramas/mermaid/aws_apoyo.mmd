@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph AWS["AWS · región us-east-2"]
+        direction LR
+        ROLE["Rol IAM de la instancia<br/>lee los parámetros y<br/>el bucket de deploy"]
+        SSM["SSM Parameter Store<br/>11 parámetros SecureString"]
+        SM["Session Manager y Run Command<br/>sin SSH"]
+        S3D["S3 deploy<br/>releases de la API<br/>y del dashboard"]
+        EC2["EC2 t3.medium<br/>apagada por defecto"]
+        S3F["S3 frontend + OAC<br/>privado, sin uso"]
+        CF["CloudFront<br/>definido en Terraform,<br/>no desplegado"]
+        ROLE -.->|"perfil de instancia"| EC2
+        SSM -->|"secretos"| EC2
+        SM -->|"administración"| EC2
+        S3D -->|"descarga"| EC2
+        CF -.-> S3F
+        CF -.->|"/api/*"| EC2
+    end
+    classDef off fill:#eee,stroke:#888,stroke-dasharray:5 4,color:#444
+    class CF,S3F off
+    style EC2 stroke-dasharray:6 4

@@ -1,0 +1,34 @@
+erDiagram
+    historial_politicas {
+        BIGSERIAL id PK
+        TEXT form
+        TEXT actor
+        JSONB before_json
+        JSONB after_json
+    }
+    historial_reentrenamientos {
+        BIGSERIAL id PK
+        DATE fecha
+        INTEGER cantidad_eventos
+        TEXT variacion_metrica
+        TEXT actor
+    }
+    metricas_modelo {
+        BIGSERIAL id PK
+        TEXT modelo
+        DOUBLE metrica_valor
+        INTEGER cantidad_muestras
+        BOOLEAN es_vigente
+        TEXT rol
+        JSONB metricas
+        TEXT motivo
+    }
+    historial_agent_keys {
+        BIGSERIAL id PK
+        TEXT agent_id
+        TEXT key_hash
+        TEXT accion
+        TEXT actor
+    }
+    historial_reentrenamientos ||..o{ metricas_modelo : "lógica"
+    historial_politicas }o..o{ historial_agent_keys : "actor (lógica)"

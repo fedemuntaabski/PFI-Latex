@@ -1,0 +1,29 @@
+classDiagram
+    direction LR
+    class EventoIn {
+        id
+        time
+        uid
+        uidType
+        type
+        params
+        location
+    }
+    class EventoScoreOut {
+        uid
+        risk_score_hibrido
+        nivel_sugerido
+        cobertura
+        accion_sugerida
+        en_aprendizaje
+    }
+    class FeatureContribucion
+    class EventoRecienteItem
+    class HistorialScoreItem
+    class UsuarioResumen
+    class UsuariosListOut
+    class ConfirmarAccionIn
+    EventoScoreOut o-- FeatureContribucion
+    EventoRecienteItem o-- FeatureContribucion : explicacion
+    UsuariosListOut o-- UsuarioResumen
+    EventoIn ..> EventoScoreOut : POST /eventos

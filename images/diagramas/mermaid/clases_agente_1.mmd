@@ -1,0 +1,46 @@
+classDiagram
+    direction LR
+    class AgentConfig {
+        <<dataclass frozen>>
+        uid
+        country
+        api_url
+        api_key
+        watch_dirs
+        validate()
+    }
+    class Signal {
+        <<dataclass frozen>>
+        event_type
+        params
+        dedup_key
+    }
+    class Debouncer {
+        allow(signal) bool
+    }
+    class EventFactory {
+        build(signal) dict
+    }
+    class FileSystemCollector {
+        poll() list~Signal~
+    }
+    class ProcessCollector {
+        poll() list~Signal~
+    }
+    class AppAccessCollector {
+        poll() list~Signal~
+    }
+    class NetworkCollector {
+        poll() list~Signal~
+    }
+    class process_filter {
+        <<module>>
+    }
+    FileSystemCollector ..> Signal
+    ProcessCollector ..> Signal
+    AppAccessCollector ..> Signal
+    NetworkCollector ..> Signal
+    NetworkCollector ..> process_filter
+    Debouncer ..> Signal
+    EventFactory ..> Signal : build
+    EventFactory ..> AgentConfig : uid y agent_id

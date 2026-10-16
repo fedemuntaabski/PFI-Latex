@@ -1,0 +1,37 @@
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
+flowchart TB
+    subgraph EQ["Equipo del usuario (Windows)"]
+        AG["Agente PEP<br/>collectors, debouncer, enforcer y cliente"]
+    end
+    DASH["Dashboard<br/>React"]
+    subgraph API["API PDP (FastAPI)"]
+        direction TB
+        RT["Rutas y esquemas<br/>validación"]
+        AUTH["Autenticación<br/>key por agente,<br/>tiers y sesión"]
+        HYB["Servicio híbrido<br/>puntaje y nivel"]
+        ML["Modelos<br/>Isolation Forest, LSTM,<br/>baseline, drift"]
+        IAMA["Adaptador IAM<br/>Mock, Keycloak,<br/>Entra, cadena"]
+        NOTI["Notificaciones"]
+        SCH["Reentrenamiento y<br/>gate de promoción"]
+        RT --> AUTH
+        RT --> HYB
+        HYB --> ML
+        HYB --> IAMA
+        HYB --> NOTI
+        RT --> SCH
+        SCH --> ML
+    end
+    AG -->|"REST, HTTPS"| RT
+    DASH -->|"REST, HTTPS"| RT
+    RED[("Redis (Upstash)<br/>estado, config, sesiones y keys")]
+    PG[("Postgres (Supabase)<br/>historial, eventos con<br/>hash chain y auditoría")]
+    KC["Keycloak<br/>proveedor IAM"]
+    MAIL["SMTP y Gemini<br/>opcionales"]
+    HYB --> RED
+    AUTH --> RED
+    HYB --> PG
+    SCH --> PG
+    IAMA --> KC
+    NOTI --> MAIL
+    classDef opt fill:#fff,stroke:#666,stroke-dasharray:5 4
+    class KC,MAIL opt

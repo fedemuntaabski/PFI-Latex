@@ -1,0 +1,43 @@
+classDiagram
+    direction TB
+    class cfg["cfg : AgentConfig"] {
+        uid = "demo-pfi"
+        country = "AR"
+        hora_simulada = 11
+        dry_run_enforcement = true
+    }
+    class ultimoEvento["ultimoEvento : EventoIn"] {
+        uid = "demo-pfi"
+        type = "app_enabled"
+        time = "2026-08-10T14:02:46Z"
+        location.countryCode = "RU"
+    }
+    class verdict["verdict : EventoScoreOut"] {
+        risk_score_hibrido = 89.32
+        nivel_sugerido = "alto"
+        cobertura = "completa"
+        accion_id = "terminar_procesos"
+    }
+    class estado["estado : UserScoringState"] {
+        total_events = 119
+        last_day_score = 89.32
+        last_nivel_sugerido = "alto"
+        last_accion_id = "terminar_procesos"
+    }
+    class continuity["continuity : ContinuityState"] {
+        last_country = "RU"
+    }
+    class iso_day["iso_day : IsoDayState"] {
+        date = "2026-08-10"
+        n_events = 119
+        n_file_events = 11
+    }
+    class lstm["lstm : LstmState"] {
+        chunks_completed = 2
+    }
+    cfg ..> ultimoEvento : el agente construye y envía
+    ultimoEvento ..> verdict : la API responde
+    ultimoEvento ..> estado : actualiza
+    estado *-- continuity
+    estado *-- iso_day
+    estado *-- lstm

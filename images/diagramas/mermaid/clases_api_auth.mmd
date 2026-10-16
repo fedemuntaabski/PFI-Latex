@@ -1,0 +1,28 @@
+classDiagram
+    direction LR
+    class auth {
+        <<module>>
+        require_api_key()
+        require_agent_key()
+        require_admin_key()
+        autorizar_agente()
+        crear_sesion()
+        cerrar_sesion()
+    }
+    class config_store {
+        <<module>>
+        get_umbrales() set_umbrales()
+        get_iam_config() set_iam_config()
+    }
+    class iam_service {
+        <<module>>
+    }
+    class redis_state {
+        <<module>>
+        claves agent_key y session
+        claves config
+    }
+    auth ..> redis_state
+    config_store ..> redis_state
+    iam_service ..> redis_state : caché 30 min
+    iam_service ..> config_store : config iam

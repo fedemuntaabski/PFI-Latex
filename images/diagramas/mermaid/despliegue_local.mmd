@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph LOC["Equipo Windows de desarrollo"]
+        direction TB
+        AG["Agente PEP"]
+        API["API de scoring (uvicorn)<br/>127.0.0.1:8001"]
+        FE["Dashboard (servidor de desarrollo Vite)"]
+        IAM["IAM simulado o Keycloak<br/>opcional"]
+        AG -->|"POST /eventos<br/>loopback"| API
+        FE -->|"consulta cada 2 s"| API
+        API -.->|"IAM_PROVIDER"| IAM
+    end
+    UP[("Upstash Redis")]
+    SB[("Supabase Postgres")]
+    EXT["Gemini · SMTP<br/>opcionales"]
+    API --> UP
+    API --> SB
+    API -.-> EXT
+    classDef opt fill:#fff,stroke:#666,stroke-dasharray:5 4
+    class IAM,EXT opt

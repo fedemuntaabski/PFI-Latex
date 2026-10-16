@@ -1,0 +1,36 @@
+flowchart TB
+    BR["Navegador"]
+    AG["Agente PEP<br/>(equipo del usuario)"]
+    GHA["GitHub Actions<br/>solo CI"]
+    subgraph AWS["AWS · región us-east-2"]
+        direction TB
+        EIP["Elastic IP<br/>host IP.sslip.io"]
+        subgraph SG["Security Group: entrada 80 y 443, sin SSH"]
+            subgraph EC2["EC2 t3.medium · apagada por defecto"]
+                direction TB
+                CADDY["Caddy :80 y :443<br/>TLS Let's Encrypt"]
+                API["API de scoring<br/>127.0.0.1:8001"]
+                KC["Keycloak<br/>127.0.0.1:8080<br/>(opcional)"]
+                SPA["Dashboard<br/>estático"]
+                CADDY -->|"/api/*"| API
+                CADDY -->|"/auth/*"| KC
+                CADDY -->|"/*"| SPA
+            end
+        end
+        EIP --> CADDY
+    end
+    BR -->|"HTTPS 443"| EIP
+    AG -->|"HTTPS 443"| EIP
+    GHA -.->|"no despliega"| AWS
+    subgraph EXTS["Servicios externos"]
+        direction LR
+        UP[("Upstash<br/>Redis")]
+        SB[("Supabase<br/>Postgres")]
+        EXT["Gemini y SMTP<br/>(opcionales)"]
+    end
+    API --> UP
+    API --> SB
+    API -.-> EXT
+    classDef opt fill:#fff,stroke:#666,stroke-dasharray:5 4
+    class KC,EXT,GHA opt
+    style EC2 stroke-dasharray:6 4

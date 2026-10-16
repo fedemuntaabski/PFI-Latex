@@ -197,14 +197,14 @@ En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como pr
 
 \begin{figure}[ht]
 	\centering
-	\input{images/diagramas/tikz/despliegue_local}
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/despliegue_local.pdf}}
 	\caption{Arquitectura de despliegue local}
 	\label{fig:despliegue-local}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
 \subsection{Despliegue en la nube}
-La arquitectura de la nube, descripta con Terraform, ejecuta la API en una instancia de cómputo con un proxy inverso (Caddy) que termina TLS con un certificado obtenido por ACME, sirve el \emph{dashboard} y encamina a la API las solicitudes bajo \texttt{/api} (figura~\ref{fig:despliegue-aws}). Incorpora las siguientes decisiones de seguridad:
+La arquitectura de la nube, descripta con Terraform, ejecuta la API en una instancia de cómputo (t3.medium) con un proxy inverso (Caddy) que termina TLS con un certificado obtenido por ACME, sirve el \emph{dashboard} y encamina a la API las solicitudes bajo \texttt{/api} (figura~\ref{fig:despliegue-aws}). Incorpora las siguientes decisiones de seguridad:
 \begin{itemize}
 	\item La API escucha solo en la interfaz local de la instancia; el acceso externo pasa por el proxy.
 	\item El acceso a los metadatos de la instancia exige la versión 2 del servicio, y el disco está cifrado.
@@ -216,11 +216,21 @@ La arquitectura de la nube, descripta con Terraform, ejecuta la API en una insta
 
 \begin{figure}[ht]
 	\centering
-	\input{images/diagramas/tikz/despliegue_aws}
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/aws_despliegue.pdf}}
 	\caption{Arquitectura de despliegue en la nube}
 	\label{fig:despliegue-aws}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/aws_apoyo.pdf}}
+	\caption{Recursos de apoyo de la instancia en la nube}
+	\label{fig:despliegue-aws-apoyo}
+	{\small Fuente: elaboración propia.\par}
+\end{figure}
+
+La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y, definidos en Terraform pero sin desplegar, CloudFront y el bucket del \emph{dashboard}. La instancia se mantiene apagada por defecto y, cuando se enciende, conserva la misma dirección IP.
 
 La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado.
 
@@ -235,13 +245,13 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\textbf{Recurso} & \textbf{Diseño} & \textbf{Estado} \\
 	\hline
 	\endhead
-	Instancia de cómputo de la API & Servidor Linux con la API como servicio del sistema, sin contenedores & Creada; se mantiene apagada fuera de las pruebas para limitar el costo; tras detenerla y arrancarla, el proxy y la API vuelven a funcionar solos \\
+	Instancia de cómputo de la API & Servidor Linux (t3.medium) con la API como servicio del sistema, sin contenedores & Creada; se mantiene apagada fuera de las pruebas para limitar el costo; tras detenerla y arrancarla, el proxy y la API vuelven a funcionar solos \\
 	\hline
 	Proxy inverso con TLS (Caddy) & TLS con certificado ACME; \emph{dashboard} y API bajo \texttt{/api} & Verificado el 6 de octubre de 2026: la verificación de estado de la API responde por HTTPS con TLS verificado y los artefactos cargados; el \emph{dashboard} se sirve por HTTPS; HTTP redirige a HTTPS; la documentación interactiva no está expuesta \\
 	\hline
 	Dirección IP fija, rol de acceso y parámetros de configuración & Identidad de la instancia y secretos administrados & Creados \\
 	\hline
-	\emph{Buckets} de almacenamiento & \emph{Dashboard} estático y versiones publicadas de la API & Creados \\
+	\emph{Buckets} de almacenamiento & Versiones publicadas de la API y del \emph{dashboard} (bucket de versiones) y origen del \emph{dashboard} con red de distribución (bucket del \emph{dashboard}) & Creados; solo se usa el de versiones: el \emph{dashboard} llega a la instancia por ese bucket y lo sirve el proxy, y el bucket del \emph{dashboard} queda sin uso \\
 	\hline
 	Red de distribución de contenidos & Prevista inicialmente para HTTPS & No utilizada: reemplazada por el proxy en la instancia \\
 	\hline

@@ -1,0 +1,28 @@
+classDiagram
+    direction TB
+    class IAMProvider {
+        <<Protocol>>
+        resolve(uid)
+        aplicar_riesgo(uid, nivel, revocar_sesiones)
+    }
+    class MockIAMProvider
+    class KeycloakIAMProvider
+    class EntraIAMProvider
+    class ChainIAMProvider {
+        el primero que conoce al uid gana
+    }
+    class get_iam_provider {
+        <<function>>
+    }
+    class iam_service {
+        <<module>>
+        resolver_rol_departamento()
+        sincronizar_riesgo_iam()
+    }
+    IAMProvider <|.. MockIAMProvider
+    IAMProvider <|.. KeycloakIAMProvider
+    IAMProvider <|.. EntraIAMProvider
+    IAMProvider <|.. ChainIAMProvider
+    ChainIAMProvider o-- IAMProvider
+    get_iam_provider ..> ChainIAMProvider
+    iam_service ..> get_iam_provider

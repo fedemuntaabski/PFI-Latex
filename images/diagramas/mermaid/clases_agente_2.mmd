@@ -1,0 +1,45 @@
+classDiagram
+    direction TB
+    class AgentMain {
+        <<module>>
+        run(cfg) int
+        handle_signal()
+    }
+    class ScoringClient {
+        <<dataclass>>
+        api_url
+        api_key
+        breaker_threshold
+        breaker_open
+        post_event(event) dict
+        confirmar_accion()
+    }
+    class event_buffer {
+        <<module>>
+        append_event()
+        flush_pending(client)
+    }
+    class Enforcer {
+        apply(nivel, accion_id) list
+        revert() list
+        resume_suspended_processes()
+    }
+    class EnforcementPolicy {
+        <<dataclass frozen>>
+        process_markers
+        protected_path
+        acl_backup_path
+    }
+    class RevertOutcome {
+        <<dataclass>>
+    }
+    class process_filter {
+        <<module>>
+    }
+    AgentMain --> ScoringClient
+    AgentMain --> Enforcer
+    AgentMain --> event_buffer
+    event_buffer ..> ScoringClient : flush_pending
+    Enforcer --> EnforcementPolicy
+    Enforcer --> RevertOutcome
+    Enforcer ..> process_filter

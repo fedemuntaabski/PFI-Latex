@@ -1,0 +1,30 @@
+classDiagram
+    direction LR
+    class UmbralesConfig {
+        RootModel
+        nivel a rango
+    }
+    class UmbralesPutIn {
+        umbrales
+        acciones
+        notif_niveles
+    }
+    class AccionesConfig {
+        RootModel
+        nivel a accion
+    }
+    class ReentrenamientoConfig {
+        periodo_dias
+        reentrenamiento_automatico
+        ventana_horaria
+    }
+    class AprendizajeConfig {
+        umbral
+    }
+    class NotificacionesConfig
+    class IAMConfig {
+        proveedores
+    }
+    class ReadinessStatus
+    UmbralesPutIn ..> UmbralesConfig
+    UmbralesPutIn ..> AccionesConfig

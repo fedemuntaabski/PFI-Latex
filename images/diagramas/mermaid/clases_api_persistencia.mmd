@@ -1,0 +1,40 @@
+classDiagram
+    direction TB
+    class routes {
+        <<APIRouter>>
+    }
+    class hybrid_service {
+        <<module>>
+    }
+    class dedup_service {
+        <<module>>
+    }
+    class history_store {
+        <<module>>
+        SQLAlchemy text()
+    }
+    class notifications {
+        <<module>>
+        SMTP y Gemini opcional
+    }
+    class reentrenamiento_scheduler {
+        <<module>>
+        loop_reentrenamiento_periodico()
+    }
+    class metricas_service {
+        <<module>>
+        comparar_y_promover()
+    }
+    class artifacts {
+        <<module>>
+        load_artifacts()
+        reload_artifacts()
+    }
+    routes ..> dedup_service
+    routes ..> hybrid_service
+    hybrid_service ..> history_store
+    hybrid_service ..> notifications
+    reentrenamiento_scheduler ..> metricas_service
+    reentrenamiento_scheduler ..> history_store
+    metricas_service ..> history_store
+    metricas_service ..> artifacts : hot-swap

@@ -174,19 +174,19 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 
 \begin{figure}[ht]
 	\centering
-	\input{images/diagramas/tikz/er_scoring_eventos}
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_scoring_eventos.pdf}}
 	\caption{Modelo relacional: puntajes, eventos crudos y alertas de corrimiento}
 	\label{fig:er-scoring}
-	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now().\par}
+	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). En \texttt{historial\_\allowbreak{}scores}, UNIQUE(uid, fecha). \texttt{drift\_\allowbreak{}alerts.lado}: iso \textbar{} lstm. Un disparador completa \texttt{row\_\allowbreak{}hash} y \texttt{prev\_\allowbreak{}hash}.\par}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
 \begin{figure}[ht]
 	\centering
-	\input{images/diagramas/tikz/er_config_modelos}
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_config_modelos.pdf}}
 	\caption{Modelo relacional: auditoría, reentrenamientos, métricas y claves de agentes}
 	\label{fig:er-config}
-	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now().\par}
+	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). \texttt{historial\_\allowbreak{}politicas.form}: umbrales \textbar{} acciones \textbar{} reentrenamiento. \texttt{metricas\_\allowbreak{}modelo.modelo}: iso \textbar{} lstm \textbar{} benchmark\_dev; \texttt{rol}: candidato \textbar{} vigente. \texttt{historial\_\allowbreak{}agent\_\allowbreak{}keys.accion}: alta \textbar{} revocacion.\par}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
@@ -195,7 +195,7 @@ Las tablas no tienen claves foráneas: se relacionan lógicamente a través del 
 La integridad de los eventos crudos se garantiza con una cadena de \emph{hashes} por usuario. Un disparador de la base de datos calcula, antes de cada inserción, el \emph{hash} SHA-256 de la fila a partir de sus campos y del \emph{hash} de la fila anterior del mismo usuario. Si se modifica o elimina una fila, la cadena deja de verificarse a partir de ese punto.
 
 \subsection{Modelo no relacional}
-Redis almacena quince tipos de clave, agrupados en la tabla~\ref{tab:claves-redis}. Ninguna utiliza la expiración nativa de Redis: cuando una clave debe vencer, la fecha de vencimiento se guarda dentro del valor y se verifica al leerla. Esta decisión permite ejecutar las pruebas con un Redis simulado en memoria con el mismo comportamiento. El estado de cada usuario se actualiza con transacciones optimistas, con reintentos ante escrituras concurrentes, lo que sostiene el requerimiento RNF-14.
+Redis almacena dieciséis tipos de clave, agrupados en la tabla~\ref{tab:claves-redis}. Casi ninguna utiliza la expiración nativa de Redis: cuando una clave debe vencer, la fecha de vencimiento se guarda dentro del valor y se verifica al leerla; la deduplicación es la excepción, porque además de guardar el vencimiento usa la expiración nativa. Esta decisión permite ejecutar las pruebas con un Redis simulado en memoria con el mismo comportamiento. El estado de cada usuario se actualiza con transacciones optimistas, con reintentos ante escrituras concurrentes, lo que sostiene el requerimiento RNF-14.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{7.2cm}>{\raggedright\arraybackslash}p{3.5cm}}
 	\caption{Claves de Redis agrupadas por función}
@@ -222,7 +222,7 @@ Redis almacena quince tipos de clave, agrupados en la tabla~\ref{tab:claves-redi
 	\hline
 	Caché IAM & Rol y departamento del usuario, y \emph{token} de acceso al proveedor & 30 minutos para el rol (1 minuto ante fallas); el \emph{token}, según su vencimiento \\
 	\hline
-	Configuración & Umbrales, acciones por nivel, niveles que notifican, destinatarios, reentrenamiento, límite de eventos recientes y umbral de aprendizaje & Permanente \\
+	Configuración & Umbrales, acciones por nivel, niveles que notifican, destinatarios, reentrenamiento, límite de eventos recientes, umbral de aprendizaje y proveedores de identidad & Permanente \\
 	\hline
 \end{longtable}
 

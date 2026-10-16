@@ -1,0 +1,43 @@
+classDiagram
+    direction LR
+    class hybrid_service {
+        <<module>>
+        process_event()
+    }
+    class isoforest_service {
+        <<module>>
+    }
+    class lstm_service {
+        <<module>>
+    }
+    class personal_baseline_service {
+        <<module>>
+    }
+    class drift_service {
+        <<module>>
+    }
+    class explainability {
+        <<module>>
+    }
+    class Artifacts {
+        <<dataclass singleton>>
+    }
+    class IsoForestResult
+    class LstmChunkResult
+    class LstmUserRisk
+    class DailyAggregateAccumulator
+    class DriftFinding
+    class FeatureContribucion
+    hybrid_service ..> isoforest_service
+    hybrid_service ..> lstm_service
+    hybrid_service ..> personal_baseline_service
+    hybrid_service ..> drift_service
+    hybrid_service ..> explainability
+    isoforest_service --> IsoForestResult
+    isoforest_service --> DailyAggregateAccumulator
+    lstm_service --> LstmChunkResult
+    lstm_service --> LstmUserRisk
+    drift_service --> DriftFinding
+    explainability --> FeatureContribucion
+    isoforest_service ..> Artifacts
+    lstm_service ..> Artifacts

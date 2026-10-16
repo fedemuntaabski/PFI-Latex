@@ -1,0 +1,32 @@
+classDiagram
+    direction TB
+    class UserScoringState {
+        total_events
+        last_risk_score_hibrido
+        last_nivel_sugerido
+        last_cobertura
+        last_accion_id
+    }
+    class ContinuityState
+    class LstmState
+    class IsoDayState
+    class HybridAnchorState
+    class PersonalBaselineState
+    class WelfordStat
+    class redis_state {
+        <<module>>
+        load_state()
+        update_state()
+        push_recent_event()
+    }
+    class InMemoryRedis {
+        SCORING_FAKE_REDIS
+    }
+    UserScoringState *-- ContinuityState
+    UserScoringState *-- LstmState
+    UserScoringState *-- IsoDayState
+    UserScoringState *-- HybridAnchorState
+    UserScoringState *-- PersonalBaselineState
+    PersonalBaselineState o-- WelfordStat : 16 features
+    redis_state ..> UserScoringState
+    redis_state ..> InMemoryRedis

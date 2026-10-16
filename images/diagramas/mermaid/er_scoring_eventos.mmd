@@ -1,0 +1,32 @@
+erDiagram
+    historial_scores {
+        BIGSERIAL id PK
+        TEXT uid
+        DATE fecha
+        DOUBLE risk_score_hibrido
+        TEXT nivel_sugerido
+        TEXT cobertura
+        TEXT accion_sugerida
+        BOOLEAN cierre_de_dia
+        JSONB explicacion
+        TEXT motivo
+    }
+    eventos_crudos {
+        BIGSERIAL id PK
+        TEXT uid
+        TIMESTAMPTZ ts
+        TEXT tipo_evento
+        JSONB payload
+        TEXT row_hash
+        TEXT prev_hash
+    }
+    drift_alerts {
+        BIGSERIAL id PK
+        TEXT uid
+        DATE fecha
+        TEXT lado
+        JSONB features
+        DOUBLE corrimiento_max
+    }
+    historial_scores }o..o{ eventos_crudos : "uid (lógica)"
+    historial_scores }o..o{ drift_alerts : "uid (lógica)"

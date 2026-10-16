@@ -1,0 +1,21 @@
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
+flowchart TB
+    AG["Agente PEP<br/>lee las señales del sistema operativo<br/>(archivos, procesos, aplicaciones y red)<br/>y arma el evento"]
+    CLI["ScoringClient<br/>buffer JSONL si falla el envío<br/>circuit breaker ante 401 o 403"]
+    PRE["API PDP · entrada<br/>1. validar esquema<br/>2. autorizar la key del agente<br/>3. deduplicar por hash"]
+    NIV["Puntuar con Isolation Forest, LSTM<br/>y línea base personal<br/>Asignar nivel y acción (3 a 6 niveles,<br/>regla de piso; en calibración, acción atenuada)"]
+    RED[("Redis<br/>estado")]
+    PG[("Postgres<br/>eventos con<br/>hash chain")]
+    IAM["IAM<br/>rol y nivel"]
+    NOT["Notificación<br/>SMTP · Gemini"]
+    ENF["Enforcer<br/>aplica el veredicto<br/>en el equipo"]
+    AG --> CLI
+    CLI -->|"POST /eventos, HTTPS"| PRE
+    PRE --> NIV
+    NIV --> RED
+    NIV --> PG
+    NIV -.-> IAM
+    NIV -.-> NOT
+    NIV --> ENF
+    classDef opt fill:#fff,stroke:#666,stroke-dasharray:5 4
+    class IAM,NOT opt
