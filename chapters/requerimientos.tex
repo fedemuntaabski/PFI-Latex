@@ -1,15 +1,15 @@
 \chapter{Requerimientos, casos de uso e historias de usuario}
 \label{chap:requerimientos}
 
-Este capítulo presenta los requerimientos del sistema. Se definen el alcance del relevamiento y los actores, los requerimientos funcionales y no funcionales, los casos de uso, las historias de usuario y la matriz de trazabilidad que los relaciona.
+Esta sección presenta los requerimientos del sistema. Se definen el alcance del relevamiento y los actores, los requerimientos funcionales y no funcionales, los casos de uso, las historias de usuario y la matriz de trazabilidad que los relaciona.
 
 \section{Alcance del relevamiento}
 \label{sec:alcance-relevamiento}
-Este capítulo presenta el análisis funcional del sistema: un agente local que actúa como Punto de Cumplimiento de Políticas (PEP) y recolecta telemetría de actividad, una API central que actúa como Punto de Decisión de Políticas (PDP) y calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder, y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. La separación entre el punto de decisión y el punto de aplicación de políticas sigue los lineamientos de NIST SP~800-207 \parencite{Rose2020}.
+Esta sección presenta el análisis funcional del sistema: un agente local que actúa como Punto de Cumplimiento de Políticas (PEP) y recolecta telemetría de actividad, una API central que actúa como Punto de Decisión de Políticas (PDP) y calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder, y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. La separación entre el punto de decisión y el punto de aplicación de políticas sigue los lineamientos de NIST SP~800-207 \parencite{Rose2020}.
 
 El análisis se organiza en cuatro casos de uso que cubren la lógica de negocio completa: detección y mitigación (CU-01), ajuste de políticas (CU-02), reentrenamiento periódico del modelo (CU-03) y alta de usuarios nuevos con período de aprendizaje (CU-04). La integración con sistemas de gestión de identidad (IAM) se trata como un módulo transversal. Los requerimientos se presentan en tablas por módulo, seguidos de los requerimientos no funcionales, los casos de uso, las historias de usuario y una matriz de trazabilidad.
 
-Cada requerimiento indica su prioridad y su estado de implementación según la siguiente convención: \emph{Implementado} (cumple lo especificado), \emph{Parcial} (cumple con una limitación declarada), \emph{No implementado} y \emph{No verificable} (no existe todavía un criterio medible para evaluarlo). Las limitaciones declaradas se retoman en el capítulo de producto implementado y en las conclusiones. Cuando un requerimiento cumple lo especificado pero su verificación es limitada (sin prueba contra un servicio real o sin prueba automatizada), esa limitación se indica junto al estado sin modificarlo.
+Cada requerimiento indica su prioridad y su estado de implementación según la siguiente convención: \emph{Implementado} (cumple lo especificado), \emph{Parcial} (cumple con una limitación declarada), \emph{No implementado} y \emph{No verificable} (no existe todavía un criterio medible para evaluarlo). Las limitaciones declaradas se retoman en la sección de producto implementado y en las conclusiones. Cuando un requerimiento cumple lo especificado pero su verificación es limitada (sin prueba contra un servicio real o sin prueba automatizada), esa limitación se indica junto al estado sin modificarlo.
 
 \section{Actores del sistema}
 \label{sec:actores}
@@ -253,7 +253,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado: el estado de cada usuario se guarda en claves separadas y se actualiza con transacciones optimistas con reintentos; verificado con un ensayo manual de contención sobre un usuario, sin prueba automatizada con varios usuarios \\
 	\hline
-	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado; evaluación heurística en el capítulo de pruebas \\
+	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado; evaluación heurística en la sección de pruebas \\
 	\hline
 \end{longtable}
 
