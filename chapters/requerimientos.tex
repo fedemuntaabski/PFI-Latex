@@ -231,7 +231,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado (ver nota a) \\
 	\hline
-	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
+	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado (ver nota c) \\
 	\hline
 	RNF-05 & Disponibilidad & Ante una caída de la API o un error de autenticación, el agente continúa el monitoreo y conserva los eventos no enviados en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos), que reenvía al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
@@ -262,6 +262,8 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 \noindent a) Implementado: el panel se autentica con usuario y contraseña, que son obligatorias (se rechazan los valores de ejemplo y los marcadores de posición). El inicio de sesión devuelve un token de sesión opaco y aleatorio de 256~bits, del que la API guarda solo el \emph{hash} junto con el rol y el vencimiento (8 horas); el token se invalida al cerrar sesión y el rol operador no accede a los \emph{endpoints} de administración (403). Las claves fijas de los niveles de acceso no viajan al navegador ni se incluyen en el \emph{bundle} del \emph{frontend}. Limitación: el token se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión; no se implementa una política de seguridad de contenido (CSP) que lo mitigue.
 
 \noindent b) Implementado: la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo tomado antes de aplicarla (\texttt{icacls /save} y \texttt{/restore}), con lo que se preservan las denegaciones que el usuario ya tenía; la suspensión de procesos se revierte reanudándolos. La terminación de procesos no es reversible por limitación del sistema operativo. La prueba manual de reversión dio resultado satisfactorio en una consola elevada: \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador.
+
+\noindent c) El agente conserva un mapeo de respaldo de nivel a acción para respuestas que no traigan acción. Con la API vigente no se ejecuta, porque toda respuesta con nivel incluye la acción decidida por el PDP (sección~\ref{sec:limitaciones-producto}).
 
 \section{Casos de uso}
 \label{sec:casos-de-uso}

@@ -140,7 +140,7 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         controles contra el servicio real (sección~\ref{sec:prompt-injection}).
   \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09), al descarte del \emph{buffer} local (RNF-05) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
         el Redis gestionado y varios agentes concurrentes.
-  \item \textbf{Seguridad}: implementar la autenticación mutua por certificado (un segundo sitio del
+  \item \textbf{Seguridad}: implementar la autenticación mutua por certificado y la firma de las respuestas del PDP (un segundo sitio del
         proxy en un subdominio, con una autoridad certificadora propia y la huella del certificado
         asociada a la clave del agente), rechazar la clave de administración en el nivel de los agentes, hacer que el panel vuelva al inicio de sesión cuando el \emph{token} vence, agregar una política de seguridad de contenido al
         \emph{dashboard} e integrar un proveedor de identidad real (sección~\ref{sec:sintesis-limitaciones}).

@@ -268,7 +268,7 @@ el conjunto de datos de autenticación de Los Alamos National Laboratory (LANL)
 red team sobre más de 7,6 millones de sesiones, exigirían técnicas de balanceo de clases. Se
 descarta porque sus etiquetas corresponden a otro conjunto de datos y a otra unidad de análisis
 (la sesión, no el usuario-día); en consecuencia, ninguna fase del \emph{pipeline} vigente utiliza
-esas etiquetas. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
+esas etiquetas. Como ambos modelos son no supervisados, el entrenamiento no aplica técnicas de sobremuestreo ni de balanceo de clases. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
 comportamiento del modelo sobre datos sin etiquetar con la detección de escenarios de ataque
 inyectados (sección~\ref{sec:validacion-escenarios}).
 
