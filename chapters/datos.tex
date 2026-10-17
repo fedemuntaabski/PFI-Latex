@@ -11,11 +11,13 @@ Cada registro corresponde a un evento e incluye su tipo, la marca temporal, el i
 
 El conjunto no incluye etiquetas que indiquen qué eventos corresponden a actividad maliciosa. Esta característica condiciona el entrenamiento, que es no supervisado, y la evaluación del modelo, que se presenta en la sección~\ref{sec:evaluacion-modelo}.
 
-Los modelos vigentes se entrenan con una copia del conjunto a la que se suman 92 eventos registrados por la API durante las pruebas del sistema: 27 son reproducciones de eventos reales de CLUE-LDS, con su fecha original, generadas al repetir historiales en las pruebas de regresión, y 65 son eventos de prueba posteriores al período del conjunto. Ninguno corresponde a la actividad de un empleado. Los 27 duplicados llegan a los datos de entrenamiento: 25 en días de la partición de entrenamiento de Isolation Forest y 2 en la de prueba. De los 65 eventos de prueba, solo uno llega a las variables de Isolation Forest, como un par usuario-día de la partición de prueba, y ninguno a las secuencias del LSTM. La exportación del reentrenamiento excluye hoy ambos tipos de eventos (RF-19). Fuera de ellos, el entrenamiento utiliza exclusivamente registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos. Los conjuntos de prueba son particiones del mismo conjunto (sección~\ref{sec:particion-entrenamiento}). Los únicos datos construidos por el equipo son los escenarios de ataque que se inyectan sobre historiales reales para evaluar la detección (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}), y no se usan en ningún entrenamiento ni en las referencias de percentiles. El trabajo no dispone de ataques reales etiquetados, por lo que la capacidad de detección no está validada contra incidentes reales (sección~\ref{sec:limitaciones-pruebas}).
+Los modelos vigentes se entrenan exclusivamente con registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos, ni aplicar técnicas de balanceo de clases, dado que el conjunto no cuenta con etiquetas. Los conjuntos de prueba se obtienen mediante particiones de esos mismos datos (sección~\ref{sec:particion-entrenamiento}).
+
+Los únicos datos creados por el equipo corresponden a escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). Estos escenarios no se utilizan para entrenar los modelos ni para calcular los percentiles de referencia, sino para evaluar la detección mediante las métricas correspondientes. Sin embargo, como no se dispone de ataques reales etiquetados, la capacidad de detección aún no se ha validado frente a incidentes reales (sección~\ref{sec:limitaciones-pruebas}).
 
 \section{Selección y preparación}
 \label{sec:seleccion-datos}
-El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasifican según su volumen de actividad. No se descartan eventos por su contenido: solo se clasifican los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado. Las cifras corresponden al conjunto publicado; los eventos de prueba que se suman en el entrenamiento se describen en la sección~\ref{sec:dataset}.
+El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasifican según su volumen de actividad. No se descartan eventos por su contenido: solo se clasifican los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.0cm}}
 	\caption{Clasificación de los usuarios del conjunto de datos}
@@ -43,22 +45,10 @@ Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento 
 \section{Variables y modelos}
 \label{sec:variables-modelos}
 
-Esta sección describe las variables que utiliza cada modelo, Isolation Forest y LSTM Autoencoder, y luego la partición de los datos y los parámetros de entrenamiento.
-
 \subsection{Isolation Forest}
-Isolation Forest evalúa cada día de actividad de cada usuario. Para cada par usuario-día, tomando el día calendario en UTC, se calculan ocho variables:
-\begin{itemize}
-	\item cantidad de eventos;
-	\item cantidad de tipos de evento distintos;
-	\item cantidad de países distintos;
-	\item cantidad de eventos sobre archivos (acceso, creación y escritura);
-	\item cantidad de eventos de autenticación;
-	\item hora promedio de la actividad;
-	\item proporción de eventos fuera de horario (antes de las 7 o después de las 20);
-	\item entropía de la distribución de tipos de evento.
-\end{itemize}
+Isolation Forest evalúa la actividad de cada usuario por día calendario, tomando como referencia la zona horaria UTC. Para cada par usuario-día, se calculan ocho variables que caracterizan el comportamiento: la cantidad total de eventos, la diversidad de tipos de evento y de países, la cantidad de eventos relacionados con archivos (accesos, creaciones y escrituras) y de eventos de autenticación, la hora promedio de actividad, la proporción de eventos fuera del horario habitual (antes de las 7:00 o después de las 20:00) y la entropía de la distribución de los tipos de evento.
 
-Se utilizan los usuarios válidos y los de baja actividad: 908 usuarios de CLUE-LDS, más el usuario de prueba descrito en la sección~\ref{sec:dataset}, y 61\,284 pares usuario-día. Las variables se estandarizan antes del entrenamiento.
+El entrenamiento incluye usuarios válidos y usuarios con baja actividad. En total, se consideran 908 usuarios de CLUE-LDS, además del usuario de prueba descrito en la sección~\ref{sec:dataset}, lo que da como resultado 61\,284 pares usuario-día. Antes del entrenamiento, las ocho variables se estandarizan para que sus diferencias de escala no afecten al modelo.
 
 \subsection{LSTM Autoencoder}
 El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtienen 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
