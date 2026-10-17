@@ -42,7 +42,7 @@ Cada componente utiliza el lenguaje que mejor se ajusta a su función y a su ent
 	\hline
 \end{longtable}
 
-Se descarta un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implicaba más configuración y código para el alcance del proyecto.
+Se descarta un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implica más configuración y código para el alcance del proyecto.
 
 \section{Frameworks y librerías}
 \label{sec:frameworks}
@@ -257,18 +257,18 @@ La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado
 	\hline
 	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia; el reentrenamiento se ejecuta en el entorno local \\
 	\hline
-	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y verificado el 10 de octubre de 2026 con un agente real contra la instancia, con credencial individual; el inicio de sesión se verificó contra la API desplegada \\
+	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y verificado el 10 de octubre de 2026 con un agente real contra la instancia, con credencial individual; el inicio de sesión se verifica contra la API desplegada \\
 	\hline
 	Despliegue continuo & -- & No implementado: la integración continua no despliega \\
 	\hline
 \end{longtable}
 
-Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. El 10 de octubre de 2026 se verificó el canal de extremo a extremo con un agente real, que envió sus eventos por HTTPS con una credencial individual y llegó a ejecutar la acción del nivel crítico. El certificado es de Let's Encrypt, HTTP redirige con un 308, el puerto de la API está cerrado desde afuera y la documentación interactiva no está expuesta. La instancia se mantiene apagada fuera de las pruebas y las demostraciones.
+Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. El 10 de octubre de 2026 se verifica el canal de extremo a extremo con un agente real, que envía sus eventos por HTTPS con una credencial individual y llega a ejecutar la acción del nivel crítico. El certificado es de Let's Encrypt, HTTP redirige con un 308, el puerto de la API está cerrado desde afuera y la documentación interactiva no está expuesta. La instancia se mantiene apagada fuera de las pruebas y las demostraciones.
 
 \subsection{Contenedores}
 Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
 \begin{itemize}
-	\item El agente debe ejecutarse de forma nativa en Windows para acceder a los procesos y a los permisos del sistema de archivos, por lo que no podía formar parte de los contenedores.
+	\item El agente debe ejecutarse de forma nativa en Windows para acceder a los procesos y a los permisos del sistema de archivos, por lo que no puede formar parte de los contenedores.
 	\item Redis y PostgreSQL se reemplazan por servicios gestionados.
 	\item Ejecutar la API como servicio nativo en la instancia simplifica la administración con las herramientas del sistema operativo y del proveedor.
 \end{itemize}
@@ -306,7 +306,7 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 	\hline
 	Protocolo de PostgreSQL & API $\rightarrow$ PostgreSQL & Protocolo estándar, con grupo de conexiones y tiempos de espera acotados. \\
 	\hline
-	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, y el canal se verificó de extremo a extremo con un agente real el 10 de octubre de 2026. \\
+	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, y el canal se verifica de extremo a extremo con un agente real el 10 de octubre de 2026. \\
 	\hline
 	OAuth 2.0 con credenciales de cliente & API $\rightarrow$ Keycloak & Autenticación de la API ante el proveedor IAM, con el \emph{token} en caché hasta su vencimiento. \\
 	\hline
@@ -318,4 +318,4 @@ La tabla~\ref{tab:protocolos} resume los protocolos entre componentes.
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
-La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, y se verificó de extremo a extremo con un agente real.
+La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, y se verifica de extremo a extremo con un agente real.

@@ -26,7 +26,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Alcance de monitoreo & Amplio (no se limita a usuarios individuales) pero centralizado en la nube, sin agente propio en el endpoint \\
 	\hline
-	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (IsolationForest + LSTM) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
+	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest + LSTM) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
 	\hline
 \end{longtable}
 
@@ -168,7 +168,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Funcionalidad principal & \emph{Score} dinámico de confianza por usuario, actualizado por evento, con decaimiento temporal y continuidad entre sesiones \\
 	\hline
-	Tecnología / IA & Modelo híbrido propio: IsolationForest (agregado diario) + LSTM Autoencoder (secuencias), código propio auditable \\
+	Tecnología / IA & Modelo híbrido propio: Isolation Forest (agregado diario) + LSTM Autoencoder (secuencias), código propio auditable \\
 	\hline
 	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
 	\hline
@@ -183,7 +183,7 @@ describe el estado del arte; cuando una fuente no se pronuncia sobre una capacid
 
 \section{Matriz de capacidades}
 \label{sec:matriz-capacidades}
-Verificación explícita de qué cubre cada alternativa, usando solo lo que la sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento) en caso de no haber información acerca de estas. La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
+La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que la sección~\ref{sec:estado-del-arte} documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento). La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
 
 \begin{longtable}{p{2.5cm}p{1.8cm}p{1.8cm}p{2.0cm}p{2.4cm}p{2.8cm}}
 	\caption{Matriz de capacidades}
@@ -208,15 +208,15 @@ Verificación explícita de qué cubre cada alternativa, usando solo lo que la s
 	\hline
 	RADAC académico (ad-RACs) & \checkmark & \checkmark & \checkmark (por solicitud) & $\bigtriangleup$ (política de acceso, sin PEP físico) & N/D \\
 	\hline
-	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo IsolationForest, top-3 \emph{features} por \emph{z-score}; LSTM sin XAI propio) \\
+	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo Isolation Forest, las 3 variables con mayor \emph{z-score}; LSTM sin XAI propio) \\
 	\hline
 \end{longtable}
 
-\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura. Para los usuarios nuevos, el sistema aplica un período de aprendizaje (RF-24 y RF-25): hasta acumular el umbral de eventos configurado, el nivel de riesgo se informa normalmente, pero la acción se limita a alertar, salvo en los eventos de archivo, que siguen la política normal.
+\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las variables de Isolation Forest (las 3 de mayor \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura. Para los usuarios nuevos, el sistema aplica un período de aprendizaje (RF-24 y RF-25): hasta acumular el umbral de eventos configurado, el nivel de riesgo se informa normalmente, pero la acción se limita a alertar, salvo en los eventos de archivo, que siguen la política normal.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
-Profundiza lo señalado en la comparación general de alternativas (sección~\ref{sec:comparacion-general}) específicamente para el lado de IA/modelos, y muestra que la elección de IsolationForest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
+Esta sección profundiza la comparación general de alternativas (sección~\ref{sec:comparacion-general}) en lo referido a los modelos de inteligencia artificial, y muestra que la elección de Isolation Forest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
 
 \subsection{CatBoost (score de riesgo por solicitud)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -286,7 +286,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\hline
 	Limitación reportada & Alta complejidad de infraestructura para grafos a gran escala \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto evalúa ese costo de infraestructura como desproporcionado para su alcance y prioriza IsolationForest + LSTM por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
+	Relación con el diseño del proyecto & El proyecto evalúa ese costo de infraestructura como desproporcionado para su alcance y prioriza Isolation Forest + LSTM por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
 	\hline
 \end{longtable}
 
@@ -310,7 +310,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\hline
 	Limitación reportada & Mayor consumo de recursos en enfoques de densidad; alta diversidad entre perfiles de usuario dificulta líneas base estables \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (IsolationForest + LSTM) en vez de apostar a un único algoritmo \\
+	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (Isolation Forest + LSTM) en vez de apostar a un único algoritmo \\
 	\hline
 \end{longtable}
 
@@ -334,7 +334,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\hline
 	Limitación reportada & Falsas alertas ante usuarios con comportamiento legítimo muy variable \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto mitiga esta limitación reportada combinando IsolationForest (agregado diario) con LSTM (secuencia) + regla de piso + decaimiento temporal, en vez de depender de IsolationForest solo \\
+	Relación con el diseño del proyecto & El proyecto mitiga esta limitación reportada combinando Isolation Forest (agregado diario) con LSTM (secuencia) + regla de piso + decaimiento temporal, en vez de depender de Isolation Forest solo \\
 	\hline
 \end{longtable}
 
@@ -354,7 +354,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\hline
 	Dataset / validación & Múltiples datasets de logs \\
 	\hline
-	Métrica reportada & Concluye que LSTM\slash{}Autoencoders dominan para anomalías secuenciales; IsolationForest sigue siendo eficiente en baja latencia \\
+	Métrica reportada & Concluye que LSTM\slash{}Autoencoders dominan para anomalías secuenciales; Isolation Forest sigue siendo eficiente en baja latencia \\
 	\hline
 	Limitación reportada & Pocos trabajos enfocados específicamente en comportamiento de usuario (vs. logs de sistema en general) \\
 	\hline
@@ -386,7 +386,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}
-A partir de la propia conclusión del estado del arte de la documentación del proyecto (sección~\ref{sec:estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
+A partir de la conclusión del estado del arte (sección~\ref{sec:conclusion-estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
 
 Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
 
@@ -474,7 +474,7 @@ La ausencia de una funcionalidad claramente dominante sugiere que los participan
 
 Respecto de la información que los participantes considerarían intrusiva o inaceptable, las seis categorías consultadas (ubicación/IP, contenido de correos, rutas de archivos, capturas de pantalla, \emph{keylogging} y nombre de procesos) se ubican entre el 54\% y el 66\%. A su vez, el 57\% indica que ninguna de las categorías le parecía intrusiva (figura~\ref{fig:encuesta-15}, Anexo B).
 
-Dado que cada participante podía seleccionar distintas opciones, estos resultados muestran una percepción de la privacidad heterogénea: mientras un grupo rechaza determinados tipos de recolección, otro no considera problemática ninguna de las categorías consultadas. Para el proyecto, esto refuerza la importancia de comunicar qué información se recolecta y con qué finalidad. En este sentido, la explicación que acompaña a cada evento, con las tres variables de Isolation Forest que más se apartan de los valores de la población de entrenamiento, constituye un elemento relevante para la adopción del sistema.
+Dado que cada participante puede seleccionar distintas opciones, estos resultados muestran una percepción de la privacidad heterogénea: mientras un grupo rechaza determinados tipos de recolección, otro no considera problemática ninguna de las categorías consultadas. Para el proyecto, esto refuerza la importancia de comunicar qué información se recolecta y con qué finalidad. En este sentido, la explicación que acompaña a cada evento, con las tres variables de Isolation Forest que más se apartan de los valores de la población de entrenamiento, constituye un elemento relevante para la adopción del sistema.
 
 En cuanto a los factores que podrían determinar la adopción del sistema, la garantía de privacidad y legalidad es seleccionada por el 9\%, por debajo de la recomendación de proveedores (20\%), reacción de los empleados (19\%), facilidad de integración (18\%), eficacia demostrada (18\%) y costo (17\%) (figura~\ref{fig:encuesta-16}, Anexo B). Esto no implica que la privacidad sea poco relevante, sino que podría funcionar como un requisito previo, mientras que otros factores tienen mayor peso en la decisión final. El tratamiento de los datos personales que realiza el sistema y su encuadre en la Ley 25.326 se analizan en la sección~\ref{sec:tratamiento-datos}.
 

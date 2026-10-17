@@ -35,16 +35,16 @@ partición reservada, con un ROC-AUC del híbrido entre 0,58 y 0,80 según el es
 RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
 unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
 automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
-reversible por limitación del sistema operativo; la prueba manual de reversión dio resultado satisfactorio en una consola elevada, porque \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador & Cumplido \\
+reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio en una consola elevada, porque \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador & Cumplido \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
 RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el LSTM no tiene explicación (RNF-11, parcial) & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
-corridas reales del reentrenamiento (una automática y dos manuales) produjeron modelos candidatos
-que la regla de promoción anterior rechazó, por lo que no se promovieron (\mbox{RF-21}); el juego de la corrida del 2 de septiembre
-se adoptó después como vigente por consistencia, no por promoción; el criterio de promoción de no
-inferioridad está implementado y cubierto por 12 pruebas automatizadas, y se verificó con el script de
+corridas reales del reentrenamiento (una automática y dos manuales) producen modelos candidatos
+que la regla de promoción anterior rechaza, por lo que no se promueven (\mbox{RF-21}); el juego de la corrida del 2 de septiembre
+se adopta después como vigente por consistencia, no por promoción; el criterio de promoción de no
+inferioridad está implementado y cubierto por 12 pruebas automatizadas, y se verifica con el script de
 evaluación: el modelo vigente contra sí mismo se promueve y el juego v2 se rechaza por la tasa de falsos
-positivos (\mbox{RF-21}). Limitación: todavía no se ejecutó una promoción desde el planificador con un modelo
+positivos (\mbox{RF-21}). Limitación: todavía no se ejecuta una promoción desde el planificador con un modelo
 genuinamente nuevo & Cumplido \\
 7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
 \emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
