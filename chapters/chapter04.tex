@@ -212,12 +212,7 @@ Verificación explícita de qué cubre cada alternativa, usando solo lo que la s
 	\hline
 \end{longtable}
 
-\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión es real a nivel arquitectura, pero el comportamiento en frío (\emph{cold-start}) de un usuario nuevo es una limitación conocida y declarada del \emph{scoring}, no del mecanismo de continuidad en sí: por la regla de piso (basta con que uno de los dos modelos marque el evento como anómalo), un usuario sin historial previo puede escalar a nivel alto desde el primer evento sin corroboración entre ambos modelos ni un período de warm-up.
-
-Las valoraciones del proyecto propuesto en esta tabla y en la matriz de capacidades son una
-autoevaluación del equipo basada en lo implementado y verificado en los capítulos de producto y
-de pruebas, y no una medición externa. Las valoraciones de los competidores se basan en lo que
-describe el estado del arte; cuando una fuente no se pronuncia sobre una capacidad, se marca N/D.
+\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las \emph{features} de IsolationForest (top-3 por \emph{z-score}, calculadas en cada evento) pero no tiene un mecanismo propio para el componente LSTM del \emph{score} híbrido. De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura. Para los usuarios nuevos, el sistema aplica un período de aprendizaje (RF-24 y RF-25): hasta acumular el umbral de eventos configurado, el nivel de riesgo se informa normalmente, pero la acción se limita a alertar, salvo en los eventos de archivo, que siguen la política normal.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
@@ -367,7 +362,7 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\hline
 \end{longtable}
 
-\subsection{IsolationForest + LSTM Autoencoder (proyecto propuesto)}
+\subsection{Isolation Forest + LSTM Autoencoder (proyecto propuesto)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Comparación de algoritmos: proyecto propuesto}
 	\label{tab:algo-proyecto}\\
@@ -379,13 +374,13 @@ Profundiza lo señalado en la comparación general de alternativas (sección~\re
 	\textbf{Campo} & \textbf{Detalle} \\
 	\hline
 	\endhead
-	Dataset / validación & CLUE-LDS: \textasciitilde50M eventos reales anonimizados, 5.000+ usuarios, 5+ años de actividad de producción (Huemer Group) \\
+	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La detección se evalúa con escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). \\
 	\hline
-	Métrica reportada & \texttt{run\_regression\_}\allowbreak\texttt{test.py} es un test de consistencia/no-regresión (compara la salida actual contra \emph{scores} \emph{offline} guardados como referencia), no una métrica de performance/clasificación contra \emph{ground truth} comparable al \emph{Recall}/Precisión/F1 de las demás filas de esta tabla \\
+	Métrica reportada & ROC-AUC del puntaje híbrido en HOLDOUT de 0,58 a 0,80 en los escenarios sin país. Con el umbral del nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados sin país y entre el 91\,\% y el 99\,\% con país, con una tasa de falsos positivos del 4\,\% al 5\,\% (sección~\ref{sec:benchmark}). Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
 	\hline
-	Limitación reportada & \emph{Cold-start} compartido con el resto de la literatura (declarado, no oculto) \\
+	Limitación reportada & Detección baja cuando el ataque no cambia el país; el LSTM queda cerca del azar sin país; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows (secciones~\ref{sec:lectura-benchmark} y~\ref{sec:limitaciones-pruebas}). \\
 	\hline
-	Relación con el diseño del proyecto & Síntesis directa de las recomendaciones de la literatura \parencite{Artioli2024, Landauer2023Survey}: enfoque híbrido, sobre un dataset de producción real en vez de sintético/simulado como buena parte de los trabajos citados \\
+	Relación con el diseño del proyecto & Síntesis directa de las recomendaciones de la literatura \parencite{Artioli2024, Landauer2023Survey}: enfoque híbrido, sobre registros reales en lugar de datos sintéticos, a diferencia de buena parte de los trabajos citados \\
 	\hline
 \end{longtable}
 
@@ -434,14 +429,14 @@ un incidente, que se contrasta con el catálogo de acciones del proyecto en la s
 \section{Contraste con la percepción de los usuarios finales: resultados de la encuesta}
 \label{sec:encuesta-usuarios}
 
-La encuesta se elabora en Google Forms y se difunde a través de grupos de WhatsApp. Se trata de una muestra no probabilística por
+Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta, elaborada en Google Forms y difundida a través de grupos de WhatsApp. Se trata de una muestra no probabilística por
 conveniencia: los participantes no se seleccionan al azar de una población definida, sino entre las
 personas que el equipo puede alcanzar y que deciden responder. Por lo tanto, los porcentajes que
 siguen describen a los participantes y no pueden generalizarse a la población de empleados de
 empresas argentinas; se utilizan como indicio del problema y como insumo de diseño, no como
 estimación estadística. La muestra tampoco se estratifica por tamaño de empresa ni por sector.
 
-Como complemento al contraste con la práctica profesional, se releva la percepción de los usuarios finales mediante una encuesta. Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a participantes que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
+Se obtienen 135 respuestas, de las cuales 23 personas (17\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 112 respuestas (83\%), correspondientes a participantes que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 47\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
 
 \subsection{La autenticación como portón, no como control continuo}
 

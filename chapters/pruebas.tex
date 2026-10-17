@@ -262,13 +262,13 @@ Las métricas corresponden al juego de modelos vigente, entrenado en la corrida 
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
 El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
 \parencite{Landauer2022Dataset}, por lo que la evaluación no puede expresarse en exactitud, precisión,
-exhaustividad o F1. Una versión preliminar del trabajo planteaba un enfoque supervisado sobre
+exhaustividad o F1. Como alternativa se evalúa un enfoque supervisado sobre
 el conjunto de datos de autenticación de Los Alamos National Laboratory (LANL)
 \parencite{Kent2015}, cuyas 253 sesiones anómalas, derivadas de los registros de un ejercicio de
-red team sobre más de 7,6 millones de sesiones, exigían técnicas de balanceo de clases. Ese
-enfoque se descarta al adoptar CLUE-LDS: las etiquetas de LANL corresponden a otro conjunto de
-datos y a otra unidad de análisis (la sesión, no el usuario-día), y ninguna fase del
-\emph{pipeline} vigente las utiliza. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
+red team sobre más de 7,6 millones de sesiones, exigirían técnicas de balanceo de clases. Se
+descarta porque sus etiquetas corresponden a otro conjunto de datos y a otra unidad de análisis
+(la sesión, no el usuario-día); en consecuencia, ninguna fase del \emph{pipeline} vigente utiliza
+esas etiquetas. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
 comportamiento del modelo sobre datos sin etiquetar con la detección de escenarios de ataque
 inyectados (sección~\ref{sec:validacion-escenarios}).
 
@@ -507,7 +507,7 @@ Período de test de Isolation Forest (12\,236 días, 262 usuarios) & 0,26 [0,20-
 \end{table}
 \FloatBarrier
 
-\subsection{Lectura de los resultados}
+\subsection{Lectura de los resultados}\label{sec:lectura-benchmark}
 HOLDOUT es una estimación limpia del sistema vigente, porque no se adoptó nada de lo explorado en DEV: el sistema evaluado es el mismo que estaba en producción antes de los experimentos, de modo que no existe una selección sobre DEV que HOLDOUT pueda desmentir. Isolation Forest sostiene la detección por volumen y por horario, con un ROC-AUC de 0,76 a 0,88 en S2 y de 0,90 en S3, y queda cerca del azar en la toma de cuenta (0,46 a 0,62 en S1). El híbrido ordena peor que Isolation Forest solo en lo que este detecta (0,80 contra 0,90 en S3 y 0,80 contra 0,88 en S2 con $k$ = 10), y algo mejor en la toma de cuenta disímil (0,68 contra 0,62).
 
 En términos operativos, con una tasa de falsos positivos en nivel alto del 4\,\% al 5\,\% y prácticamente nula en crítico, el sistema detecta en nivel alto entre el 12\,\% y el 30\,\% de los días atacados sin país; la exfiltración solo con archivos queda en 0,11. Cuando la exfiltración introduce un país nuevo mezclado en el día, la regla de piso de Isolation Forest lleva la detección al rango del 91\,\% al 99\,\%. Sin país, el nivel crítico casi no se alcanza. La detección operativa más alta del sistema proviene, por lo tanto, de la ubicación y no del comportamiento.
