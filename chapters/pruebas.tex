@@ -257,7 +257,7 @@ El agente cumple el umbral con un margen amplio: su consumo medio de CPU es más
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
 
-Las métricas corresponden al juego de modelos vigente, entrenado en la corrida del 2 de septiembre de 2026 sobre CLUE-LDS (50.522.931 eventos; 8.494.616 tras la limpieza), con 27 eventos duplicados por reproducciones de prueba sin efecto práctico, y con las referencias de percentil regeneradas el 6 de octubre de 2026. La regla de promoción anterior rechaza ese juego por diferencias del orden del ruido; se adopta como vigente porque es el único juego completo y coherente (modelo, escaladores, codificación y referencias) disponible, y la evaluación de la sección~\ref{sec:benchmark} se realiza sobre él. La sección se organiza en dos partes: primero se fijan las metas de evaluación y se contrasta con ellas el resultado obtenido, y luego se presentan las métricas no supervisadas que describen el comportamiento del modelo híbrido y el acuerdo entre sus dos componentes.
+Las métricas corresponden al juego de modelos vigente, entrenado en la corrida del 2 de septiembre de 2026 sobre CLUE-LDS (50\,522\,931 eventos más los 92 eventos de prueba descritos en la sección~\ref{sec:dataset}; 8\,494\,616 eventos válidos tras la limpieza, 27 más que en el conjunto publicado por las reproducciones duplicadas, cuyo efecto sobre las variables no se mide), y con las referencias de percentil regeneradas el 6 de octubre de 2026. La regla de promoción anterior rechaza ese juego por diferencias del orden del ruido; se adopta como vigente porque es el único juego completo y coherente (modelo, escaladores, codificación y referencias) disponible, y la evaluación de la sección~\ref{sec:benchmark} se realiza sobre él. La sección se organiza en dos partes: primero se fijan las metas de evaluación y se contrasta con ellas el resultado obtenido, y luego se presentan las métricas no supervisadas que describen el comportamiento del modelo híbrido y el acuerdo entre sus dos componentes.
 
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
 El conjunto de datos CLUE-LDS no incluye etiquetas de actividad maliciosa
@@ -270,7 +270,7 @@ descarta porque sus etiquetas corresponden a otro conjunto de datos y a otra uni
 (la sesión, no el usuario-día); en consecuencia, ninguna fase del \emph{pipeline} vigente utiliza
 esas etiquetas. Como ambos modelos son no supervisados, el entrenamiento no aplica técnicas de sobremuestreo ni de balanceo de clases. En su lugar, se fijan las metas de la tabla~\ref{tab:metas-modelo}, que combinan el
 comportamiento del modelo sobre datos sin etiquetar con la detección de escenarios de ataque
-inyectados (sección~\ref{sec:validacion-escenarios}).
+inyectados (sección~\ref{sec:validacion-escenarios}). Los resultados de los escenarios inyectados corresponden a la corrida del 9 de octubre de 2026 (sección~\ref{sec:validacion-escenarios}).
 
 \begin{table}[h]
 \centering
@@ -341,7 +341,7 @@ Esta sección describe el método de validación mediante escenarios inyectados,
 Para obtener una medida de la capacidad de detección sin etiquetas, se inyectan escenarios de ataque sintéticos sobre historiales reales. Se seleccionan al azar, con semilla fija, 15 usuarios del período de prueba con entre 50 y 4000 eventos y al menos cinco días de actividad. Para cada usuario se reproduce su historial completo a través de la API, se toma una instantánea del estado y, a partir de ella, se inyecta cada escenario por separado, restaurando el estado entre uno y otro:
 \begin{itemize}
 	\item \textbf{E1, exfiltración:} entre 30 y 60 eventos de creación y escritura de archivos, uno cada 5~s, en horario laboral y desde el país habitual.
-	\item \textbf{E2, fuera de horario:} hasta 40 eventos reales del último día de actividad, reubicados entre las 2 y las 5 de la mañana.
+	\item \textbf{E2, fuera de horario:} hasta 40 eventos reales del último día de actividad, reubicados entre las 2 y las 5 de la mañana (UTC).
 	\item \textbf{E3, cambio de país:} los mismos eventos, en su horario original, informados desde otro país.
 	\item \textbf{E4, combinado:} la exfiltración de E1 en horario nocturno y desde otro país.
 \end{itemize}
@@ -349,7 +349,7 @@ Para obtener una medida de la capacidad de detección sin etiquetas, se inyectan
 Se considera \emph{detección atribuible} a la inyección que lleva el nivel del usuario a alto o crítico cuando antes de inyectar estaba por debajo de alto. Así se descartan los usuarios que ya se encontraban en nivel alto por el riesgo acumulado. Como referencia de alertas sobre actividad presuntamente legítima, se registra el nivel de cierre de cada día del período de prueba sin inyección (650 usuario-días).
 
 \subsection{Resultados}
-La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, en la que el nivel alto comienza en un puntaje de 70 y el crítico en 90.
+Los resultados corresponden a la corrida del 9 de octubre de 2026 con el juego de modelos vigente. La tabla~\ref{tab:escenarios} presenta los resultados con la política vigente, en la que el nivel alto comienza en un puntaje de 70 y el crítico en 90.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{2.0cm}}
 	\caption{Resultados de la validación por escenarios (15 usuarios por escenario)}

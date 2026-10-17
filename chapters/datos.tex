@@ -11,9 +11,11 @@ Cada registro corresponde a un evento e incluye su tipo, la marca temporal, el i
 
 El conjunto no incluye etiquetas que indiquen qué eventos corresponden a actividad maliciosa. Esta característica condiciona el entrenamiento, que es no supervisado, y la evaluación del modelo, que se presenta en la sección~\ref{sec:evaluacion-modelo}.
 
+Los modelos vigentes se entrenan con una copia del conjunto a la que se suman 92 eventos registrados por la API durante las pruebas del sistema: 27 son reproducciones de eventos reales de CLUE-LDS, con su fecha original, generadas al repetir historiales en las pruebas de regresión, y 65 son eventos de prueba posteriores al período del conjunto. Ninguno corresponde a la actividad de un empleado. Los 27 duplicados llegan a los datos de entrenamiento: 25 en días de la partición de entrenamiento de Isolation Forest y 2 en la de prueba. De los 65 eventos de prueba, solo uno llega a las variables de Isolation Forest, como un par usuario-día de la partición de prueba, y ninguno a las secuencias del LSTM. La exportación del reentrenamiento excluye hoy ambos tipos de eventos (RF-19). Fuera de ellos, el entrenamiento utiliza exclusivamente registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos. Los conjuntos de prueba son particiones del mismo conjunto (sección~\ref{sec:particion-entrenamiento}). Los únicos datos construidos por el equipo son los escenarios de ataque que se inyectan sobre historiales reales para evaluar la detección (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}), y no se usan en ningún entrenamiento ni en las referencias de percentiles. El trabajo no dispone de ataques reales etiquetados, por lo que la capacidad de detección no está validada contra incidentes reales (sección~\ref{sec:limitaciones-pruebas}).
+
 \section{Selección y preparación}
 \label{sec:seleccion-datos}
-El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasifican según su volumen de actividad. No se descartan eventos por su contenido: solo se clasifican los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado.
+El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados por nombre. Los usuarios se clasifican según su volumen de actividad. No se descartan eventos por su contenido: solo se clasifican los usuarios. La tabla~\ref{tab:seleccion-datos} resume el resultado. Las cifras corresponden al conjunto publicado; los eventos de prueba que se suman en el entrenamiento se describen en la sección~\ref{sec:dataset}.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.0cm}}
 	\caption{Clasificación de los usuarios del conjunto de datos}
@@ -56,12 +58,13 @@ Isolation Forest evalúa cada día de actividad de cada usuario. Para cada par u
 	\item entropía de la distribución de tipos de evento.
 \end{itemize}
 
-Se utilizan los usuarios válidos y los de baja actividad: 908 usuarios y 61\,283 pares usuario-día. Las variables se estandarizan antes del entrenamiento.
+Se utilizan los usuarios válidos y los de baja actividad: 908 usuarios de CLUE-LDS, más el usuario de prueba descrito en la sección~\ref{sec:dataset}, y 61\,284 pares usuario-día. Las variables se estandarizan antes del entrenamiento.
 
 \subsection{LSTM Autoencoder}
 El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtienen 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
 
 \subsection{Partición y parámetros}
+\label{sec:particion-entrenamiento}
 La tabla~\ref{tab:entrenamiento} resume la partición de los datos y los parámetros de cada modelo.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{5.5cm}>{\raggedright\arraybackslash}p{5.6cm}}
@@ -79,7 +82,7 @@ La tabla~\ref{tab:entrenamiento} resume la partición de los datos y los paráme
 	\hline
 	Partición & Temporal: entrenamiento hasta el 2 de agosto de 2021 (cuantil 0,8 de las fechas), prueba posterior & Por usuario, con semilla fija: 70\,\% entrenamiento, 15\,\% validación y 15\,\% prueba \\
 	\hline
-	Tamaño & 49\,047 usuario-días de entrenamiento y 12\,236 de prueba & 163, 35 y 36 usuarios; 111\,742, 20\,741 y 37\,254 secuencias \\
+	Tamaño & 49\,048 usuario-días de entrenamiento y 12\,236 de prueba & 163, 35 y 36 usuarios; 111\,742, 20\,741 y 37\,254 secuencias \\
 	\hline
 	Parámetros & 200 árboles, contaminación de 0,02 & Codificador LSTM(64) y LSTM(32), decodificador simétrico, \emph{embedding} de dimensión 8; 67\,375 parámetros \\
 	\hline

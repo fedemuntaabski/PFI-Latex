@@ -132,7 +132,7 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         parcial y la línea base personal que aplica la producción, y fijar el corte temporal del
         criterio de promoción para que los datos nuevos no lo desplacen.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
-        un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}).
+        un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}), y la seudonimización de la telemetría usada en el reentrenamiento.
   \item \textbf{Correcciones del agente y del planificador}: informar como fallida la suspensión que no se pudo
         registrar, no intentar envíos nuevos con el \emph{circuit breaker} abierto, registrar como fallido el intento de reentrenamiento cuyo \emph{pipeline} falla, que hoy queda como ``\emph{pipeline} en curso'', registrar también los que terminan por una excepción y fijar un tiempo máximo al \emph{pipeline}.
   \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
