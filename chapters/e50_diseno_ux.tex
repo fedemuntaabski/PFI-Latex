@@ -1,7 +1,7 @@
 \chapter{Justificación de diseño y mockups}\label{chap:diseno}
-El \emph{dashboard} es uno de los tres componentes del sistema (junto al agente PEP local y la API PDP) y es el punto de interacción directa del administrador de seguridad con el motor de \emph{scoring} híbrido (Isolation Forest + LSTM Autoencoder). Su función no es cosmética: es la interfaz mediante la cual se cumplen CU-02 (ajuste de umbrales y políticas de respuesta) y se da visibilidad operativa a CU-01 (detección y mitigación automática).
+El \emph{dashboard} es uno de los tres componentes del sistema, junto con el agente PEP local y la API PDP. Constituye el punto de interacción entre el administrador de seguridad y el motor de \emph{scoring} híbrido, compuesto por Isolation Forest y un LSTM Autoencoder. Su función va más allá de la visualización de información: permite configurar los umbrales y las políticas de respuesta definidos en CU-02, y brinda visibilidad operativa sobre la detección y mitigación automáticas contempladas en CU-01.
 
-El relevamiento cubre las 6 pantallas navegables del \emph{dashboard} (Usuarios, Con historial, Alertas, Umbrales, Auditoría y Estado del sistema), la pantalla de acceso (\emph{Login}) y la vista de detalle de usuario, a la que se llega haciendo clic sobre una fila del listado de Usuarios.
+El relevamiento abarca las seis pantallas navegables del \emph{dashboard}: Usuarios, Con historial, Alertas, Umbrales, Auditoría y Estado del sistema. También incluye la pantalla de acceso (Login) y la vista de detalle de usuario, a la que se accede seleccionando una fila del listado de Usuarios, y la vista explicativa «Por qué pasó esto», a la que se accede desde ese detalle.
 
 \section{Metodología de diseño}
 El diseño de este \emph{dashboard} no parte de un \emph{wireframe} estático, sino que se construye de forma iterativa, validando cada pantalla contra los requerimientos funcionales que soporta (RF-12 a RF-17, RNF-07, RNF-15) y refinando la presentación visual. Esa distinción se documenta explícitamente para no sobrerrepresentar el proceso: lo que se muestra a continuación no es un registro histórico de bocetos previos a la implementación, sino una reconstrucción de \emph{wireframes} estructurales a partir de las pantallas ya construidas y validadas, que documenta la arquitectura de información y las decisiones de \emph{layout} de forma independiente del estilo visual final.
@@ -12,318 +12,239 @@ Cada \emph{wireframe} de este documento representa la estructura de esa pantalla
 \label{sec:decisiones-transversales-mockups}
 \begin{itemize}
 	\item Tema oscuro por defecto (con alternancia a claro): reduce la fatiga visual en un panel pensado para monitoreo prolongado, y es el estándar de facto en herramientas de seguridad/observabilidad (SOC \emph{dashboards}) con las que el administrador ya está familiarizado.
-	\item Codificación de color consistente por nivel de riesgo (bajo/medio/alto/crítico) en \emph{badges}, \emph{chips} de notificación y bordes de las tarjetas de umbral: la misma paleta se repite en Usuarios, Alertas y Umbrales, para que el administrador no tenga que reinterpretar el color en cada pantalla. El nivel de riesgo se codifica con una paleta semafórica: verde para el nivel bajo, ámbar para el medio, naranja para el alto y rojo para el crítico, con variantes para los temas oscuro y claro; los niveles adicionales que permite configurar RF-13 usan rosa y violeta.
+	\item Codificación de color consistente por nivel de riesgo (bajo/medio/alto/crítico) en \emph{badges}, \emph{chips} de notificación y bordes de las tarjetas de umbral: la misma paleta se repite en Usuarios, Alertas y Umbrales, para que el administrador no tenga que reinterpretar el color en cada pantalla. El nivel de riesgo se codifica con una paleta semafórica: verde para el nivel bajo, amarillo para el medio, naranja para el alto y rojo para el crítico, con variantes para los temas oscuro y claro; los niveles adicionales que permite configurar RF-13 usan rosa y violeta.
 	\item Botones de guardado independientes por sección de formulario en vez de un único guardado global en \texttt{/umbrales}: reduce el riesgo de que el administrador modifique un umbral sin querer y termine también reescribiendo la configuración de notificaciones.
 	\item Estados vacíos explícitos con mensaje (ej.\ ``Sin alertas activas'') en lugar de una tabla en blanco sin explicación, para que el administrador distinga un sistema sano de una posible falla de carga.
 \end{itemize}
 
 \section{Arquitectura de navegación}
-Todas las pantallas comparten una barra superior fija con: el nombre del sistema, 6 accesos directos a las secciones (Usuarios, Con historial, Alertas, Umbrales, Auditoría, Estado del sistema), el logotipo de UMBRAL, un indicador de alertas activas, un selector de tema claro/oscuro y el botón para cerrar sesión. Esta estructura común reduce la carga cognitiva del administrador al moverse entre las distintas vistas operativas: es la misma decisión de \emph{layout} en las 6 pantallas, solo cambia el contenido central.
+Todas las pantallas comparten una barra superior fija que incluye el nombre del sistema, accesos directos a las seis secciones (Usuarios, Con historial, Alertas, Umbrales, Auditoría y Estado del sistema), el logotipo de UMBRAL, un indicador de alertas activas, un selector de tema claro u oscuro y el botón para cerrar sesión. Esta estructura uniforme facilita la navegación entre las distintas vistas operativas, mantiene una disposición visual consistente y permite al administrador acceder rápidamente a las principales funcionalidades del sistema, independientemente de la sección en la que se encuentre.
 
 \section{Catálogo de pantallas}
-Para cada pantalla se presenta el \emph{wireframe} estructural de baja fidelidad, la captura real del \emph{frontend} implementado, y una tabla de justificación de diseño que ata cada decisión visual a un requerimiento funcional, no funcional o caso de uso concreto. Las tablas~\ref{tab:mockup-login} a~\ref{tab:mockup-historial} contienen esas justificaciones.
+Para cada pantalla se presenta el \emph{wireframe} estructural de baja fidelidad, la captura real del \emph{frontend} implementado, y una justificación de diseño que vincula cada decisión visual con el requerimiento funcional, el requerimiento no funcional o el caso de uso que la motiva.
 
 \subsection{Acceso (Login)}
-Pantalla previa a cualquier vista operativa. Permite el acceso a la configuración del sistema (umbrales, acciones, notificaciones) mediante credencial de administrador, sin introducir roles nuevos ni afectar la autorización real de escritura de la API. El diseño es mínimo: una sola tarjeta centrada, sin distracciones, ya que su única función es autenticar antes de continuar. La figura~\ref{fig:mockup-login-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-login-real}, la pantalla implementada.
+Esta pantalla es el punto de entrada al sistema y precede a cualquier vista operativa. Permite iniciar sesión con credenciales de administrador u operario para acceder a la interfaz, sin introducir nuevos roles ni modificar los permisos de escritura que la API valida de forma independiente. Su diseño es minimalista, con una única tarjeta centrada y sin elementos adicionales, para mantener el foco en el inicio de sesión. La figura~\ref{fig:mockup-login-wireframe} presenta el \emph{wireframe} de la pantalla, mientras que la figura~\ref{fig:mockup-login-real} muestra su implementación.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-login-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-login-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Acceso (Login)}
 	\label{fig:mockup-login-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-login-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-login-real.png}
 	\caption{Pantalla real: \texttt{/login}}
 	\label{fig:mockup-login-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Acceso (Login)}
-	\label{tab:mockup-login}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RNF-15 & El formulario centrado sobre fondo oscuro con un único punto de foco (usuario/contraseña/botón) prioriza claridad inmediata sobre densidad de información, no hay nada más que decidir en esta pantalla. \\
-	\hline
-	HU-14 / RNF-03 & Pantalla de inicio de sesión que restringe el acceso al \emph{dashboard}; la autorización efectiva de las operaciones de configuración la valida la API mediante la clave. \\
-	\hline
-	CU-02 & Es el punto de entrada obligatorio antes de que el administrador pueda ajustar umbrales o políticas de respuesta, cerrando el flujo descrito en el caso de uso. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+Desde el punto de vista de la usabilidad (RNF-15), la pantalla presenta un formulario centrado sobre un fondo oscuro, con los campos de usuario y contraseña y el botón de ingreso como únicos elementos interactivos. Esta disposición facilita la identificación de la acción requerida. En cuanto a la seguridad (HU-14 y RNF-03), el inicio de sesión restringe el acceso al \emph{dashboard}, mientras que la API valida de forma independiente los permisos para modificar la configuración. De este modo, la interfaz no constituye la única barrera de control. La pantalla es el punto de entrada obligatorio para acceder a las funciones de ajuste de umbrales y políticas de respuesta contempladas en CU-02.
 
 \subsection{Usuarios (listado)}
-Lista a todos los usuarios monitoreados con su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y su última actividad. Es la vista que responde directamente a RF-16: dar visibilidad en tiempo real al administrador antes de que tenga que entrar al detalle de cada usuario. La figura~\ref{fig:mockup-usuarios-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-usuarios-real}, la pantalla implementada.
+Esta pantalla presenta el listado de usuarios monitoreados y permite consultar su nivel de riesgo actual, la acción de mitigación vigente, la cobertura del \emph{score} y la fecha de su última actividad. De este modo, el administrador puede conocer el estado general de los usuarios y detectar posibles situaciones que requieran atención sin necesidad de acceder individualmente a cada perfil. Esta funcionalidad responde al requerimiento RF-16, que establece la necesidad de brindar visibilidad en tiempo real sobre los usuarios monitoreados. La figura~\ref{fig:mockup-usuarios-wireframe} presenta el \emph{wireframe} de la pantalla, mientras que la figura~\ref{fig:mockup-usuarios-real} muestra su implementación.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-usuarios-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-usuarios-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Usuarios (listado)}
 	\label{fig:mockup-usuarios-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-usuarios-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-usuarios-real.png}
 	\caption{Pantalla real: \texttt{/} (listado de usuarios)}
 	\label{fig:mockup-usuarios-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Usuarios (listado)}
-	\label{tab:mockup-usuarios}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RF-16 & El listado muestra \emph{score}/nivel de confianza en tiempo real por usuario, con filtro por nivel de riesgo, tal como pide el requerimiento. \\
-	\hline
-	RNF-15 & El nivel de riesgo se representa con un \emph{badge} de color (bajo/medio/alto/crítico) en lugar de solo un número, permitiendo priorizar de un vistazo. La paleta es semafórica por nivel (verde, ámbar, naranja y rojo) y se repite en todas las vistas, de modo que el color conserva el mismo significado en cada pantalla (sección~\ref{sec:decisiones-transversales-mockups}). \\
-	\hline
-	CU-01 (postcondición) & La acción de mitigación decidida por la API queda visible por usuario, sin que el administrador tenga que consultar \emph{logs} por separado. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+El diseño del listado responde a RF-16 al mostrar el \emph{score} y el nivel de confianza de cada usuario en tiempo real, junto con un filtro por nivel de riesgo. En línea con RNF-15, este último se representa mediante un \emph{badge} de color, lo que facilita la identificación y priorización de los casos. La paleta semafórica (verde, amarillo, naranja y rojo) mantiene el mismo significado en todas las vistas (sección~\ref{sec:decisiones-transversales-mockups}). Por último, la columna de acción de mitigación permite consultar la respuesta definida por la API para cada usuario, en cumplimiento de la postcondición de CU-01, sin necesidad de revisar los \emph{logs} por separado.
 
 \subsection{Detalle de usuario}
-Se accede haciendo clic sobre una fila del listado de Usuarios. Profundiza el mismo registro que ya aparece en la tabla (\texttt{uid}, nivel, cobertura) y agrega lo que la vista de lista no puede mostrar sin saturarse: el \emph{score} exacto, la acción sugerida en texto completo, un gráfico de evolución temporal del \emph{score} y el detalle evento por evento que lo originó.
+Se accede a esta vista haciendo clic sobre una fila del listado de Usuarios. Retoma los datos ya presentados en la tabla (\texttt{uid}, nivel y cobertura) y los complementa con el \emph{score} exacto, la acción sugerida en detalle, un gráfico de evolución temporal del \emph{score} y los eventos que dieron origen a la evaluación.
 
-La tarjeta superior repite el mismo par de \emph{badges} (nivel de riesgo y cobertura) que la fila de origen en el listado, para que el administrador reconozca que sigue viendo al mismo usuario y no pierda el contexto al navegar. El \emph{score} se destaca en tipografía grande, por ser el dato que responde más directamente a ``¿qué tan grave es esto ahora?''.
+La tarjeta superior mantiene los mismos \emph{badges} de nivel de riesgo y cobertura que la fila de origen, lo que permite identificar al usuario y conservar el contexto de navegación. El \emph{score} se destaca mediante una tipografía de mayor tamaño, por ser el indicador que refleja el nivel de riesgo actual.
 
-El gráfico de Histórico de \emph{score} aclara explícitamente que el punto ``Actual'' es provisional, porque el día todavía no cierra, y que el resto del histórico solo muestra días ya cerrados. Es la misma decisión de transparencia que ya aparece en Alertas y en Con historial: declarar en la propia pantalla los límites de lo que se está mostrando, en vez de dejar que el administrador asuma que todo el gráfico tiene el mismo nivel de certeza.
+El gráfico de Histórico de \emph{score} aclara que el punto «Actual» es provisional, dado que el día aún no ha finalizado, mientras que los demás valores corresponden a días cerrados. Esta decisión, compartida con las vistas Alertas y Con historial, hace explícitos los límites de la información presentada y evita interpretaciones erróneas sobre su grado de certeza.
 
-La tabla de Eventos recientes está acotada a 30 filas (RF-09) y se aclara que es complementaria al \emph{score} vivo y al histórico diario de arriba, sin reemplazar a ninguno de los dos, evitando que el administrador confunda ``los últimos eventos que vio'' con el historial completo de actividad del usuario. La figura~\ref{fig:mockup-detalle-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-detalle-real}, la pantalla implementada.
+Por último, la tabla de Eventos recientes se limita a 30 filas (RF-09) y se presenta como complemento del \emph{score} actual y del histórico diario, sin reemplazarlos. Así, se evita confundir los últimos 30 eventos con el historial completo de actividad del usuario. La figura~\ref{fig:mockup-detalle-wireframe} presenta el \emph{wireframe} de la pantalla, mientras que la figura~\ref{fig:mockup-detalle-real} muestra su implementación.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-detalle-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-detalle-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Detalle de usuario}
 	\label{fig:mockup-detalle-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-detalle-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-detalle-real.png}
 	\caption{Pantalla real: \texttt{/usuarios/:uid} (detalle)}
 	\label{fig:mockup-detalle-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Detalle de usuario}
-	\label{tab:mockup-detalle}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RF-09 & El límite de 30 eventos evaluados por usuario, con el más reciente primero, está impuesto por requerimiento y comunicado en el propio texto de la sección. \\
-	\hline
-	RF-16 & Expone el detalle completo de \emph{score} y confianza que el listado general resume en un \emph{badge}, cerrando el flujo ``ver todos'' $\rightarrow$ ``investigar uno''. \\
-	\hline
-	RNF-15 & Reutiliza los mismos \emph{badges} de nivel de riesgo y el mismo color de acento para el \emph{score} que en Usuarios y Alertas, y lo aplica también al punto del gráfico. \\
-	\hline
-	RNF-11 (explicabilidad) & El detalle evento por evento (tipo, \emph{score}, nivel, acción, proceso) da trazabilidad de qué generó el \emph{score} actual, no solo el número final. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+El diseño de esta vista responde a cuatro requerimientos. En cumplimiento de RF-09, la tabla muestra los 30 eventos evaluados más recientes, ordenados del más nuevo al más antiguo, y explicita este límite para evitar que se confunda con el historial completo. Además, complementa RF-16 al detallar el \emph{score} y el nivel de confianza que el listado general resume mediante un \emph{badge}, permitiendo pasar de la consulta general a la investigación de un usuario particular. En línea con RNF-15, mantiene los mismos \emph{badges} de riesgo y el color de acento del \emph{score} utilizados en Usuarios y Alertas, que también se aplica al punto correspondiente del gráfico. Por último, el desglose de cada evento (tipo, \emph{score}, nivel, acción y proceso) responde a RNF-11, ya que permite rastrear los eventos que contribuyeron al \emph{score} actual y comprender su origen.
 
-\subsection{Alertas}
-Subconjunto operativo del listado de usuarios: solo los que están en nivel alto o crítico en este momento, pensado para uso durante un incidente activo (no requiere filtrar manualmente el listado completo). El texto bajo el título explicita una limitación de diseño consciente y comunicada al usuario del sistema: no hay historial persistente de alertas ni notificaciones \emph{push}: ``reconocer'' solo oculta el resaltado durante la sesión del navegador. La captura muestra la lista con usuarios en nivel alto y crítico, cada uno con su botón de reconocimiento; cuando no hay ninguno, la pantalla pasa a un estado vacío explícito (``Sin alertas activas''), que es el estado normal del sistema en operación sana. La figura~\ref{fig:mockup-alertas-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-alertas-real}, la pantalla implementada.
+\subsection{Pantalla <<Por qué pasó esto>>}
+Se accede a esta pantalla desde el botón «¿Por qué este nivel?» del Detalle de usuario y permite consultar por qué se asignó el nivel de riesgo actual. Constituye la capa de explicabilidad (XAI) del proyecto y es de solo lectura: presenta la decisión de la API sin realizar nuevos cálculos. La información se organiza en cuatro bloques que explican qué ocurrió, cómo evolucionó el riesgo, qué señales influyeron y qué acción se tomó.
+
+El encabezado identifica al usuario y muestra su nivel de riesgo, cobertura y estado de aprendizaje. La tarjeta «En resumen» presenta en lenguaje natural el nivel asignado, el puntaje sobre 100, el umbral correspondiente y la acción indicada al agente. «Cómo evolucionó el riesgo» incluye un gráfico de línea con las franjas de nivel vigentes, que permite observar la evolución del puntaje y su relación con los umbrales.
+
+El bloque «Señales que se desviaron» muestra las tres características con mayor contribución, ordenadas por su \emph{z-score} respecto del comportamiento típico aprendido por Isolation Forest. Para facilitar su interpretación, utiliza barras de intensidad y etiquetas descriptivas en lugar de valores crudos. Por último, «Acción» indica la respuesta comunicada por el PDP al PEP.
+
+Las tarjetas independientes facilitan la lectura, mientras que la ausencia de controles sobre el \emph{scoring} respeta la separación entre PEP y PDP. Las limitaciones se indican junto a los datos correspondientes: la explicación se basa únicamente en el modelo de comportamiento diario, ya que el LSTM Autoencoder no ofrece explicaciones; compara con el comportamiento típico poblacional, no con el historial individual; y, durante el aprendizaje, la acción se atenúa a solo alertar, excepto ante eventos que afectan archivos sensibles.
+
+La figura~\ref{fig:mockup-porque-wireframe} presenta el \emph{wireframe}, mientras que las figuras~\ref{fig:mockup-porque-real-1} y~\ref{fig:mockup-porque-real-2} muestran la implementación de la pantalla, respectivamente, antes y después de desplazarse por la página.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-alertas-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-porque-wireframe.png}
+	\caption{Wireframe de baja fidelidad: Por qué pasó esto}
+	\label{fig:mockup-porque-wireframe}
+	{\small Fuente: elaboración propia.\par}
+	\bigskip
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-porque-real-1.png}
+	\caption{Pantalla real: Por qué pasó esto (parte superior: resumen y evolución del riesgo)}
+	\label{fig:mockup-porque-real-1}
+	{\small Fuente: elaboración propia, captura del sistema.\par}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-porque-real-2.png}
+	\caption{Pantalla real: Por qué pasó esto (scroll: señales que se desviaron y acción)}
+	\label{fig:mockup-porque-real-2}
+	{\small Fuente: elaboración propia, captura del sistema.\par}
+\end{figure}
+\FloatBarrier
+
+El diseño de esta vista responde, en primer lugar, a RNF-11. La tarjeta de señales acompaña el puntaje con las principales variables que contribuyeron al resultado, expresadas en lenguaje legible. Como la explicación cubre únicamente Isolation Forest y no el LSTM Autoencoder, la pantalla declara esta limitación mediante la nota «En calibración».
+
+El resumen también explicita las reglas que determinan el resultado: muestra el umbral del nivel asignado (RF-05) y, cuando el puntaje combinado corresponde a una franja inferior, aclara si el nivel se debe a la regla de piso, activada porque uno de los modelos detectó una anomalía (RF-06). Así, un puntaje alto acompañado de un nivel crítico no se confunde con un error. El \emph{badge} de cobertura cumple una función similar respecto de RF-03, al indicar cuándo el puntaje proviene de un solo modelo.
+
+El encabezado muestra el progreso del usuario durante el período de aprendizaje (RF-24 a RF-26), mientras que el resumen aclara que la acción se atenúa a \texttt{alertar} durante esta etapa, excepto ante eventos sobre archivos. Esto evita que una acción leve asociada a un nivel de riesgo alto se interprete como una inconsistencia.
+
+La tarjeta de acción muestra la respuesta que el PDP comunica al agente según el mapeo nivel~$\rightarrow$~acción vigente (RF-07). Su carácter de solo lectura refuerza RNF-04, ya que la decisión se origina en el PDP. A su vez, el gráfico presenta la evolución a partir de la lista acotada de eventos recientes que mantiene la API (RF-09) y lo aclara en la leyenda para distinguirla del historial completo.
+
+Por último, en línea con RNF-15, el gráfico, los puntos de cada evento y los \emph{badges} del encabezado mantienen la paleta semafórica del resto del sistema, dando continuidad a RF-16 desde el listado general hasta la explicación de un evento particular.
+
+\subsection{Alertas}
+Esta vista muestra únicamente los usuarios que se encuentran en nivel de riesgo alto o crítico, por lo que permite identificar rápidamente los casos que requieren atención durante un incidente, sin necesidad de filtrar el listado completo. Debajo del título se explicita una limitación del sistema: no existe un historial persistente de alertas ni se envían notificaciones \emph{push}; la acción «Reconocer» solo oculta el resaltado durante la sesión del navegador.
+
+La captura muestra usuarios en niveles alto y crítico, cada uno con su correspondiente botón de reconocimiento. Cuando no hay alertas activas, la pantalla presenta el mensaje «Sin alertas activas», que representa el estado esperado durante el funcionamiento normal del sistema. La figura~\ref{fig:mockup-alertas-wireframe} presenta el \emph{wireframe} de la pantalla, mientras que la figura~\ref{fig:mockup-alertas-real} muestra su implementación.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-alertas-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Alertas}
 	\label{fig:mockup-alertas-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-alertas-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-alertas-real.png}
 	\caption{Pantalla real: \texttt{/alertas} (con alertas activas)}
 	\label{fig:mockup-alertas-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Alertas}
-	\label{tab:mockup-alertas}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RNF-15 & Reutiliza el mismo patrón visual de \emph{badges} de nivel que el listado general, manteniendo consistencia y evitando que el administrador tenga que reaprender la codificación de color. \\
-	\hline
-	Transparencia de diseño & El límite del mecanismo (sin persistencia, sin \emph{push}) se declara en la propia pantalla en vez de dar a entender una capacidad de alertado que el sistema no tiene: es una decisión deliberada para no sobre-prometer funcionalidad. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+La pantalla mantiene el mismo patrón visual de \emph{badges} de nivel de riesgo que el listado general, en línea con RNF-15. Esta consistencia facilita la interpretación de los niveles y evita confusiones durante un incidente. Además, la interfaz explicita que las alertas no se almacenan de forma persistente ni generan notificaciones \emph{push}. Esta decisión responde a un criterio de transparencia: comunicar claramente las limitaciones del sistema y evitar atribuirle funcionalidades que no están implementadas.
 
 \subsection{Configuración de umbrales}
-Es la pantalla de mayor densidad funcional del \emph{dashboard}: concentra los sub-formularios que dan cumplimiento a CU-02 completo (RF-12 a RF-15 y RF-17; la periodicidad corresponde a RF-18). Se organiza en secciones apiladas con jerarquía clara (Umbrales por nivel arriba, luego una grilla de tres columnas con Acción por nivel, Periodicidad de reentrenamiento y Umbral de aprendizaje, y a continuación Notificaciones, Proveedores de identidad (IAM) y el Log de reentrenamientos), cada una con su propio botón de guardado independiente, lo que evita que un cambio de umbral dispare accidentalmente un guardado de notificaciones.
+Esta es la pantalla con mayor densidad funcional del \emph{dashboard}, ya que reúne los formularios necesarios para configurar las políticas de respuesta contempladas en CU-02 (RF-12 a RF-15 y RF-17), además de la periodicidad de reentrenamiento correspondiente a RF-18. Los controles se organizan en secciones jerarquizadas: Umbrales por nivel; una grilla de tres columnas con Acción por nivel, Periodicidad de reentrenamiento y Umbral de aprendizaje; y, por último, Notificaciones, Proveedores de identidad (IAM) y el Log de reentrenamientos. Cada sección cuenta con su propio botón de guardado, lo que permite modificar cada configuración de forma independiente y evita guardar accidentalmente cambios en otras secciones.
 
-El bloque de Notificaciones usa \emph{chips} tipo \emph{toggle} (uno por nivel de riesgo) en vez de \emph{checkboxes} sueltos: permite seleccionar varios niveles a la vez con el mismo patrón visual que los \emph{badges} de riesgo del resto del sistema, en lugar de un control de formulario genérico sin relación visual con el dominio. La figura~\ref{fig:mockup-umbrales-wireframe} presenta el \emph{wireframe} de la pantalla y las figuras~\ref{fig:mockup-umbrales-real-1} y~\ref{fig:mockup-umbrales-real-2}, la pantalla implementada en su parte superior y luego de desplazarse.
+En el bloque de Notificaciones se utilizan \emph{chips} interactivos de tipo \emph{toggle}, uno por nivel de riesgo, en lugar de \emph{checkboxes} convencionales. Este diseño permite seleccionar varios niveles y mantiene la coherencia visual con los \emph{badges} de riesgo utilizados en el resto del sistema.
+
+La figura~\ref{fig:mockup-umbrales-wireframe} presenta el \emph{wireframe} de la pantalla, mientras que las figuras~\ref{fig:mockup-umbrales-real-1} y~\ref{fig:mockup-umbrales-real-2} muestran su implementación, respectivamente, en la parte superior y después de desplazarse por la página.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.68\textwidth]{images/mockups/mockup-umbrales-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-umbrales-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Configuración de umbrales}
 	\label{fig:mockup-umbrales-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.68\textwidth]{images/mockups/mockup-umbrales-real-1.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-umbrales-real-1.png}
 	\caption{Pantalla real: \texttt{/umbrales} (parte superior: rangos por nivel)}
 	\label{fig:mockup-umbrales-real-1}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
-	\bigskip
-	\includegraphics[width=0.68\textwidth]{images/mockups/mockup-umbrales-real-2.png}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-umbrales-real-2.png}
 	\caption{Pantalla real: \texttt{/umbrales} (scroll: notificaciones, proveedores de identidad y log de reentrenamientos)}
 	\label{fig:mockup-umbrales-real-2}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Configuración de umbrales}
-	\label{tab:mockup-umbrales}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RF-12, RF-14, RF-15, RF-18 & Cada sub-formulario (umbrales, acciones, periodicidad, notificaciones) envía su propio \texttt{PUT} independiente al \emph{endpoint} de configuración correspondiente, reflejado en la separación visual de secciones con su propio botón. \\
-	\hline
-	RF-12 & Los campos de umbral están dispuestos en pares desde/hasta contiguos por nivel, facilitando detectar visualmente un solapamiento antes de guardar (aunque la validación real ocurre del lado de la API). \\
-	\hline
-	RNF-07 & Todo el formulario opera en caliente contra la API, sin ningún paso de reinicio: el diseño no incluye ninguna acción de tipo ``aplicar y reiniciar''. \\
-	\hline
-	RNF-15 / consistencia & Los \emph{chips} de Notificaciones reutilizan la misma forma visual (\emph{badge} redondeado, color por nivel) que el resto de las pantallas usa para representar niveles de riesgo. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+
+La división en secciones independientes refleja también la comunicación del \emph{dashboard} con la API: cada subformulario (umbrales, acciones, periodicidad y notificaciones) envía su propio \texttt{PUT} al \emph{endpoint} correspondiente, en línea con RF-12, RF-14, RF-15 y RF-18. Los botones de guardado independientes hacen explícita esta separación en la interfaz.
+
+En el bloque de umbrales, los campos se organizan en pares desde/hasta contiguos para cada nivel (RF-12), lo que facilita identificar posibles solapamientos antes de guardar, aunque la validación definitiva corresponde a la API. Además, todas las modificaciones se aplican en caliente, sin reiniciar servicios, según RNF-07; por eso, la interfaz no incluye una acción de «aplicar y reiniciar». Por último, los \emph{chips} de Notificaciones mantienen la forma redondeada y los colores por nivel de los \emph{badges} utilizados en el resto del sistema, en línea con RNF-15.
 
 \subsection{Auditoría}
-Traduce directamente a RF-17 (historial de versiones de política, visible desde el \emph{dashboard}, para trazabilidad). Cada entrada es una tarjeta con el tipo de cambio (Acción por nivel, Periodicidad, Notificaciones), el valor anterior y el nuevo en formato monoespaciado tipo \emph{diff}, más fecha/hora y actor. El formato \emph{diff} (\texttt{valor\_viejo} $\rightarrow$ \texttt{valor\_nuevo}) se elige en vez de mostrar solo el estado final, porque el propósito de esta pantalla es auditar cambios, no solo consultar configuración actual: para eso ya está \texttt{/umbrales}. La figura~\ref{fig:mockup-auditoria-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-auditoria-real}, la pantalla implementada.
+Esta pantalla responde a RF-17 y permite consultar el historial de cambios en las políticas desde el \emph{dashboard}, facilitando su trazabilidad. Cada entrada se presenta como una tarjeta que incluye el tipo de cambio (Acción por nivel, Periodicidad o Notificaciones), los valores anterior y nuevo en formato monoespaciado tipo \emph{diff}, la fecha y hora, y el actor responsable.
+
+El formato \texttt{valor\_viejo} $\rightarrow$ \texttt{valor\_nuevo} permite identificar qué cambió, en lugar de mostrar únicamente la configuración resultante, ya que la auditoría busca registrar las modificaciones y no solo consultar el estado actual, disponible en \texttt{/umbrales}. La figura~\ref{fig:mockup-auditoria-wireframe} presenta el \emph{wireframe}, mientras que la figura~\ref{fig:mockup-auditoria-real} muestra la pantalla implementada.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-auditoria-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-auditoria-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Auditoría}
 	\label{fig:mockup-auditoria-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-auditoria-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-auditoria-real.png}
 	\caption{Pantalla real: \texttt{/auditoria}}
 	\label{fig:mockup-auditoria-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Auditoría}
-	\label{tab:mockup-auditoria}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RF-17 & Historial de versiones de políticas visible desde el \emph{dashboard}, orden cronológico descendente, con actor de cada cambio. \\
-	\hline
-	RNF-11 (explicabilidad, parcial) & Mostrar el delta exacto (campo, valor anterior, valor nuevo) en lugar de solo un mensaje genérico de ``configuración actualizada'' da trazabilidad concreta de qué cambió y quién lo cambió. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+El diseño cumple con RF-17 al mostrar el historial de cambios de las políticas en el \emph{dashboard}, ordenado cronológicamente del más reciente al más antiguo e identificando al actor responsable. Además, registrar el campo modificado junto con sus valores anterior y nuevo, en lugar de un mensaje genérico como «configuración actualizada», permite identificar qué cambió y quién realizó el cambio, y contribuye parcialmente a la explicabilidad planteada en RNF-11.
 
 \subsection{Estado del sistema}
-Pantalla de verificación técnica: expone el resultado de \texttt{/health} de la API (estado agregado, artefactos del modelo cargados, conectividad a Redis y Postgres) y el detalle de cada artefacto individual (\texttt{isolation\_forest}, \texttt{lstm\_autoencoder}, \emph{scalers}, \emph{encoding}, umbrales del modelo, referencias de entrenamiento). No es una pantalla pensada para uso operativo diario del administrador de seguridad, sino como herramienta de verificación rápida de que el sistema está sano. Por eso se incluye en este relevamiento pese a no derivar de un requerimiento funcional puntual: documenta una decisión de diseño real (visibilidad de salud técnica del sistema) aunque su alcance sea acotado y esté sujeta a revisión. La figura~\ref{fig:mockup-estado-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-estado-real}, la pantalla implementada.
+Esta pantalla permite verificar el estado técnico del sistema a partir de la información que devuelve el endpoint \texttt{/health} de la API: estado general, carga de los artefactos del modelo y conectividad con Redis y Postgres. También presenta el estado de cada artefacto individual, incluidos \texttt{isolation\_forest}, \texttt{lstm\_autoencoder}, los \emph{scalers}, el \emph{encoding}, los umbrales del modelo y las referencias de entrenamiento.
+
+Está orientada a la verificación rápida del funcionamiento del sistema, más que al uso operativo cotidiano del administrador de seguridad. Se incluye en este relevamiento aunque no responda a un requerimiento funcional específico, ya que documenta una decisión de diseño: ofrecer visibilidad sobre el estado técnico de los componentes, con un alcance acotado y sujeto a revisión. La figura~\ref{fig:mockup-estado-wireframe} presenta el \emph{wireframe}, mientras que la figura~\ref{fig:mockup-estado-real} muestra la pantalla implementada.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-estado-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-estado-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Estado del sistema}
 	\label{fig:mockup-estado-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-estado-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-estado-real.png}
 	\caption{Pantalla real: \texttt{/salud}}
 	\label{fig:mockup-estado-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Estado del sistema}
-	\label{tab:mockup-estado}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RNF-15 (aplicado a estado técnico) & Mismo lenguaje visual de \emph{badges} de estado (OK / \emph{healthy}) que el resto del sistema usa para nivel de riesgo, aplicado aquí a salud de infraestructura en vez de riesgo de usuario. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+Si bien la pantalla no deriva de un requerimiento funcional puntual, adopta el principio de consistencia visual de RNF-15: emplea el mismo lenguaje de \emph{badges} de estado (OK o \emph{healthy}) que el resto del sistema utiliza para el nivel de riesgo, aplicado en este caso a la salud de la infraestructura en lugar del riesgo de los usuarios. Así, el administrador interpreta el estado técnico con las mismas convenciones que ya conoce, sin necesidad de aprender una codificación nueva.
 
 \subsection{Con historial}
-Filtra el listado de usuarios a los que ya tienen al menos un día cerrado en \texttt{historial\_scores} (Postgres), como acceso rápido a usuarios con evolución temporal registrada. Es una vista deliberadamente angosta (una grilla de accesos que muestra solo el UID) frente al listado general de Usuarios: no repite \emph{score}/nivel/acción porque esos datos ya cambiaron desde que se cerró ese día: mostrarlos aquí induciría a leerlos como estado actual cuando son historial. El texto bajo el título aclara explícitamente que esta lista (Postgres) puede diferir del listado operacional (Redis): un \texttt{uid} reseteado en Redis conserva igual su historial aquí, y esa distinción se declara en la propia pantalla en lugar de dejarla implícita. La figura~\ref{fig:mockup-historial-wireframe} presenta el \emph{wireframe} de la pantalla y la figura~\ref{fig:mockup-historial-real}, la pantalla implementada.
+Esta pantalla reúne a los usuarios que tienen al menos un día cerrado en \texttt{historial\_scores} (Postgres), facilitando el acceso a quienes cuentan con una evolución temporal registrada. A diferencia del listado general de Usuarios, muestra únicamente el UID, sin repetir el \emph{score}, el nivel de riesgo ni la acción de mitigación, ya que estos valores pueden haber cambiado desde el cierre del día y confundirse con el estado actual.
+
+El texto bajo el título también aclara que la lista de Postgres puede diferir del listado operativo de Redis: si se restablece el estado de un \texttt{uid} en Redis, su historial permanece en Postgres. Así, la interfaz distingue explícitamente el estado operativo del registro histórico. La figura~\ref{fig:mockup-historial-wireframe} presenta el \emph{wireframe}, mientras que la figura~\ref{fig:mockup-historial-real} muestra la pantalla implementada.
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-historial-wireframe.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-historial-wireframe.png}
 	\caption{Wireframe de baja fidelidad: Con historial}
 	\label{fig:mockup-historial-wireframe}
 	{\small Fuente: elaboración propia.\par}
 	\bigskip
-	\includegraphics[width=0.8\textwidth]{images/mockups/mockup-historial-real.png}
+	\includegraphics[width=0.8\textwidth,height=0.32\textheight,keepaspectratio]{images/mockups/mockup-historial-real.png}
 	\caption{Pantalla real: \texttt{/historial}}
 	\label{fig:mockup-historial-real}
 	{\small Fuente: elaboración propia, captura del sistema.\par}
 \end{figure}
 \FloatBarrier
 
-\begin{longtable}{p{1.8cm}p{12.8cm}}
-	\caption{Justificación de diseño: Con historial}
-	\label{tab:mockup-historial}\\
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{ID} & \textbf{Justificación de diseño} \\
-	\hline
-	\endhead
-	RF-16 (complementario) & Extiende la visibilidad en tiempo real del listado operacional con una vista de acceso a datos persistidos, sin mezclar ambas fuentes en una sola tabla. \\
-	\hline
-	Transparencia de diseño & La nota aclaratoria sobre la posible divergencia Redis/Postgres es una decisión de diseño explícita para que el administrador no interprete una ausencia en esta lista como ``sin historial real''. \\
-	\hline
-\end{longtable}
-\FloatBarrier
+Esta vista complementa RF-16 al ampliar la visibilidad del listado operacional con acceso a los datos históricos persistidos, sin mezclar ambas fuentes en una misma tabla. Además, la nota sobre las posibles diferencias entre Redis y Postgres explicita esta distinción para evitar que la ausencia de un usuario en el listado se interprete como una falta de historial registrado.
 
 \clearpage

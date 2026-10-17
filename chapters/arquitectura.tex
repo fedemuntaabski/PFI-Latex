@@ -1,13 +1,11 @@
 \chapter{Arquitectura y tecnologías}
 \label{chap:arquitectura}
 
-Esta sección presenta la arquitectura del sistema, las tecnologías utilizadas en cada componente con su justificación frente a las alternativas evaluadas, la arquitectura de despliegue, diferenciando lo diseñado de lo efectivamente desplegado, y los protocolos de comunicación entre componentes.
-
 \section{Arquitectura lógica}
 \label{sec:arquitectura-logica}
 La arquitectura sigue la separación entre el punto de decisión de políticas (PDP) y el punto de aplicación de políticas (PEP) propuesta por NIST SP~800-207 \parencite{Rose2020}. El agente local actúa como PEP: observa la actividad, la informa y aplica la decisión, pero no evalúa el riesgo. La API central actúa como PDP: concentra el modelo, la política vigente y el estado de cada usuario, y decide la acción. Esta separación permite cambiar el modelo o la política sin modificar los agentes instalados.
 
-El sistema no es una aplicación monolítica sino un conjunto de componentes con funciones y entornos de ejecución distintos, organizados en un único repositorio con cinco subsistemas: la API de \emph{scoring}, el agente, el \emph{dashboard}, el \emph{pipeline} de entrenamiento y los \emph{scripts} de demostración, ensayo y validación. La API es el único punto de acceso al estado y a la configuración, y la utilizan cuatro tipos de consumidores con distintos niveles de acceso:
+El sistema no es una aplicación monolítica sino un conjunto de componentes con funciones y entornos de ejecución distintos, organizados en un único repositorio con cinco subsistemas: la API de \emph{scoring}, el agente, el \emph{dashboard}, el \emph{pipeline} de entrenamiento y los \emph{scripts} de validación. La API es el único punto de acceso al estado y a la configuración, y la utilizan cuatro tipos de consumidores con distintos niveles de acceso:
 \begin{itemize}
 	\item \textbf{Agente:} envía eventos y confirma las acciones ejecutadas, con una clave propia, ligada a su identificador y a los usuarios que puede reportar, que solo habilita esas dos operaciones.
 	\item \textbf{\emph{Dashboard} en modo consulta:} lee el estado de los usuarios, el historial y la configuración.
@@ -19,183 +17,52 @@ El flujo principal comienza en el agente, que captura un evento y lo envía a la
 
 \section{Lenguajes de programación}
 \label{sec:lenguajes}
-Cada componente utiliza el lenguaje que mejor se ajusta a su función y a su entorno de ejecución. La tabla~\ref{tab:lenguajes} resume la elección.
+El lenguaje principal del sistema es Python, que se utiliza en la API, el agente, el \emph{pipeline} de entrenamiento y los \emph{scripts} de validación. La elección responde en primer lugar al ecosistema de aprendizaje automático empleado, basado en scikit-learn y TensorFlow, y en segundo lugar a que usarlo también en la API permite reutilizar el código de cálculo del puntaje validado durante el entrenamiento, sin reimplementarlo en otro lenguaje. Esto reduce el riesgo de diferencias entre lo que se valida y lo que se ejecuta en producción. El desarrollo se realiza con Python~3.12, mientras que la integración continua y el servidor utilizan Python~3.11.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{8.1cm}}
-	\caption{Lenguajes de programación utilizados}
-	\label{tab:lenguajes}\\
-	\hline
-	\textbf{Lenguaje} & \textbf{Dónde se usa} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Lenguaje} & \textbf{Dónde se usa} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	Python & API, agente, \emph{pipeline} de entrenamiento y \emph{scripts} & Es el lenguaje del ecosistema de aprendizaje automático utilizado (scikit-learn y TensorFlow). Usarlo también en la API permite reutilizar el código de cálculo del puntaje validado durante el entrenamiento, sin reimplementarlo en otro lenguaje, y reduce el riesgo de diferencias entre lo validado y lo que se ejecuta en producción. El desarrollo utiliza Python~3.12; la integración continua y el servidor, Python~3.11. \\
-	\hline
-	TypeScript & \emph{Dashboard} & El \emph{dashboard} modifica configuraciones que cambian el comportamiento del agente, como los umbrales y la acción por nivel. El tipado estático detecta errores de estructura durante el desarrollo, y la validación con Zod los detecta en tiempo de ejecución sobre los datos recibidos de la API. \\
-	\hline
-	PowerShell & Instalación del agente y despliegue & Es la herramienta de automatización nativa de Windows. Se utiliza para registrar el arranque automático del agente y para publicar versiones de la API en la nube desde el equipo de desarrollo. \\
-	\hline
-	HCL (Terraform) y Bash & Infraestructura en la nube & HCL describe la infraestructura como código; Bash configura el servidor en su primer arranque. \\
-	\hline
-\end{longtable}
+El \emph{dashboard} se desarrolla en TypeScript, un lenguaje que incorpora tipado estático para detectar errores de tipos durante el desarrollo. Esto resulta especialmente útil porque desde la interfaz se modifican parámetros que afectan el comportamiento del agente, como los umbrales de riesgo y las acciones asociadas a cada nivel. Además, se utiliza Zod, una biblioteca de validación que permite comprobar en tiempo de ejecución que los datos recibidos desde la API tengan la estructura y los tipos esperados. Así, ambas herramientas permiten detectar errores tanto durante el desarrollo como al procesar las respuestas del sistema.
 
-Se descarta un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implica más configuración y código para el alcance del proyecto.
+Para automatizar las tareas específicas de cada entorno, se utilizan distintos lenguajes y herramientas. PowerShell, integrado en Windows, permite configurar el inicio automático del agente y publicar en la nube las nuevas versiones de la API desde el equipo de desarrollo. Por su parte, la infraestructura en la nube se define mediante HCL, el lenguaje utilizado por Terraform para describir y gestionar los recursos. Esta configuración se complementa con \emph{scripts} en Bash, que ejecutan las tareas necesarias para preparar el servidor durante su primer arranque.
+
+Se descartó un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implica más configuración y código para el alcance del proyecto.
 
 \section{Frameworks y librerías}
 \label{sec:frameworks}
 
-Esta sección describe los \emph{frameworks} y las librerías de cada componente: la API de \emph{scoring}, el agente, el \emph{dashboard} y el \emph{pipeline} de entrenamiento. Para cada elección se indican las alternativas evaluadas. Las tablas~\ref{tab:tec-api} a~\ref{tab:tec-pipeline} detallan cada componente.
-
 \subsection{API de \emph{scoring}}
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{10.7cm}}
-	\caption{Frameworks y librerías de la API}
-	\label{tab:tec-api}\\
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	FastAPI 0.104 y Uvicorn & Soporte asincrónico, validación automática de la entrada y la salida, y documentación OpenAPI generada a partir del código, útil para una API de 32 \emph{endpoints}. Flask habría requerido extensiones para llegar al mismo resultado. \\
-	\hline
-	Pydantic 2 & Define los contratos de datos que comparten el agente, la API y el \emph{dashboard}. Un evento mal formado se rechaza automáticamente, sin código de validación manual. \\
-	\hline
-	SQLAlchemy y psycopg2 & Acceso a PostgreSQL con consultas SQL explícitas y un grupo de conexiones reducido. Las escrituras son de dos tipos: una por evento en la tabla de eventos crudos y una por usuario y día en el historial. Los tiempos de espera acotados evitan que una caída de la base de datos bloquee la evaluación de eventos. \\
-	\hline
-	redis-py & Cliente de Redis para el estado de cada usuario, que se lee y escribe en cada evento. Se elige Redis frente a PostgreSQL para este estado porque el patrón es de alta frecuencia y baja latencia, distinto del historial. Redis ofrece además transacciones optimistas, que la API utiliza con hasta 20 reintentos ante escrituras concurrentes. \\
-	\hline
-	scikit-learn 1.4 & Implementación madura de Isolation Forest. Se prefiere frente a autoencoders tabulares o máquinas de vectores de soporte de una clase por su bajo costo computacional y porque su salida se presta a la explicación por variables. \\
-	\hline
-	TensorFlow 2.16 (Keras) & Implementación del LSTM Autoencoder, elegido para analizar el orden de los eventos, algo que Isolation Forest no captura al trabajar con agregados diarios; la evaluación muestra que el modelo entrenado no aprovecha ese orden (sección~\ref{sec:limitaciones-producto}). Se elige Keras frente a PyTorch por su API de alto nivel. \\
-	\hline
-	pandas, NumPy, SciPy y joblib & Manipulación de datos, cálculo numérico y serialización de los modelos entrenados. Todas las dependencias de la API están fijadas en versiones exactas para que el cálculo sea reproducible. \\
-	\hline
-	requests & Consultas al proveedor IAM y a servicios externos. \\
-	\hline
-	pytest & Pruebas automatizadas de la API y del agente. \\
-	\hline
-\end{longtable}
+La API se desarrolla con FastAPI y se ejecuta sobre Uvicorn. Este \emph{framework} ofrece soporte para operaciones asincrónicas, valida automáticamente los datos de entrada y salida, y genera la documentación OpenAPI a partir del código. Estas características resultan especialmente útiles para una API que cuenta con 32 \emph{endpoints}, ya que permiten mantener sus interfaces documentadas y reducir la necesidad de incorporar extensiones adicionales, como ocurriría con Flask. Por su parte, los contratos de datos compartidos entre el agente, la API y el \emph{dashboard} se definen mediante Pydantic~2, que permite validar la estructura y los tipos de los datos recibidos y rechazar los eventos mal formados sin necesidad de implementar manualmente esas validaciones.
+
+El estado de cada usuario se guarda en Redis mediante redis-py. Se prefiere Redis frente a PostgreSQL para este fin porque el patrón de acceso es de alta frecuencia y baja latencia, y porque sus transacciones optimistas permiten a la API resolver escrituras concurrentes con hasta 20 reintentos. El historial y los eventos crudos se persisten en PostgreSQL con SQLAlchemy y psycopg2, usando consultas SQL explícitas, un grupo de conexiones reducido y tiempos de espera acotados para que una caída de la base de datos no bloquee la evaluación de eventos.
+
+Para el desarrollo de los modelos se utilizan scikit-learn~1.4 y TensorFlow~2.16 con Keras. Scikit-learn proporciona la implementación de Isolation Forest, elegido por su bajo costo computacional frente a otras alternativas, como los autoencoders tabulares y las máquinas de vectores de soporte de una clase, y porque permite explicar los resultados a partir de las variables que más influyen en ellos. Por su parte, TensorFlow con Keras se utiliza para implementar el LSTM Autoencoder, seleccionado por su capacidad para modelar el orden de los eventos, a diferencia de Isolation Forest, que trabaja con agregados diarios. Sin embargo, la evaluación muestra que el modelo entrenado no logra aprovechar esa información temporal (sección~\ref{sec:limitaciones-producto}). Se prefiere Keras frente a PyTorch por su API de alto nivel.
+
+El procesamiento complementario se realiza con pandas, NumPy, SciPy y joblib, que permiten manipular datos, efectuar cálculos numéricos y serializar los modelos. Las dependencias de la API se fijan en versiones exactas para favorecer la reproducibilidad de los resultados, y las pruebas automatizadas se implementan con pytest.
 
 \subsection{Agente}
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{10.7cm}}
-	\caption{Librerías del agente}
-	\label{tab:tec-agente}\\
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	psutil & Enumeración de procesos y conexiones de red desde Python sin invocar directamente la API de Windows. \\
-	\hline
-	requests & Envío de eventos a la API. El agente envía en forma secuencial y no necesita un cliente asincrónico. \\
-	\hline
-	python-dotenv & Carga de la configuración local del agente, como la dirección de la API y su clave. \\
-	\hline
-	icacls (sistema operativo) & Herramienta nativa de Windows para modificar los permisos de carpetas en las mitigaciones de denegación y su reversión. \\
-	\hline
-\end{longtable}
-
-El agente tiene solo tres dependencias externas. Como se ejecuta en segundo plano en el equipo del usuario, minimizar las dependencias reduce la superficie de ataque y el consumo de recursos.
+El agente depende únicamente de tres librerías externas: psutil, para enumerar procesos y conexiones de red sin invocar directamente la API de Windows; requests, para enviar los eventos a la API en forma secuencial, por lo que no necesita un cliente asincrónico; y python-dotenv, para cargar la configuración local, como la dirección de la API y su clave. Las mitigaciones de denegación y su reversión modifican los permisos de carpetas con icacls, herramienta nativa de Windows. Dado que el agente se ejecuta en segundo plano directamente en el equipo del usuario, mantener pocas dependencias limita la superficie de ataque y el consumo de recursos.
 
 \subsection{\emph{Dashboard}}
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{10.7cm}}
-	\caption{Frameworks y librerías del \emph{dashboard}}
-	\label{tab:tec-frontend}\\
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	React 19 & Componentes reutilizables entre pantallas, como los indicadores de nivel, cobertura y aprendizaje. \\
-	\hline
-	Vite 8 & Arranque y recarga en caliente más rápidos que las herramientas basadas en Webpack. \\
-	\hline
-	TypeScript y Zod 4 & Doble validación de los datos: en compilación y en ejecución. \\
-	\hline
-	TanStack Query 5 & Caché, revalidación y consulta periódica cada 2 segundos sin escribir a mano la lógica de recarga, carga y error de cada consulta. Permite reflejar al instante un cambio de configuración recién guardado. \\
-	\hline
-	React Router 7 & Navegación entre las ocho pantallas, con rutas protegidas por el inicio de sesión. \\
-	\hline
-	Recharts 3 & Gráfico de la evolución del puntaje, integrado al modelo de componentes de React. \\
-	\hline
-	Tailwind CSS 4 & Estilos utilitarios y tema claro y oscuro sin hojas de estilo separadas. \\
-	\hline
-	Oxlint & Análisis estático rápido, integrado a la integración continua. \\
-	\hline
-\end{longtable}
+El \emph{dashboard} se desarrolla con React~19, que permite reutilizar componentes entre pantallas, como los indicadores de nivel de riesgo, cobertura y aprendizaje. Para construir la aplicación se utiliza Vite~8, que agiliza el arranque del entorno de desarrollo y la recarga de cambios. Los datos recibidos de la API se validan con Zod~4, que complementa el tipado estático de TypeScript mediante verificaciones en tiempo de ejecución.
+
+Las consultas a la API se gestionan con TanStack Query~5, que centraliza el caché, la revalidación y la actualización periódica de los datos cada dos segundos, evitando implementar manualmente la lógica de carga y error en cada solicitud. También permite reflejar de inmediato los cambios de configuración recién guardados. La navegación entre las ocho pantallas, incluidas las rutas protegidas por el inicio de sesión, se implementa con React Router~7. Para completar la interfaz, Recharts~3 permite representar la evolución del puntaje, mientras que Tailwind CSS~4 gestiona los estilos y los temas claro y oscuro. Por último, Oxlint se utiliza para el análisis estático del código y se integra en el proceso de integración continua.
 
 \subsection{\emph{Pipeline} de entrenamiento}
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{10.7cm}}
-	\caption{Herramientas del \emph{pipeline} de entrenamiento}
-	\label{tab:tec-pipeline}\\
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Tecnología} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	Jupyter & Las seis fases del \emph{pipeline}, desde la exploración hasta el puntaje híbrido, son \emph{notebooks}: el trabajo de preparación y entrenamiento es exploratorio e iterativo, y los \emph{notebooks} conservan el código junto con sus resultados. \\
-	\hline
-	nbconvert & Ejecución de los \emph{notebooks} sin interfaz, en un proceso separado de la API, cuando el planificador dispara un reentrenamiento. \\
-	\hline
-	DuckDB & Consultas SQL sobre el archivo del conjunto de datos (14~GB en formato JSON por líneas) sin cargarlo en memoria ni administrar un motor de base de datos aparte. \\
-	\hline
-\end{longtable}
+Las seis fases del \emph{pipeline}, desde la exploración hasta el puntaje híbrido, se implementan como \emph{notebooks} de Jupyter, ya que el trabajo de preparación y entrenamiento es exploratorio e iterativo y este formato conserva el código junto con sus resultados. Cuando el planificador dispara un reentrenamiento, nbconvert ejecuta los \emph{notebooks} sin interfaz en un proceso separado de la API. Para consultar el conjunto de datos, de 14~GB en formato JSON por líneas, se emplea DuckDB, que permite ejecutar SQL sobre el archivo sin cargarlo en memoria ni administrar un motor de base de datos aparte.
 
 \section{Servicios e infraestructura}
 \label{sec:servicios}
-La tabla~\ref{tab:servicios} enumera los servicios externos y la infraestructura del sistema.
+El estado operativo y la configuración del sistema se almacenan en Redis, y el historial, los eventos crudos, la auditoría y las métricas en PostgreSQL. Ambos se contratan como servicios gestionados, Upstash para Redis y Supabase para PostgreSQL, lo que evita administrar instancias propias y los hace accesibles tanto desde el entorno local como desde la nube. Supabase aporta además seguridad a nivel de fila y la extensión criptográfica que utiliza la cadena de \emph{hashes}.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{10.7cm}}
-	\caption{Servicios externos e infraestructura}
-	\label{tab:servicios}\\
-	\hline
-	\textbf{Servicio} & \textbf{Uso y justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Servicio} & \textbf{Uso y justificación} \\
-	\hline
-	\endhead
-	Redis gestionado (Upstash) & Estado operativo y configuración. Un servicio gestionado evita administrar una instancia propia y es accesible tanto desde el entorno local como desde la nube. \\
-	\hline
-	PostgreSQL gestionado (Supabase) & Historial, eventos crudos, auditoría y métricas. Incluye seguridad a nivel de fila y la extensión criptográfica que usa la cadena de \emph{hashes}. \\
-	\hline
-	Amazon Web Services & Infraestructura para el despliegue: instancia de cómputo para la API, almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, almacén de parámetros para los secretos y administración remota sin SSH; el \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) en la propia instancia. \\
-	\hline
-	Terraform & Infraestructura como código: los recursos de la nube se crean, modifican y destruyen de forma reproducible y revisable. \\
-	\hline
-	GitHub Actions & Integración continua: análisis estático, compilación, pruebas y validación de la infraestructura en cada cambio. \\
-	\hline
-	Correo SMTP & Notificaciones al administrador. Es opcional: sin servidor configurado, la notificación solo se registra. \\
-	\hline
-	Gemini & Redacción asistida del correo de notificación. Es opcional y tiene un texto predefinido de respaldo, por lo que la notificación no depende de un servicio externo. \\
-	\hline
-	Keycloak & Proveedor IAM de referencia para el adaptador de identidad. Es opcional y está desactivado por defecto. \\
-	\hline
-\end{longtable}
+Para el despliegue se recurre a Amazon Web Services, que provee la instancia de cómputo de la API, el almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, el almacén de parámetros para los secretos y la administración remota sin SSH. El \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) que corre en la propia instancia. Los recursos de la nube se definen con Terraform, de modo que se crean, modifican y destruyen de forma reproducible y revisable, y GitHub Actions ejecuta en cada cambio el análisis estático, la compilación, las pruebas y la validación de la infraestructura.
+
+Por último, el sistema integra tres servicios opcionales. El envío de correo por SMTP permite notificar al administrador y, si no hay un servidor configurado, la notificación solo se registra. Gemini asiste en la redacción del correo, con un texto predefinido de respaldo para que la notificación no dependa de un servicio externo. Keycloak actúa como proveedor IAM de referencia para el adaptador de identidad y está desactivado por defecto.
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
-El sistema tiene dos arquitecturas de despliegue: la local, verificada de extremo a extremo, y la de la nube, aplicada y verificada con un agente real el 10 de octubre de 2026.
 
 \subsection{Despliegue local}
 En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por loopback y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/despliegue_local.pdf}}
 	\caption{Arquitectura de despliegue local}
@@ -204,17 +71,9 @@ En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como pr
 \end{figure}
 
 \subsection{Despliegue en la nube}
-La arquitectura de la nube, descripta con Terraform, ejecuta la API en una instancia de cómputo (t3.medium) con un proxy inverso (Caddy) que termina TLS con un certificado obtenido por ACME, sirve el \emph{dashboard} y encamina a la API las solicitudes bajo \texttt{/api} (figura~\ref{fig:despliegue-aws}). Incorpora las siguientes decisiones de seguridad:
-\begin{itemize}
-	\item La API escucha solo en la interfaz local de la instancia; el acceso externo pasa por el proxy.
-	\item El acceso a los metadatos de la instancia exige la versión 2 del servicio, y el disco está cifrado.
-	\item Los secretos se guardan en el almacén de parámetros y no en el código.
-	\item La administración y la publicación de versiones se realizan mediante el almacenamiento de objetos y el administrador de sistemas del proveedor (SSM), sin acceso SSH.
-	\item La API se ejecuta en modo de autenticación estricta y sin la documentación interactiva expuesta.
-	\item Las contraseñas del \emph{dashboard} son obligatorias y el inicio de sesión entrega un \emph{token} de sesión con vencimiento, de modo que ninguna clave de administración llega al navegador.
-\end{itemize}
+La infraestructura en la nube, definida mediante Terraform, ejecuta la API en una instancia de cómputo \texttt{t3.medium}, protegida por un proxy inverso (Caddy). Este se encarga de terminar las conexiones TLS mediante un certificado obtenido a través de ACME, servir el \emph{dashboard} y redirigir a la API las solicitudes que llegan bajo la ruta \texttt{/api} (figura~\ref{fig:despliegue-aws}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/aws_despliegue.pdf}}
 	\caption{Arquitectura de despliegue en la nube}
@@ -222,7 +81,13 @@ La arquitectura de la nube, descripta con Terraform, ejecuta la API en una insta
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-\begin{figure}[ht]
+La configuración incorpora varias medidas de seguridad. La API escucha únicamente en la interfaz local de la instancia, por lo que las solicitudes externas deben pasar por el proxy. Además, el acceso a los metadatos de la instancia requiere la versión 2 del servicio y el disco se encuentra cifrado. Los secretos se almacenan en el servicio de parámetros del proveedor, en lugar de incluirse en el código, mientras que las tareas de administración y publicación de versiones se realizan mediante el almacenamiento de objetos y AWS Systems Manager (SSM), sin necesidad de habilitar el acceso por SSH.
+
+Por su parte, la API funciona con la autenticación estricta habilitada y sin exponer su documentación interactiva. En el \emph{dashboard}, las contraseñas son obligatorias y el inicio de sesión genera un \emph{token} de sesión con vencimiento. De esta manera, las credenciales de administración no se envían ni se almacenan en el navegador.
+
+La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y, definidos en Terraform pero sin desplegar, CloudFront y el bucket del \emph{dashboard}. La instancia conserva la misma dirección IP cada vez que se enciende.
+
+\begin{figure}[H]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/aws_apoyo.pdf}}
 	\caption{Recursos de apoyo de la instancia en la nube}
@@ -230,91 +95,30 @@ La arquitectura de la nube, descripta con Terraform, ejecuta la API en una insta
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y, definidos en Terraform pero sin desplegar, CloudFront y el bucket del \emph{dashboard}. La instancia se mantiene apagada por defecto y, cuando se enciende, conserva la misma dirección IP.
-
-La tabla~\ref{tab:diseno-vs-despliegue} contrasta lo diseñado con lo desplegado.
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{4.9cm}}
-	\caption{Arquitectura de la nube: diseño frente a despliegue}
-	\label{tab:diseno-vs-despliegue}\\
-	\hline
-	\textbf{Recurso} & \textbf{Diseño} & \textbf{Estado} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Recurso} & \textbf{Diseño} & \textbf{Estado} \\
-	\hline
-	\endhead
-	Instancia de cómputo de la API & Servidor Linux (t3.medium) con la API como servicio del sistema, sin contenedores & Creada; se mantiene apagada fuera de las pruebas para limitar el costo; tras detenerla y arrancarla, el proxy y la API vuelven a funcionar solos \\
-	\hline
-	Proxy inverso con TLS (Caddy) & TLS con certificado ACME; \emph{dashboard} y API bajo \texttt{/api} & Verificado el 6 de octubre de 2026: la verificación de estado de la API responde por HTTPS con TLS verificado y los artefactos cargados; el \emph{dashboard} se sirve por HTTPS; HTTP redirige a HTTPS; la documentación interactiva no está expuesta \\
-	\hline
-	Dirección IP fija, rol de acceso y parámetros de configuración & Identidad de la instancia y secretos administrados & Creados \\
-	\hline
-	\emph{Buckets} de almacenamiento & Versiones publicadas de la API y del \emph{dashboard} (bucket de versiones) y origen del \emph{dashboard} con red de distribución (bucket del \emph{dashboard}) & Creados; solo se usa el de versiones: el \emph{dashboard} llega a la instancia por ese bucket y lo sirve el proxy, y el bucket del \emph{dashboard} queda sin uso \\
-	\hline
-	Red de distribución de contenidos & Prevista inicialmente para HTTPS & No utilizada: reemplazada por el proxy en la instancia \\
-	\hline
-	Reentrenamiento en la nube & Planificador de la API & Desactivado en la instancia; el reentrenamiento se ejecuta en el entorno local \\
-	\hline
-	Envío de eventos desde un agente & Agente $\rightarrow$ API por HTTPS & Implementado y verificado el 10 de octubre de 2026 con un agente real contra la instancia, con credencial individual; el inicio de sesión se verifica contra la API desplegada \\
-	\hline
-	Despliegue continuo & -- & No implementado: la integración continua no despliega \\
-	\hline
-\end{longtable}
-
-Con el proxy en la instancia, el tramo entre el cliente y la instancia está cifrado con TLS. El agente se niega a usar \texttt{http://} fuera de \emph{loopback}, de modo que la clave no puede viajar en claro. El 10 de octubre de 2026 se verifica el canal de extremo a extremo con un agente real, que envía sus eventos por HTTPS con una credencial individual y llega a ejecutar la acción del nivel crítico. El certificado es de Let's Encrypt, HTTP redirige con un 308, el puerto de la API está cerrado desde afuera y la documentación interactiva no está expuesta. La instancia se mantiene apagada fuera de las pruebas y las demostraciones.
 
 \subsection{Contenedores}
-Durante el desarrollo se evalúa ejecutar la API, Redis y el \emph{dashboard} con Docker Compose. La alternativa se deja de lado por tres motivos:
-\begin{itemize}
-	\item El agente debe ejecutarse de forma nativa en Windows para acceder a los procesos y a los permisos del sistema de archivos, por lo que no puede formar parte de los contenedores.
-	\item Redis y PostgreSQL se reemplazan por servicios gestionados.
-	\item Ejecutar la API como servicio nativo en la instancia simplifica la administración con las herramientas del sistema operativo y del proveedor.
-\end{itemize}
-La imagen de la API se conserva en el repositorio como alternativa de despliegue, pero no forma parte del camino verificado.
+Durante el desarrollo se evalúa utilizar Docker Compose para ejecutar la API, Redis y el \emph{dashboard} en contenedores. Sin embargo, se descarta esta alternativa por tres razones. En primer lugar, el agente debe ejecutarse de forma nativa en Windows para acceder a los procesos y gestionar los permisos del sistema de archivos, por lo que no puede integrarse en este esquema de contenedores. En segundo lugar, Redis y PostgreSQL se reemplazan por servicios gestionados, lo que elimina la necesidad de ejecutarlos localmente. Por último, ejecutar la API como un servicio nativo en la instancia simplifica su administración mediante las herramientas del sistema operativo y del proveedor de nube.
+
+La imagen de la API se conserva en el repositorio como alternativa de despliegue, aunque esta modalidad no forma parte del camino de despliegue verificado.
 
 \subsection{Viabilidad técnica}
-El sistema no requiere hardware específico. El agente se ejecuta como un proceso nativo en equipos
-con Windows que la organización ya posee, con un consumo de recursos acotado por RNF-02, y la API
-y el almacenamiento corren sobre servicios de nube de uso general (cómputo, Redis y PostgreSQL
-gestionados) contratables bajo demanda. La viabilidad técnica depende, por lo tanto, de la
-disponibilidad de esos servicios y no de la producción o adquisición de dispositivos.
+El sistema no requiere hardware específico para su funcionamiento. El agente se ejecuta como un proceso nativo en equipos con Windows que la organización ya posee y mantiene un consumo de recursos acotado, conforme a RNF-02. Por su parte, la API y el almacenamiento utilizan servicios de nube de propósito general, como cómputo, Redis y PostgreSQL gestionados, que pueden contratarse bajo demanda. Por lo tanto, la viabilidad técnica depende de la disponibilidad de estos servicios y de la infraestructura existente, sin necesidad de adquirir ni desarrollar dispositivos adicionales.
 
 \section{Protocolos de comunicación}
 \label{sec:protocolos}
-La tabla~\ref{tab:protocolos} resume los protocolos entre componentes. Las respuestas no llevan firma propia; su integridad en tránsito depende de TLS (sección~\ref{sec:limitaciones-producto}).
+La comunicación entre el agente, el \emph{dashboard} y la API utiliza HTTP/REST con mensajes en JSON. Cada evento se envía como una solicitud independiente y recibe su propia respuesta, por lo que no es necesario mantener una conexión persistente. Los contratos de datos se definen con Pydantic en la API y Zod en el \emph{dashboard}, lo que permite validar la estructura de los mensajes en ambos componentes. Las respuestas no cuentan con una firma propia, por lo que la integridad de los datos durante la transmisión depende de TLS (sección~\ref{sec:limitaciones-producto}).
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{7.5cm}}
-	\caption{Protocolos de comunicación}
-	\label{tab:protocolos}\\
-	\hline
-	\textbf{Protocolo} & \textbf{Enlace} & \textbf{Justificación} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Protocolo} & \textbf{Enlace} & \textbf{Justificación} \\
-	\hline
-	\endhead
-	HTTP/REST con JSON & Agente $\rightarrow$ API; \emph{dashboard} $\rightarrow$ API & Cada evento es un mensaje discreto con su respuesta, sin necesidad de una conexión persistente. Los contratos están definidos con Pydantic en la API y con Zod en el \emph{dashboard}. \\
-	\hline
-	Claves en encabezados HTTP & Agente, \emph{dashboard} y administración & Cada agente tiene una clave propia, almacenada como \emph{hash}, revocable y ligada a su identificador y a los usuarios que puede reportar. El \emph{dashboard} inicia sesión con usuario y contraseña y recibe un \emph{token} de sesión opaco, con rol y vencimiento, que envía en cada solicitud. Las claves fijas de los niveles de acceso no salen del servidor y quedan para las herramientas de línea de comandos del administrador. \\
-	\hline
-	Consulta periódica (2~s) & \emph{Dashboard} $\rightarrow$ API & El puntaje cambia con cada evento, pero ningún caso de uso requiere una notificación instantánea. WebSockets habría agregado manejo de conexión persistente y reconexión sin un beneficio proporcional. \\
-	\hline
-	RESP con transacciones optimistas & API $\leftrightarrow$ Redis & Actualización atómica del estado del usuario ante eventos concurrentes. \\
-	\hline
-	Protocolo de PostgreSQL & API $\rightarrow$ PostgreSQL & Protocolo estándar, con grupo de conexiones y tiempos de espera acotados. \\
-	\hline
-	HTTPS & API $\rightarrow$ Gemini y proveedor IAM; usuario $\rightarrow$ \emph{dashboard} y API en la nube; agente $\rightarrow$ API en la nube & Cifrado hacia los servicios externos. En la nube, el proxy inverso de la instancia termina TLS para el \emph{dashboard} y la API; el agente solo acepta URLs HTTPS fuera de \emph{loopback}, y el canal se verifica de extremo a extremo con un agente real el 10 de octubre de 2026. \\
-	\hline
-	OAuth 2.0 con credenciales de cliente & API $\rightarrow$ Keycloak & Autenticación de la API ante el proveedor IAM, con el \emph{token} en caché hasta su vencimiento. \\
-	\hline
-	SMTP con STARTTLS & API $\rightarrow$ servidor de correo & Envío de notificaciones con cifrado del canal. \\
-	\hline
-	HTTP sin TLS (limitación) & Agente $\rightarrow$ API (despliegue local) & En el despliegue local verificado el canal usa HTTP, aceptable en \emph{loopback}; fuera de \emph{loopback} el agente exige HTTPS. No existe autenticación mutua por certificado entre el agente y la API: el agente se autentica con una clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}). \\
-	\hline
-\end{longtable}
+El \emph{dashboard} actualiza el estado mediante consultas periódicas cada 2~s. Aunque el puntaje cambia con cada evento, los casos de uso no requieren notificaciones instantáneas, por lo que se descarta el uso de WebSockets. Esta alternativa habría requerido gestionar conexiones persistentes y mecanismos de reconexión sin aportar un beneficio proporcional a las necesidades del sistema.
+
+La autenticación se apoya en claves enviadas en encabezados HTTP. Cada agente posee una clave propia, almacenada como \emph{hash}, revocable y ligada a su identificador y a los usuarios que puede reportar. El \emph{dashboard}, en cambio, inicia sesión con usuario y contraseña y recibe un \emph{token} de sesión opaco, con rol y vencimiento, que envía en cada solicitud. Las claves fijas de los niveles de acceso no salen del servidor y quedan reservadas para las herramientas de línea de comandos del administrador.
+
+Para el almacenamiento, la API se comunica con Redis mediante RESP y utiliza transacciones optimistas para garantizar que las actualizaciones del estado de cada usuario se realicen de forma atómica ante eventos concurrentes. La conexión con PostgreSQL utiliza el protocolo estándar, un grupo de conexiones y tiempos de espera acotados.
+
+Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
+
+En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API. A su vez, el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}.
+
+Existe una limitación en el despliegue local verificado, donde el canal entre el agente y la API usa HTTP sin TLS. Esto resulta aceptable en \emph{loopback}, y fuera de él el agente exige HTTPS. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}).
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}

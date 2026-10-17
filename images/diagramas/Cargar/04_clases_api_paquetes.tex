@@ -1,0 +1,82 @@
+% Diagrama de paquetes de la API (PDP) — api/app/scoring/, índice de las láminas A-E
+% Compilar: pdflatex 04_clases_api_paquetes.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\tikzset{mod/.style={draw=cBorde, fill=white, font=\ttfamily\footnotesize, minimum width=3.9cm, minimum height=7mm, inner sep=2pt},
+  pkg/.style={draw=cBorde, thick, rounded corners=2pt, inner sep=6mm, fill=#1},
+  dep/.style={-{Stealth[length=7pt]}, draw=cBorde, thick, dashed},
+  deplbl/.style={font=\ttfamily\tiny, fill=white, inner sep=1pt, align=center}}
+\begin{document}
+\begin{tikzpicture}
+
+% ---- D: entrada HTTP, configuración, historial, reentrenamiento
+\node[mod] (main)   at (-6.6, 0)   {main};
+\node[mod] (routes) at (-2.2, 0)   {routes};
+\node[mod] (paths)  at ( 2.2, 0)   {paths};
+\node[mod, minimum width=4.6cm] (sched)  at ( 6.8, 0)   {reentrenamiento\_scheduler};
+\node[mod] (cfg)    at (-4.4,-1.3) {config_store};
+\node[mod] (hist)   at ( 0.0,-1.3) {history_store};
+\node[mod] (metr)   at ( 4.4,-1.3) {metricas_service};
+\begin{scope}[on background layer]
+\node[pkg=cPdp!60, fit=(main)(sched)(cfg)(metr)] (pD) {};
+\end{scope}
+\node[zonatit, anchor=south west] at ([yshift=0.5mm]pD.north west) {D · HTTP, configuración, historial y reentrenamiento (04d)};
+
+% ---- E: schemas
+\node[mod] (schemas) at (-13.4,-6.5) {schemas};
+\begin{scope}[on background layer]
+\node[pkg=cPdp!60, fit=(schemas)] (pE) {};
+\end{scope}
+\node[zonatit, anchor=south west, text width=4cm] at ([yshift=0.5mm]pE.north west) {E · contratos (04e)};
+
+% ---- B: scoring
+\node[mod] (hyb)  at (-4.4,-5.4) {hybrid_service};
+\node[mod] (iso)  at ( 0.0,-5.4) {isoforest_service};
+\node[mod] (lstm) at ( 4.4,-5.4) {lstm_service};
+\node[mod] (feat) at (-4.4,-6.7) {features};
+\node[mod] (pbs)  at ( 0.0,-6.7) {personal_baseline_service};
+\node[mod] (drift)at ( 4.4,-6.7) {drift_service};
+\node[mod] (xai)  at (-4.4,-8.0) {explainability};
+\node[mod] (cov)  at ( 0.0,-8.0) {coverage};
+\node[mod] (art)  at ( 4.4,-8.0) {artifacts};
+\begin{scope}[on background layer]
+\node[pkg=cPdp!60, fit=(hyb)(lstm)(xai)(art)] (pB) {};
+\end{scope}
+\node[zonatit, anchor=south west] at ([yshift=0.5mm]pB.north west) {B · scoring híbrido (04b)};
+
+% ---- C: IAM, auth, dedup, notificaciones
+\node[mod] (iams)  at (12.6,-4.7) {iam_service};
+\node[mod] (iamp)  at (12.6,-6.0) {iam_providers};
+\node[mod] (auth)  at (12.6,-7.3) {auth};
+\node[mod] (dedup) at (12.6,-8.6) {dedup_service};
+\node[mod] (notif) at (12.6,-9.9) {notifications};
+\begin{scope}[on background layer]
+\node[pkg=cPdp!60, fit=(iams)(notif)] (pC) {};
+\end{scope}
+\node[zonatit, anchor=south west, text width=4.4cm] at ([yshift=0.5mm]pC.north west) {C · IAM, auth, dedup,\\notificaciones (04c)};
+
+% ---- A: estado
+\node[mod] (rs) at (0,-13.2) {redis_state};
+\begin{scope}[on background layer]
+\node[pkg=cDato, fit=(rs)] (pA) {};
+\end{scope}
+\node[zonatit, anchor=south west, text width=5cm] at ([yshift=0.5mm]pA.north west) {A · estado Redis (04a)};
+
+% ---- externos
+\node[mod, fill=cOff, minimum width=4.4cm, align=center] (scripts) at (6.6,-15.6) {scripts/\_score_common,\\\_audit_common, benchmark/};
+\node[font=\ttfamily\footnotesize, align=center, fill=cExt, draw=cBorde] (ext) at (-9.8,-15.6) {redis-py · SQLAlchemy/psycopg2\\requests · smtplib · FastAPI};
+
+% ---- dependencias entre paquetes
+\draw[dep] (pD.south -| iso) -- node[deplbl,right]{routes → hybrid_service,\\isoforest_service, features, ...} (pB.north -| iso);
+\draw[dep] (pD.west) -| node[deplbl,pos=0.75,left]{routes} (pE.north);
+\draw[dep] (pD.east) -| node[deplbl,pos=0.7,right]{routes → auth, dedup,\\iam_*; main → auth} ([xshift=-3mm]pC.north east);
+\draw[dep] ([xshift=2mm]pB.north -| art) -- node[deplbl,right]{hybrid_service → config_store,\\history_store; metricas → artifacts} ([xshift=2mm]pD.south -| art);
+\draw[dep] (pB.east |- iams) -- node[deplbl,above]{hybrid → iam_service,} node[deplbl,below]{notifications} (pC.west |- iams);
+\draw[dep] (pC.west |- notif) -- node[deplbl,below]{notifications → artifacts} (pB.east |- notif);
+\draw[dep] ([xshift=2.2cm]pB.south) -- node[deplbl,right]{load / update_state} ([xshift=2.2cm]pB.south |- pA.north);
+\draw[dep] (pC.south) |- node[deplbl,pos=0.7,above]{auth, dedup, iam_* → redis_state} (pA.east);
+\draw[dep] (pD.west) ++(0,-0.4) -| (-9.8,-13.2) -- node[deplbl,above]{config_store, routes → redis_state} (pA.west);
+\draw[dep] (art.south) |- node[deplbl,pos=0.75,above]{artifacts: sys.path; scheduler, metricas: subprocess (Fase1-6, puntuar.py)} (scripts.north);
+
+\end{tikzpicture}
+\end{document}

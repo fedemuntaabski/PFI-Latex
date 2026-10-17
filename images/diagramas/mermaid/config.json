@@ -3,6 +3,6 @@
   "fontFamily": "Arial, Helvetica, sans-serif",
   "themeVariables": { "fontSize": "16px" },
   "flowchart": { "htmlLabels": true, "wrappingWidth": 250, "curve": "basis", "nodeSpacing": 22, "rankSpacing": 24, "padding": 8, "useMaxWidth": false },
-  "class": { "useMaxWidth": false, "htmlLabels": false },
+  "class": { "useMaxWidth": false, "htmlLabels": false, "padding": 7, "diagramPadding": 4 },
   "er": { "useMaxWidth": false, "fontSize": 14 }
 }

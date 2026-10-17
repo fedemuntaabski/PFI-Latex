@@ -1,0 +1,227 @@
+% Diagrama de clases de la API (PDP) — lámina B: pipeline de scoring híbrido
+% Compilar: pdflatex 04b_clases_api_scoring.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== FILA 1
+\umlclase[clase=6.2cm, fill=cPdp, anchor=north]{isores}{-24,0}{dataclass}{IsoForestResult}{%
+ + decision_function_raw: float\\
+ + is_anomaly: bool\\
+ + risk_score_iso: float}{\vacio}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{isos}{-13,0}{module}{isoforest_service}{\vacio}{%
+ - \_to_accumulator(state: IsoDayState): DailyAggregateAccumulator\\
+ - \_from_accumulator(acc: DailyAggregateAccumulator): IsoDayState\\
+ + update_daily_aggregate(state: IsoDayState, event: dict,\\
+ \quad event_date: str, feature_set: str = "v1", tz: str | None = None)\\
+ \quad : tuple[IsoDayState, dict[str, float]]\\
+ + feature_dict_desde(state: IsoDayState, feature_set: str = "v1")\\
+ \quad : dict[str, float]\\
+ + score_isoforest(feature_dict: dict[str, float],\\
+ \quad artifacts: Artifacts): IsoForestResult}
+
+\umlclase[clase=12cm, fill=cPdp, anchor=north]{hyb}{0,0}{module}{hybrid_service \textmd{(orquestador)}}{%
+ + SERVICE_ACCOUNT_VOLUME_THRESHOLD = 500\_000\\
+ + ACCION_SUGERIDA: dict[str, str]\\
+ + ACCION_FUERA_DE_ALCANCE: str\\
+ + ACCION_USUARIO_NUEVO = "alertar"\\
+ + ACCION_SIN_MAPEO = "alertar"\\
+ + W_PERSONAL_MAX = 0.7\\
+ + EVENTOS_RECURSO_SENSIBLE = \{file_created, file_written,\\
+ \quad file_renamed, file_deleted\}\\
+ - \_LATENCIA_SCORING_MS: deque[float] (maxlen=100)}{%
+ + process_event(uid: str, event: dict, artifacts: Artifacts): dict\\
+ \quad closures internas: \_mutate(state), \_mutate_iam(state)\\
+ - \_registrar_latencia_scoring(ms: float): None\\
+ + obtener_metricas_latencia_scoring(): dict\\
+ - \_accion_para_nivel(nivel_sugerido: str): str\\
+ - \_peso_personal(total_events: int, umbral_aprendizaje: int): float\\
+ + w_iso_efectivo(coverage: str, artifacts: Artifacts): float\\
+ + regla_piso_aplicada(risk_score_hibrido: float, nivel_sugerido: str,\\
+ \quad umbrales: dict): bool\\
+ + personal_baseline_n(personal_baseline): int | None\\
+ + construir_motivo(regla_piso_aplicada: bool, w_iso_efectivo: float,\\
+ \quad accion_atenuada: bool): str\\
+ + accion_atenuada(en_aprendizaje: bool, tipo_evento: str | None): bool\\
+ - \_fold_in_closed_day(anchor: HybridAnchorState, closed_day_date: str,\\
+ \quad closed_day_score: float, vida_media_dias: float): HybridAnchorState\\
+ - \_derivar_detalle(event: dict): str | None\\
+ - \_sin_score_response(uid: str, total_events: int,\\
+ \quad umbral_aprendizaje: int): dict}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{lstms}{13,0}{module}{lstm_service}{%
+ + SEQUENCE_LENGTH = 50\\
+ + LSTM_USER_PERCENTIL_PISO = 95.0}{%
+ + update_lstm_buffer(state: LstmState, event_features:\\
+ \quad LstmEventFeatures, artifacts: Artifacts)\\
+ \quad : tuple[LstmState, LstmChunkResult]\\
+ - \_score_chunk(buffer: list[list[float]], artifacts: Artifacts): float\\
+ + compute_lstm_user_risk(state: LstmState,\\
+ \quad artifacts: Artifacts): LstmUserRisk}
+
+\umlclase[clase=6.2cm, fill=cPdp, anchor=north]{chunk}{24,0}{dataclass}{LstmChunkResult}{%
+ + completed: bool\\
+ + reconstruction_error: float | None = None}{\vacio}
+
+\umlclase[clase=6.2cm, fill=cPdp, anchor=north]{urisk}{24,-4.2}{dataclass}{LstmUserRisk}{%
+ + lstm_risk_user: float | None\\
+ + is_anomaly_lstm_user: bool}{\vacio}
+
+\node[draw=cBorde, fill=cUi, font=\ttfamily\scriptsize, align=left, text width=6cm, anchor=north]
+ (notadep) at (-24,-4.6) {\textbf{Dependencias en otras láminas}\\
+ redis_state: UserScoringState,\\\quad load_state, update_state,\\\quad push_recent_event (lámina A)\\
+ iam_service, notifications (lámina C)\\
+ config_store, history_store (lámina D)};
+
+% ===================== FILA 2
+\umlclase[clase=8.4cm, fill=cPdp, anchor=north]{lef}{-24,-15}{dataclass}{LstmEventFeatures}{%
+ + type_encoded: int | None\\
+ + hour_sin: float\\
+ + hour_cos: float\\
+ + dow_sin: float\\
+ + dow_cos: float\\
+ + time_delta_sec: float\\
+ + country_changed: int\\
+ + type_changed: int}{%
+ + as_vector(feature_set: str = "v1"): list[float]}
+
+\umlclase[clase=8.4cm, fill=cPdp, anchor=north]{dacc}{-24,-23.4}{dataclass}{DailyAggregateAccumulator}{%
+ + date: str\\
+ + n_events: int = 0\\
+ + distinct_types: set[str]\\
+ + distinct_countries: set[str]\\
+ + n_file_events: int = 0\\
+ + n_login_events: int = 0\\
+ + sum_hours: float = 0.0\\
+ + n_off_hours: int = 0\\
+ + type_counts: dict[str, int]\\
+ + n_share_events: int = 0}{%
+ + add_event(event: dict, feature_set: str = "v1",\\
+ \quad tz: str | None = None): None\\
+ + type_entropy(feature_set: str = "v1"): float\\
+ + as_feature_dict(feature_set: str = "v1"): dict[str, float]}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{feat}{-13,-15}{module}{features}{%
+ + FILE_EVENT_TYPES: set, LOGIN_EVENT_TYPES: set\\
+ + ISOFOREST_FEATURE_COLS: list[str] \hfill (8, v1)\\
+ + LSTM_SEQUENCE_FEATURES: list[str] \hfill (8, v1)\\
+ + FILE_EVENT_TYPES_V2, SHARE_EVENT_TYPES_V2: frozenset\\
+ + ISOFOREST_FEATURE_COLS_V2 (8), LSTM_SEQUENCE_FEATURES_V2 (7)\\
+ + FEATURE_SETS: dict[str, tuple[list, list]] \hfill \{"v1", "v2"\}}{%
+ + feature_set_de(config: dict): str\\
+ + columnas(feature_set: str): tuple[list[str], list[str]]\\
+ + zona_horaria(): str \hfill env SCORING_ZONA_HORARIA\\
+ + location_country(event: dict): str\\
+ + parse_event_time(event: dict): datetime\\
+ + compute_lstm_event_features(event_time: datetime,\\
+ \quad event_type: str, country: str, last_time: datetime | None,\\
+ \quad last_country: str | None, last_type: str | None,\\
+ \quad type_encoding: dict[str, int], feature_set: str = "v1")\\
+ \quad : LstmEventFeatures}
+
+\umlclase[clase=12cm, fill=cPdp, anchor=north]{pbsv}{0,-15}{module}{personal_baseline_service}{\vacio}{%
+ - \_update_welford(stat: WelfordStat, x: float): WelfordStat\\
+ + update_personal_baseline(state: PersonalBaselineState,\\
+ \quad iso_feature_dict: dict[str, float], lstm_feature_dict: dict | None,\\
+ \quad is_anomaly_iso: bool, is_anomaly_lstm_user: bool,\\
+ \quad iso_cols = ISOFOREST_FEATURE_COLS, lstm_cols = LSTM_SEQUENCE_FEATURES)\\
+ \quad : PersonalBaselineState \hfill (congelado si hay anomalía)\\
+ - \_feature_z(stat: WelfordStat, x: float): float | None\\
+ - \_rms_percentile(zs: list[float]): float\\
+ + personal_risk_percentile(baseline: dict[str, WelfordStat],\\
+ \quad feature_cols: list[str], feature_dict: dict[str, float]): float | None\\
+ + blend_con_personal(risk_poblacional: float, risk_personal: float | None,\\
+ \quad w_personal: float): float}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{drift}{13,-15}{module}{drift_service}{%
+ + DRIFT_ROTATION_DAYS = 7\\
+ + DRIFT_THRESHOLD_STD = 2.0}{%
+ - \_shift_std(anchor_stat: WelfordStat, current_mean: float): float | None\\
+ - \_rotar(baseline: PersonalBaselineState, event_date: str)\\
+ \quad : PersonalBaselineState\\
+ + check_and_rotate_anchor(baseline: PersonalBaselineState,\\
+ \quad event_date: str, iso_cols, lstm_cols)\\
+ \quad : tuple[PersonalBaselineState, list[DriftFinding]]}
+
+\umlclase[clase=6.2cm, fill=cPdp, anchor=north]{finding}{24,-15}{dataclass}{DriftFinding}{%
+ + lado: str \hfill "iso" | "lstm"\\
+ + feature: str\\
+ + corrimiento_std: float}{\vacio}
+
+% ===================== FILA 3
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{art}{-13,-29}{module}{artifacts}{%
+ + SCRIPTS_DIR, FEATURE_DIR: Path\\
+ + ISOFOREST_MODEL_DIR, SCORE_HIBRIDO_MODEL_DIR: Path\\
+ + ARTIFACT_PATHS: dict[str, Path] \hfill (9 artefactos)\\
+ + score_common, audit_common \hfill (de scripts/)\\
+ - \_artifacts: Artifacts | None \hfill «singleton»}{%
+ - \_build_artifacts(): Artifacts\\
+ + load_artifacts(): Artifacts \hfill (lifespan)\\
+ + reload_artifacts(): Artifacts \hfill (hot-swap RF-21)\\
+ + get_artifacts(): Artifacts}
+
+\umlclase[clase=12cm, fill=cPdp, anchor=north]{artc}{0,-29}{dataclass}{Artifacts}{%
+ + isolation_forest: object \hfill isolation_forest.joblib\\
+ + scaler_isoforest: object \hfill scaler_isoforest.pkl\\
+ + lstm_autoencoder: object \hfill lstm_autoencoder.keras\\
+ + lstm_get_target: Callable[[ndarray, ndarray], ndarray]\\
+ + scaler_lstm: object \hfill scaler_lstm.pkl\\
+ + type_encoding: dict[str, int] \hfill type_encoding.pkl\\
+ + lstm_threshold: float \hfill lstm_threshold.pkl\\
+ + config: dict \hfill config_score_hibrido.json\\
+ \quad (w_iso, vida_media_dias, umbrales, regla_piso)\\
+ + iso_train_reference: ndarray\\
+ + lstm_user_mean_error_train_reference: ndarray}{\vacio}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{xai}{13,-29}{module}{explainability}{%
+ + TOP_N_FEATURES = 3\\
+ + Z_SCORE_MINIMO = 1.0\\
+ + DIRECCION_ENCIMA = "por_encima"\\
+ + DIRECCION_DEBAJO = "por_debajo"}{%
+ + explicar_features(feature_dict: dict[str, float],\\
+ \quad artifacts: Artifacts): list[FeatureContribucion]}
+
+\umlclase[clase=6.2cm, fill=cPdp, anchor=north]{fc}{24,-29}{dataclass}{FeatureContribucion}{%
+ + feature: str\\
+ + z_score: float\\
+ + direccion: str}{\vacio}
+
+\umlclase[clase=8.4cm, fill=cPdp, anchor=north]{cov}{-24,-9.4}{module}{coverage}{%
+ + SERVICE_ACCOUNT_VOLUME_THRESHOLD = 500\_000\\
+ + COBERTURA_COMPLETA = "completa"\\
+ + COBERTURA_PARCIAL = "parcial"\\
+ + COBERTURA_SIN_SCORE = "sin_score"}{%
+ + determine_coverage(uid_type: str, total_events: int,\\
+ \quad lstm_chunks_completed: int): str}
+
+% ===================== RELACIONES
+% el orquestador usa cada servicio
+\draw[usa] (hyb.west |- isos.east) -- node[rotulo,above]{«usa»} (isos.east);
+\draw[usa] (hyb.east |- lstms.west) -- node[rotulo,above]{«usa»} (lstms.west);
+\draw[usa] (hyb.south) -- node[rotulo,right]{«usa»} (pbsv.north);
+\draw[usa] ([xshift=4.5cm]hyb.south) -- node[rotulo,right,pos=0.4]{«usa»} ([xshift=4.5cm]hyb.south |- 0,-12.7) -| ([xshift=-3cm]drift.north);
+\draw[usa] ([xshift=-4.5cm]hyb.south) -- ([xshift=-4.5cm]hyb.south |- 0,-12.7) -| node[rotulo,pos=0.75,right]{«usa»} ([xshift=3cm]feat.north);
+\draw[usa] (hyb.west |- 0,-10.8) -- node[rotulo,above,pos=0.3]{«usa» determine_coverage()} (cov.east |- 0,-10.8);
+\draw[usa] ([xshift=5.5cm]hyb.south) |- (6.4,-12.2) -- (6.4,-27.6) -| node[rotulo,pos=0.75,right]{«usa»} ([xshift=-3cm]xai.north);
+
+% servicios -> resultados
+\draw[usa] (isos.west |- isores.east) -- node[rotulo,above]{«crea»} (isores.east);
+\draw[usa] (lstms.east |- chunk.west) -- node[rotulo,above]{«crea»} (chunk.west);
+\draw[usa] (lstms.east |- urisk.west) -- node[rotulo,above]{«crea»} (urisk.west);
+\draw[usa] (drift.east |- finding.west) -- node[rotulo,above]{«crea»} (finding.west);
+\draw[usa] (xai.east |- fc.west) -- node[rotulo,above]{«crea»} (fc.west);
+\draw[usa] (art.east |- artc.west) -- node[rotulo,above]{«crea»} (artc.west);
+
+% features
+\draw[usa] (feat.west |- lef.east) -- node[rotulo,above]{«crea»} (lef.east);
+\draw[usa] (isos.south) -- node[rotulo,left]{«usa»} (isos.south |- feat.north);
+\draw[usa] (isos.west |- 0,-6.6) -- (-19.1,-6.6) |- node[rotulo,pos=0.75,above]{«usa»} (dacc.east);
+\draw[usa] (lstms.north) -- ++(0,0.8) -| node[rotulo,pos=0.25,above]{«usa» LstmEventFeatures (update_lstm_buffer)} (-28.8,0) |- (lef.west);
+
+% Artifacts
+\draw[usa] (pbsv.south) -- node[rotulo,right]{«parámetro» artifacts de process_event, score_isoforest, update_lstm_buffer, explicar_features} (artc.north);
+
+\end{tikzpicture}
+\end{document}

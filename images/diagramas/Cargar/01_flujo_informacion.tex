@@ -1,0 +1,121 @@
+% Diagrama de flujo de información del sistema (arquitectura actual)
+% Compilar: pdflatex 01_flujo_informacion.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  carril/.style={draw=cBorde!60, fill=#1, rounded corners=3pt, minimum width=7.2cm, minimum height=31.4cm, anchor=north},
+  ctit/.style={font=\bfseries\normalsize, align=center, anchor=north},
+  num/.style={circle, draw=cBorde, fill=white, font=\scriptsize\bfseries, inner sep=1pt, minimum size=5mm},
+  p/.style={paso=5.8cm, fill=white},
+  p/.append style={execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  db/.style={almacen, fill=white, minimum width=5.8cm, font=\scriptsize\ttfamily},
+}
+\newcommand{\n}[2]{\node[num] at ([xshift=-3mm,yshift=3mm]#1.north west) {#2};}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== CARRILES
+\node[carril=cOff!50] (lf) at (-8,1.6) {};
+\node[carril=cPep] (la) at (0,1.6) {};
+\node[carril=cPdp] (lp) at (8,1.6) {};
+\node[carril=cDato] (ld) at (16,1.6) {};
+\node[carril=cExt] (le) at (24,1.6) {};
+\node[carril=cUi] (lu) at (32,1.6) {};
+\node[ctit] at (lf.north) {Host · contingencia\\[-1pt]\footnotesize\mdseries(sin conectividad)};
+\node[ctit] at (la.north) {Host Windows · Agente\\[-1pt]\footnotesize\mdseries PEP (agent/)};
+\node[ctit] at (lp.north) {API FastAPI · PDP\\[-1pt]\footnotesize\mdseries(api/app/scoring/)};
+\node[ctit] at (ld.north) {Persistencia\\[-1pt]\footnotesize\mdseries Redis (vivo) · Postgres (historial)};
+\node[ctit] at (le.north) {Servicios externos\\[-1pt]\footnotesize\mdseries IAM · correo · LLM};
+\node[ctit] at (lu.north) {Dashboard SOC\\[-1pt]\footnotesize\mdseries(frontend/, solo lectura)};
+
+% ===================== AGENTE
+\node[p] (a1) at (0,-0.6) {\textbf{Captura por polling (1 s)}\\ FileSystemCollector (os.scandir), ProcessCollector, AppAccessCollector, NetworkCollector (psutil)\\ diff contra snapshot anterior → \texttt{Signal}};
+\node[p] (a2) at (0,-3.6) {\textbf{Debouncer}\\ descarta repetidos (2 s) y limita a 180 señales/min};
+\node[p] (a3) at (0,-5.6) {\textbf{EventFactory.build()}\\ evento JSON: id, time, uid, uidType, type, params (+agent_id), location.countryCode, role, isLocalIP};
+\node[p] (a4) at (0,-8.4) {\textbf{ScoringClient.post_event()}\\ \texttt{POST /eventos} + \texttt{X-API-Key}\\ reintenta timeout / 5xx (2 veces)};
+\node[p] (a5) at (0,-25.6) {\textbf{Enforcer.apply(nivel, accion_id)}\\ alertar · terminar_procesos · suspender_proceso · denegar_carpeta (icacls) · terminar_y_denegar\\ \textit{solo dentro de DEMO_ROOT}};
+\node[p] (a6) at (0,-28.4) {\textbf{confirmar_accion()}\\ \texttt{POST /usuarios/\{uid\}/confirmar-accion}\\ estado: ejecutado | parcial | fallido | sin_cambios};
+
+% ===================== CONTINGENCIA
+\node[decision, fill=white] (f1) at (-8,-8.4) {¿falló el\\envío?};
+\node[db, minimum width=5cm] (buf) at (-8,-11.4) {DEMO_ROOT/event_buffer.jsonl\\TTL 3 h · máx. 20000};
+\node[paso=5.8cm, fill=white] (f2) at (-8,-14.4) {\textbf{flush_pending()} en cada ciclo, el más viejo primero; corta al primer fallo};
+\node[paso=5.8cm, fill=white] (f3) at (-8,-17.2) {\textbf{Circuit breaker}: 3 × 401/403 seguidos → reintento cada 5 min; cierra con el primer 2xx};
+\node[paso=5.8cm, fill=white] (f4) at (-8,-6.0) {4xx definitivo (400/413/422) → se descarta con warning};
+
+% ===================== API
+\node[p] (p1) at (8,-8.4) {\textbf{Autenticación}\\ require_agent_key: sha256(key) → \texttt{scoring:agent_key:*}\\ autorizar_agente: agent_id y uid de la key (403)};
+\node[decision, fill=white] (p2) at (8,-11.4) {dedup\\sha256 evento};
+\node[p] (p3) at (8,-14.6) {\textbf{process_event → \_mutate} (WATCH/MULTI/EXEC)\\ IsolationForest sobre agregado diario (8 features)\\ LSTM autoencoder sobre secuencia de 50 eventos\\ baseline personal (Welford) + blend, drift};
+\node[p] (p4) at (8,-18.4) {\textbf{Score híbrido y decisión}\\ w_iso = 0,5 · decay vida media 3 días\\ regla de piso (anomalía ⇒ ≥ alto)\\ umbrales 40/70/90 → bajo/medio/alto/critico\\ → accion_id + explicación top-3 (z-score)};
+\node[p] (p5) at (8,-22.4) {\textbf{Post-proceso (fuera de \_mutate)}\\ eventos_crudos · cierre de día · drift_alerts\\ sincronización IAM · notificar_admin};
+\node[p] (p6) at (8,-25.6) {\textbf{Respuesta EventoScoreOut}\\ risk_score_hibrido, nivel_sugerido, accion_id, cobertura, explicacion, en_aprendizaje};
+\node[p] (p7) at (8,-28.4) {\textbf{Registro de confirmación}\\ last_confirmacion_* en el estado del uid};
+\node[p] (p0) at (8,-1.6) {\textbf{Lectura para el dashboard}\\ GET /usuarios · /usuarios/\{uid\}/score · /historial · /eventos-recientes · /config/*\\ (token de sesión en \texttt{X-API-Key})};
+
+% ===================== PERSISTENCIA
+\node[db] (rdedup) at (16,-11.4) {scoring:dedup:\{sha256\}\\respuesta cacheada · TTL 6 h};
+\node[db, minimum height=1.6cm] (rstate) at (16,-15.6) {scoring:\{uid\} (UserScoringState)\\scoring:\{uid\}:eventos (recientes)\\scoring:config:* (umbrales, acciones)};
+\node[db, minimum height=1.9cm] (pg) at (16,-22.4) {Postgres (Supabase)\\eventos_crudos (cada evento)\\historial_scores (día cerrado)\\drift_alerts · historial_politicas};
+\node[db] (rauth) at (16,-8.4) {scoring:agent_key:\{hash\}\\scoring:session:\{hash\}};
+
+% ===================== EXTERNOS
+\node[p] (iam) at (24,-19.0) {\textbf{IAM (Keycloak / Entra)}\\ lee role y department (cache 30 min)\\ escribe ueba_risk_level; critico ⇒ cierra sesiones};
+\node[p] (mail) at (24,-24.4) {\textbf{SMTP + Gemini}\\ correo al admin con narrativa (accion notificar_admin o nivel con aviso)};
+
+% ===================== DASHBOARD
+\node[p] (u1) at (32,-1.6) {\textbf{SPA React}\\ POST /auth/login → token de sesión (8 h)\\ React Query: sondeo cada 2 s};
+\node[p] (u2) at (32,-5.0) {Listado de usuarios, detalle con score, explicación (XAI), historial, alertas, auditoría\\ edición de umbrales / acciones / IAM (rol admin)};
+
+% ===================== OFFLINE (banda inferior)
+\node[draw=cBorde, dashed, rounded corners=3pt, fill=cOff!60, minimum width=47.2cm, minimum height=2.6cm, anchor=north] (off) at (12,-30.2) {};
+\node[font=\bfseries\small, anchor=north west] at (off.north west) {Reentrenamiento offline (scripts/, proceso aparte; deshabilitado en la EC2)};
+\node[paso=6.2cm, fill=white] (o1) at (-4.6,-31.6) {eventos_crudos + data/clue.json → export_clue_combinado.py};
+\node[paso=6.2cm, fill=white] (o2) at (4.0,-31.6) {notebooks Fase1 → Fase6 (nbconvert) + export_train_references.py};
+\node[paso=6.2cm, fill=white] (o3) at (12.6,-31.6) {gate benchmark DEV (AUC, FPR ≥ alto) vigente vs. candidato};
+\node[paso=6.2cm, fill=white] (o4) at (21.2,-31.6) {promueve → reload_artifacts() (hot-swap) \\ rechaza → restaura respaldo};
+\node[paso=6.2cm, fill=white] (o5) at (29.8,-31.6) {artefactos: isolation_forest.joblib, lstm_autoencoder.keras, scalers, config_score_hibrido.json};
+
+% ===================== FLUJOS
+\foreach \x/\y in {a1/a2, a2/a3, a3/a4} \draw[flujo] (\x) -- (\y);
+\draw[flujo] (a4) -- node[proto, above]{HTTPS} node[proto, below]{JSON} (p1);
+\draw[flujo] (p1) -- (p2);
+\draw[flujo] (p2) -- node[proto, right]{nuevo} (p3);
+\draw[flujo] (p3) -- (p4);
+\draw[flujo] (p4) -- (p5);
+\draw[flujo] (p5) -- (p6);
+\draw[flujo] (p6.west) -- node[proto, above]{nivel_sugerido} node[proto, below]{accion_id} (a5.east |- p6.west);
+\draw[flujo] (a5) -- (a6);
+\draw[flujo] (a6.east |- p7.west) -- node[proto, above]{HTTPS} (p7.west);
+\draw[flujo] (p2.east) -- node[proto, above]{GET / SET} (rdedup.west);
+\draw[flujo] (p2.west) -- ++(-1.4,0) |- node[proto, pos=0.25, left, text width=1.2cm]{dupli-\\cado: misma respuesta} ([yshift=3mm]p6.west);
+\draw[flujo] (p1.east) -- (rauth.west);
+\draw[flujo, <->] (p3.east) -- node[proto, above]{load / update} (rstate.west |- p3.east);
+\draw[flujo] (p5.east) -- node[proto, above]{INSERT / UPSERT} (pg.west);
+\draw[flujo] (p5.south east) ++(0,0.3) -- ++(1.3,0) |- node[proto, pos=0.75, above]{push_recent_event} ([yshift=-5mm]rstate.west);
+\draw[flujo] ([yshift=4mm]p5.east) -- ++(0.6,0) |- node[proto, pos=0.75, above]{HTTPS OAuth2 · Admin REST} (iam.west);
+
+\draw[flujo] ([yshift=-4mm]p5.east) -- ++(0.6,0) |- node[proto, pos=0.75, above]{SMTP STARTTLS · HTTPS} (mail.west);
+\draw[flujo] (p7.east) -- node[proto, above, pos=0.3]{save_state} (19.3,0 |- p7.east) |- (rstate.east);
+
+% contingencia
+\draw[flujofallo] (a4.west) -- (f1.east);
+\draw[flujofallo] (f1.south) -- node[proto, right]{5xx, timeout, 401/403} (buf.north);
+\draw[flujofallo] (f1.north) -- node[proto, right]{4xx definitivo} (f4.south);
+\draw[flujofallo] (buf.south) -- (f2.north);
+\draw[flujofallo] (f2.south) -- (f3.north);
+\draw[flujofallo] (f2.east) -- node[proto, above]{reenvío} ([yshift=-3mm]a4.south west);
+
+% dashboard
+\draw[flujo] (u1.west) -- node[proto, above]{HTTPS + X-API-Key (token)} (p0.east);
+\draw[flujo] (u1) -- (u2);
+\draw[flujo, dashed] (p0.east) ++(0,-0.5) -- ++(1.6,0) |- node[proto, pos=0.7, above]{lee estado vivo} ([yshift=3mm]rstate.west);
+\draw[flujo, dashed] (p0.east) ++(0,-0.9) -- ++(1.1,0) |- node[proto, pos=0.75, above]{lee historial} ([yshift=6mm]pg.west);
+
+% offline
+\draw[flujo, dashed] (pg.south) -- (16,-29.5) -| node[proto, pos=0.25, above]{SELECT eventos_crudos} (o1.north);
+\foreach \x/\y in {o1/o2, o2/o3, o3/o4, o4/o5} \draw[flujo] (\x) -- (\y);
+\draw[flujo, dashed] (o4.north) -- ++(0,0.9) -| node[proto, pos=0.25, above]{hot-swap de Artifacts en la API viva} ([xshift=-2.6cm]p7.south);
+
+\end{tikzpicture}
+\end{document}

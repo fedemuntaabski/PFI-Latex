@@ -1,0 +1,203 @@
+% Diagrama de clases de la API (PDP) — lámina C: IAM, autenticación, deduplicación y notificaciones
+% Compilar: pdflatex 04c_clases_api_iam_auth.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== FILA 1
+\umlclase[clase=10.4cm, fill=cPdp, anchor=north]{iamsvc}{-15,0}{module}{iam_service \textmd{(cache + fail-safe)}}{%
+ + IAM_CACHE_TTL_SECONDS = 1800\\
+ + IAM_FAIL_CACHE_TTL_SECONDS = env IAM_FAIL_CACHE_TTL | 60\\
+ + NIVELES_REVOCAN_SESION = frozenset(\{"critico"\})}{%
+ - \_cache_key(uid: str): str\\
+ - \_get_cached(uid: str): tuple[str | None, str | None] | None\\
+ - \_store_cached(uid: str, role: str | None, department: str | None,\\
+ \quad ttl: float = IAM_CACHE_TTL_SECONDS): None\\
+ + resolver_rol_departamento(uid: str): tuple[str | None, str | None]\\
+ - \_sync_fail_key(uid: str): str\\
+ + sincronizar_riesgo_iam(uid: str, nivel: str | None): bool}
+
+\umlclase[clase=10cm, fill=white, anchor=north]{iamp}{0,0}{Protocol}{IAMProvider}{\vacio}{%
+ + resolve(uid: str): tuple[str | None, str | None]\\
+ + aplicar_riesgo(uid: str, nivel: str, revocar_sesiones: bool): bool}
+
+\umlclase[clase=10.4cm, fill=cPdp, anchor=north]{dedup}{17.6,-38.6}{module}{dedup_service}{%
+ + DEDUP_TTL_SECONDS = 21600 \hfill (6 h)\\
+ + CAMPOS_HASH = ("uid", "time", "type", "params",\\
+ \quad "location", "role", "isLocalIP")}{%
+ - \_dedup_key(hash_hex: str): str\\
+ + compute_event_hash(event: dict): str \hfill SHA-256\\
+ + get_cached_response(hash_hex: str): dict | None\\
+ + store_response(hash_hex: str, response: dict): None}
+
+% ===================== FILA 2: implementaciones
+\umlclase[clase=8.6cm, fill=cPdp, anchor=north]{mock}{-17.2,-8}{}{MockIAMProvider}{\vacio}{%
+ + resolve(uid: str): tuple[str | None, str | None]\\
+ \hfill GET \{IAM_MOCK_URL\}/Users/\{uid\}\\
+ + aplicar_riesgo(uid: str, nivel: str,\\
+ \quad revocar_sesiones: bool): bool \hfill (siempre False)}
+
+\umlclase[clase=10.2cm, fill=cPdp, anchor=north]{kc}{-6.4,-8}{}{KeycloakIAMProvider}{%
+ + cfg: \_KcCfg}{%
+ + \_\_init\_\_(cfg: \_KcCfg | None = None)\\
+ - \_buscar_usuario(uid: str, token: str): dict | None\\
+ \hfill GET /admin/realms/\{realm\}/users?username=\&exact=true\\
+ + resolve(uid: str): tuple[str | None, str | None]\\
+ \hfill attributes.role / attributes.department\\
+ + aplicar_riesgo(uid: str, nivel: str, revocar_sesiones: bool): bool\\
+ \hfill PUT /users/\{id\} (ueba_risk_level); POST /users/\{id\}/logout}
+
+\umlclase[clase=10.2cm, fill=cPdp, anchor=north]{entra}{4.6,-8}{}{EntraIAMProvider}{%
+ + cfg: \_EntraCfg}{%
+ + \_\_init\_\_(cfg: \_EntraCfg)\\
+ - \_usuario(uid: str, token: str): dict | None\\
+ \hfill GET graph /users/\{uid\}?\$select=id,jobTitle,department\\
+ + resolve(uid: str): tuple[str | None, str | None]\\
+ \hfill (jobTitle, department)\\
+ + aplicar_riesgo(uid: str, nivel: str, revocar_sesiones: bool): bool\\
+ \hfill PATCH /users/\{id\} extensionAttribute1;\\
+ \hfill POST /users/\{id\}/revokeSignInSessions}
+
+\umlclase[clase=8.6cm, fill=cPdp, anchor=north]{chain}{15.4,-8}{}{ChainIAMProvider \textmd{(Composite)}}{%
+ + providers: list[IAMProvider]}{%
+ + \_\_init\_\_(providers: list[IAMProvider])\\
+ + resolve(uid: str): tuple[str | None, str | None]\\
+ \hfill primer resultado ≠ (None, None) gana\\
+ + aplicar_riesgo(uid: str, nivel: str,\\
+ \quad revocar_sesiones: bool): bool}
+
+% ===================== FILA 3
+\umlclase[clase=5.4cm, fill=white, anchor=north]{kccfg}{-6.4,-16.2}{NamedTuple}{\_KcCfg}{%
+ + base_url: str\\
+ + realm: str\\
+ + client_id: str\\
+ + client_secret: str}{\vacio}
+
+\umlclase[clase=5.4cm, fill=white, anchor=north]{entracfg}{4.6,-16.2}{NamedTuple}{\_EntraCfg}{%
+ + tenant: str\\
+ + client_id: str\\
+ + client_secret: str}{\vacio}
+
+\umlclase[clase=11.4cm, fill=cPdp, anchor=north]{iamprov}{17.6,-19}{module}{iam_providers}{%
+ + IAM_MOCK_URL = env | "http://127.0.0.1:8002"\\
+ + IAM_TIMEOUT_SEC = 1.0\\
+ + KEYCLOAK_BASE_URL = env | "http://127.0.0.1:8080"\\
+ + KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET: env\\
+ + KEYCLOAK_TIMEOUT_SEC = 1.0\\
+ + KEYCLOAK_TOKEN_REFRESH_MARGIN_SEC = 30\\
+ + ATRIBUTO_RIESGO = "ueba_risk_level"\\
+ + GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"\\
+ + ENTRA_LOGIN_URL = "https://login.microsoftonline.com"\\
+ + ENTRA_TIMEOUT_SEC = 1.0\\
+ + ENTRA_ATRIBUTO_RIESGO = "extensionAttribute1"\\
+ + IAM_PROVIDER = env | "none"\\
+ + PROVEEDORES: dict[str, Callable[[dict], IAMProvider]]\\
+ \quad \{"mock", "keycloak", "entra"\}\\
+ - \_iam_provider: IAMProvider | None \hfill «singleton»\\
+ - \_config_redis: list[dict] | None}{%
+ - \_cfg_default(): \_KcCfg\\
+ - \_keycloak_token_cache_key(cfg: \_KcCfg | None): str\\
+ - \_get_cached_token(cfg: \_KcCfg | None): str | None\\
+ - \_store_cached_token(access_token: str, expires_in: float,\\
+ \quad cfg: \_KcCfg | None): None\\
+ - \_fetch_service_token(cfg: \_KcCfg | None): tuple[str, float]\\
+ \hfill POST /realms/\{realm\}/protocol/openid-connect/token\\
+ - \_get_service_token(cfg: \_KcCfg | None): str\\
+ - \_entra_token_cache_key(cfg: \_EntraCfg): str\\
+ - \_fetch_entra_token(cfg: \_EntraCfg): tuple[str, float]\\
+ \hfill POST /\{tenant\}/oauth2/v2.0/token\\
+ - \_get_entra_token(cfg: \_EntraCfg): str\\
+ - \_build_provider(spec: str): IAMProvider \hfill mock | keycloak[:N] | entra:N\\
+ + proveedores_entorno(): list[dict]\\
+ - \_config_redis_items(): list[dict]\\
+ + reset_provider(): None\\
+ + iam_habilitado(): bool\\
+ - \_from_item(item: dict): IAMProvider\\
+ + get_iam_provider(): IAMProvider\\
+ + probar_proveedores(): list[dict] \hfill \{proveedor, ok, ms, error\}}
+
+\umlclase[clase=11.4cm, fill=cPdp, anchor=north]{auth}{-15.6,-19}{module}{auth}{%
+ + SESION_TTL_SECONDS = 28800 \hfill (8 h)\\
+ + PASSWORDS_PLACEHOLDER = ("TU_PASSWORD_ACA",\\
+ \quad "PLACEHOLDER_CARGAR_MANUALMENTE")\\
+ - \_NO_APLICA = object()\\
+ env: SCORING_API_KEY, SCORING_ADMIN_KEY, SCORING_STRICT_AUTH,\\
+ \quad ADMIN_PASSWORD, OPERADOR_PASSWORD}{%
+ - \_eq(a: str, b: str): bool \hfill hmac.compare_digest\\
+ - \_configured(name: str): str | None\\
+ + strict_auth_enabled(): bool\\
+ + keys_configuradas(): list[str]\\
+ + admin_key_configurada(): bool\\
+ + agent_key_configurada(): bool \hfill SCAN agent_key:*\\
+ - \_agent_key_lookup(raw_key: str): dict | None\\
+ - \_session_key(token: str): str\\
+ + crear_sesion(role: str): str \hfill token_urlsafe(32)\\
+ - \_rol_de_sesion(token: str): str | None\\
+ + cerrar_sesion(token: str): None\\
+ + require_api_key(x_api_key = Header(None)): None \hfill «Depends» 401/503\\
+ + require_agent_key(x_api_key = Header(None)): dict | None \hfill 401/503\\
+ + autorizar_agente(entrada: dict | None, uid: str,\\
+ \quad agent_id = \_NO_APLICA): None \hfill 403\\
+ + require_admin_key(x_api_key = Header(None)): None \hfill 403/503\\
+ - \_password_configurada(var: str, valor_ejemplo: str): str | None\\
+ + authenticate(username: str, password: str): str | None \hfill admin | operador}
+
+% ===================== FILA 4: notificaciones
+\umlclase[clase=15cm, fill=cPdp, anchor=north]{notif}{1,-28.4}{module}{notifications \textmd{(acción notificar_admin)}}{%
+ + SMTP_TIMEOUT_SEC = 3\\
+ + NOTIF_COOLDOWN_SEC = env | 600\\
+ + GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/\{modelo\}:generateContent"\\
+ + GEMINI_MODELOS = ["gemini-3.1-flash-lite", "gemini-2.5-flash"]\\
+ + GEMINI_TIMEOUT_SEC = 6.0, GEMINI_MAX_REINTENTOS_429 = 1\\
+ + MAX_CHARS_CAMPO = 80, MAX_EVENTOS_PROMPT = 10, MAX_CHARS_SALIDA = 1500, MIN_CHARS_SALIDA = 20\\
+ + SALIDA_PROHIBIDA, ENCABEZADO_SALIDA: re.Pattern, IDENTIFICADOR_SNAKE: re.Pattern\\
+ + TIPO_EVENTO_DESC, FEATURE_DESCRIPCIONES, DIRECCION_LEGIBLE: dict\\
+ + GUIA_QUE_HACER_AHORA: list[str], GEMINI_REGLAS: str}{%
+ - \_sanear(valor, max_len: int = MAX_CHARS_CAMPO): str\\
+ - \_formatear_guia_que_hacer_ahora(): str\\
+ - \_hora_legible(timestamp_iso: str | None, con_segundos: bool = True): str | None\\
+ - \_formatear_evento_reciente(evento: dict): str\\
+ - \_formatear_eventos_recientes_desde(eventos: list[dict]): str\\
+ - \_humanizar_feature(nombre_feature: str): str\\
+ - \_formatear_explicacion(explicacion: list[dict] | None): str\\
+ - \_fmt_umbral(valor: float): str\\
+ - \_rango_nivel(nivel: str | None): str | None\\
+ - \_armar_datos_gemini(uid: str, nivel: str | None, score: float | None, eventos: list[dict],\\
+ \quad explicacion: list[dict] | None): str\\
+ - \_validar_salida(texto: str, finish_reason: str | None): str | None\\
+ - \_generar_narrativa_gemini(uid, nivel, score, eventos, explicacion): str | None \hfill HTTPS REST\\
+ + notificar_admin_si_corresponde(uid: str, nivel: str | None, score: float | None,\\
+ \quad explicacion: list[dict] | None = None, timestamp: str | None = None,\\
+ \quad accion_id: str | None = None): None \hfill smtplib STARTTLS :587}
+
+\node[draw=cBorde, fill=cUi, font=\ttfamily\scriptsize, align=left, text width=7cm, anchor=north]
+ (notadep) at (-15.6,-38.6) {\textbf{Dependencias en otras láminas}\\
+ iam_service, iam_providers, auth, dedup_service\\\quad → redis_state (lámina A)\\
+ iam_providers → config_store.get_iam_config (lámina D)\\
+ notifications → artifacts (B), config_store (D),\\\quad redis_state (A)\\
+ hybrid_service (B) invoca iam_service y notifications;\\
+ routes (D) invoca auth y dedup_service};
+
+% ===================== RELACIONES
+% realización del Protocol (bus)
+\coordinate (busP) at (0,-6.6);
+\draw[realiza] (0,-6.6) -- (iamp.south);
+\draw[draw=cBorde, thick, dashed] (mock.north |- busP) -- (chain.north |- busP);
+\foreach \n in {mock, kc, entra, chain}
+  \draw[draw=cBorde, thick, dashed] (\n.north) -- (\n.north |- busP);
+\node[rotulo, right] at ([xshift=2mm]0,-6.0) {«realiza» (estructural)};
+
+% Composite: Chain agrega 1..* IAMProvider
+\draw[agrega] (chain.east) -- ++(0.8,0) |- node[rotulo,pos=0.75,above]{providers 1..*} ([yshift=-0.4cm]iamp.east);
+
+% configuración de cada provider
+\draw[compone] (kc.south) -- node[rotulo,right]{cfg 1} (kccfg.north);
+\draw[compone] (entra.south) -- node[rotulo,right]{cfg 1} (entracfg.north);
+
+% servicios
+\draw[usa] (iamsvc.east |- iamp.west) -- node[rotulo,above]{«usa» get_iam_provider().resolve / aplicar_riesgo} (iamp.west);
+\draw[usa] (iamprov.north) -- node[rotulo,right]{«crea» (\_build_provider, \_from_item)} (iamprov.north |- chain.south);
+
+\end{tikzpicture}
+\end{document}

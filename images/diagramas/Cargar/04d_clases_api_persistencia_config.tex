@@ -1,0 +1,214 @@
+% Diagrama de clases de la API (PDP) — lámina D: HTTP, configuración, historial y reentrenamiento
+% Compilar: pdflatex 04d_clases_api_persistencia_config.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== FILA 1
+\umlclase[clase=10.6cm, fill=cPdp, anchor=north]{main}{-17,0}{module}{main \textmd{(entrypoint ASGI)}}{%
+ - \_ROOT_ENV, \_API_ENV: Path\\
+ + MAX_EVENTO_BODY_BYTES = 262144 \hfill (256 KB)\\
+ + app: FastAPI = create_scoring_app()}{%
+ - \_avisar_modos_degradados(): None\\
+ + lifespan(app: FastAPI) \hfill «asynccontextmanager»\\
+ \quad load_artifacts(); create_task(loop_reentrenamiento_periodico)\\
+ \quad salvo SCORING_DISABLE_SCHEDULER=1\\
+ + create_scoring_app(): FastAPI \hfill CORS, SCORING_DISABLE_DOCS\\
+ \quad middleware limitar_tamano_body_eventos(request, call_next)\\
+ \hfill 413 si POST /eventos > 256 KB}
+
+\umlclase[clase=7cm, fill=cPdp, anchor=north]{paths}{-17,-8.6}{module}{paths}{%
+ - \_MARCADOR = scripts/\_score_common.py\\
+ + REPO_ROOT: Path \hfill env SCORING_REPO_ROOT}{%
+ - \_resolver_repo_root(): Path}
+
+\umlclase[clase=15.6cm, fill=cPdp, anchor=north]{routes}{0,0}{router}{routes \textmd{(APIRouter, header X-API-Key)}}{%
+ + router: APIRouter\\
+ + SIN_REPORTAR_SEGUNDOS = 900\\
+ + DETALLE_CONFIRMACION_MAX = 200}{%
+ + POST /eventos: EventoIn → EventoScoreOut \hfill [agent] autorizar_agente + dedup\\
+ + POST /usuarios/\{uid\}/confirmar-accion: ConfirmarAccionIn → ConfirmarAccionOut \hfill [agent]\\
+ + GET /usuarios/\{uid\}/score → EventoScoreOut \hfill [api]\\
+ + POST /usuarios/\{uid\}/reset → ResetOut \hfill [admin]\\
+ + DELETE /usuarios/\{uid\} → 204 \hfill [admin]\\
+ + POST /admin/reload-artifacts → ReloadArtifactsOut \hfill [admin]\\
+ + GET /usuarios/\{uid\}/eventos-recientes → EventosRecientesOut \hfill [api]\\
+ + GET /usuarios/\{uid\}/historial?desde\&hasta\&limit → HistorialScoresOut \hfill [api]\\
+ + GET /usuarios/historial?limit → UsuariosHistorialOut \hfill [api]\\
+ + GET /usuarios?limit\&offset → UsuariosListOut \hfill [api]\\
+ + GET | PUT /config/umbrales: UmbralesPutIn → UmbralesConfig \hfill [api | admin]\\
+ + GET | PUT /config/acciones: AccionesConfig \hfill [api | admin]\\
+ + GET | PUT /config/reentrenamiento: ReentrenamientoConfig \hfill [api | admin]\\
+ + GET | POST /config/reentrenamiento-log: ReentrenamientoLogEntryIn/ListOut \hfill [api | admin]\\
+ + GET /config/drift-alerts → DriftAlertListOut \hfill [api]\\
+ + GET | PUT /config/eventos: EventosConfig \hfill [api | admin]\\
+ + GET | PUT /config/aprendizaje: AprendizajeConfig \hfill [api | admin]\\
+ + GET | PUT /config/iam: IAMConfig \hfill [api | admin]\\
+ + POST /config/iam/probar → IAMProbarOut \hfill [admin]\\
+ + GET | PUT /config/notificaciones: NotificacionesConfig \hfill [api | admin]\\
+ + GET /config/auditoria → AuditoriaListOut \hfill [api]\\
+ + GET /health → HealthStatus \hfill [sin auth]\\
+ + GET /health/ready → ReadinessStatus (503 si no listo) \hfill [sin auth]\\
+ + GET /health/metrics → HealthMetrics \hfill [api]\\
+ + POST /auth/login: LoginIn → LoginOut \hfill [sin auth]\\
+ + POST /auth/logout → 204 \hfill [token]\\
+ - \_con_fallback_postgres(fn, *args, default, **kwargs): tuple[Any, bool]\\
+ - \_fecha_str(valor): str\\
+ - \_actor_desde_key(x_api_key: str | None): str \hfill FNV-1a 32 bits\\
+ - \_snapshot_politica(form: str): dict | None\\
+ - \_auditar(form: str, before: dict | None, x_api_key: str | None): None\\
+ - \_iam_config_out(): IAMConfig\\
+ - \_chequear_artefactos_y_redis(): tuple[bool, dict[str, bool], bool]\\
+ - \_es_sano(artefactos_cargados: bool, redis_ok: bool): bool}
+
+\umlclase[clase=11.6cm, fill=cPdp, anchor=north]{sched}{17.4,0}{module}{reentrenamiento_scheduler}{%
+ + INTERVALO_CHEQUEO_SEGUNDOS = 300\\
+ - \_NOTEBOOKS_ORDEN: list[str] \hfill Fase1 … Fase6 .ipynb\\
+ + ARCHIVOS_RESPALDO: tuple[str, ...] \hfill (17 rutas)}{%
+ - \_dir_respaldos(): Path\\
+ + respaldar_artefactos(): Path\\
+ + restaurar_artefactos(respaldo): None\\
+ + correr_reentrenamiento(actor: str, fecha: str): tuple[bool, bool] \hfill «async»\\
+ - \_dentro_de_ventana(ahora: datetime, ventana_horaria: str | None): bool\\
+ - \_a_naive_local(dt: datetime): datetime\\
+ - \_periodo_vencido(ahora, ultima_fecha: datetime | None,\\
+ \quad periodo_dias: int): bool\\
+ + debe_reentrenar(ahora: datetime, periodo_dias: int,\\
+ \quad ventana_horaria: str | None, ultima_fecha: datetime | None,\\
+ \quad automatico: bool): bool\\
+ + construir_comandos_pipeline(): list[list[str]]\\
+ + ejecutar_pipeline_reentrenamiento(comandos = None)\\
+ \quad : tuple[bool, str] \hfill «async» create_subprocess_exec\\
+ - \_tick(): None \hfill «async»\\
+ + loop_reentrenamiento_periodico(): None \hfill «async»}
+
+\umlclase[clase=11.6cm, fill=cPdp, anchor=north]{metr}{17.4,-12.4}{module}{metricas_service \textmd{(gate RF-21)}}{%
+ + BENCH_DIR, PUNTUAR: Path\\
+ + CORTE_TEMPORAL = "2021-08-02", PRIMER_DIA_TEST = "2021-08-03"\\
+ + PRIMARIOS = ("S2_k2", "S2_k5", "S2_k10", "S3")\\
+ + NIVELES_ALTO = \{"alto", "critico"\}\\
+ + MARGEN_AUC = 0.02, MARGEN_FPR = 0.01\\
+ + MODELO = "benchmark_dev"}{%
+ + precondicion(candidato: Path): str | None\\
+ + metricas_benchmark(tag: str): dict \hfill roc_auc_score\\
+ + decidir(cand: dict, vig: dict): tuple[bool, str]\\
+ + evaluar_gate(candidato: Path, vigente: Path): dict \hfill «async»\\
+ + comparar_y_promover(reentrenamiento_id: int | None,\\
+ \quad respaldo: Path): tuple[bool, str] \hfill «async»}
+
+% ===================== FILA 2
+\umlclase[clase=13cm, fill=cPdp, anchor=north]{cfg}{-17,-15.5}{module}{config_store}{%
+ + UMBRALES_REDIS_KEY = "scoring:config:umbrales"\\
+ + ACCIONES_REDIS_KEY = "scoring:config:acciones"\\
+ + ACCIONES_VALIDAS = (alertar, terminar_procesos, denegar_carpeta,\\
+ \quad terminar_y_denegar, suspender_proceso, notificar_admin)\\
+ + ACCIONES_DEFAULT = \{bajo, medio, alto: alertar; critico: terminar_y_denegar\}\\
+ + REENTRENAMIENTO_REDIS_KEY; PERIODO_REENTRENAMIENTO_DEFAULT_DIAS = 30 (1..365)\\
+ + VENTANA_HORARIA_RE, \_EMAIL_RE: re.Pattern\\
+ + EMAILS_ADMIN_REDIS_KEY, NOTIF_NIVELES_REDIS_KEY\\
+ + NOTIF_NIVELES_DEFAULT = \{bajo: F, medio: T, alto: F, critico: F\}\\
+ + EVENTOS_RECIENTES_REDIS_KEY; límite default 30 (1..200)\\
+ + UMBRAL_APRENDIZAJE_REDIS_KEY; UMBRAL_APRENDIZAJE_DEFAULT = 20 (1..1000)\\
+ + IAM_REDIS_KEY = "scoring:config:iam"; IAM_MAX_PROVEEDORES = 5\\
+ + IAM_TIPOS = ("keycloak", "entra", "mock"); \_IAM_CAMPOS\\
+ - \_IAM_NOMBRE_RE, \_IAM_SECRET_ENV_RE, \_IAM_URL_RE, \_IAM_TENANT_RE}{%
+ + get_umbrales(artifacts: Artifacts): dict[str, tuple[float, float]]\\
+ + set_umbrales(umbrales, nivel_minimo_piso: str, umbrales_vigentes,\\
+ \quad acciones: dict | None = None, notif_niveles: dict | None = None): None \hfill MSET\\
+ - \_validate_regla_piso(umbrales, nivel_minimo: str): None\\
+ - \_validate_umbrales(umbrales): None\\
+ - \_get_dict_config(key: str, default: dict): dict\\
+ + get_acciones(): dict[str, str]\\
+ + set_acciones(acciones: dict[str, str], umbrales_actuales: dict): None\\
+ - \_sobrantes_y_faltantes(por_nivel: dict, umbrales_actuales: dict): str\\
+ - \_validate_acciones(acciones, umbrales_actuales): None\\
+ - \_get_reentrenamiento_dict(): dict\\
+ + get_periodo_reentrenamiento(): int\\
+ + set_reentrenamiento(dias: int, automatico: bool, ventana: str | None): None\\
+ - \_validate_periodo_reentrenamiento(dias: int): None\\
+ + get_ventana_horaria(): str | None\\
+ - \_validate_ventana_horaria(ventana: str): None\\
+ + get_reentrenamiento_automatico(): bool\\
+ + get_emails_admin(): list[str]\\
+ - \_validate_emails_admin(emails: list[str]): None\\
+ + get_notif_niveles(): dict[str, bool]\\
+ + set_notificaciones(emails: list[str], niveles: dict[str, bool],\\
+ \quad umbrales_actuales: dict): None \hfill MSET\\
+ - \_validate_notif_niveles(niveles, umbrales_actuales): None\\
+ + get_eventos_recientes_limite(): int\\
+ + set_eventos_recientes_limite(limite: int): None\\
+ - \_validate_eventos_recientes_limite(limite: int): None\\
+ + get_umbral_aprendizaje(): int\\
+ + set_umbral_aprendizaje(umbral: int): None\\
+ - \_validate_umbral_aprendizaje(umbral: int): None\\
+ + get_iam_config(): list[dict]\\
+ + set_iam_config(proveedores: list[dict]): None\\
+ - \_validate_iam(proveedores: list[dict]): list[dict]}
+
+\umlclase[clase=13.6cm, fill=cPdp, anchor=north]{hist}{0,-15.5}{module}{history_store \textmd{(único acceso a Postgres)}}{%
+ + SUPABASE_DB_URL: str | None \hfill env\\
+ - \_engine: Engine | None \hfill «singleton» pool_size=2, max_overflow=3\\
+ - \_errores_postgres_total: int}{%
+ + contar_error_postgres(): None\\
+ + get_errores_postgres_total(): int\\
+ + postgres_configurado(): bool\\
+ + get_engine(): Engine\\
+ + write_closed_day(uid, fecha, risk_score_hibrido, nivel_sugerido, cobertura,\\
+ \quad accion_sugerida, explicacion = None, motivo = None): None \hfill UPSERT historial_scores\\
+ + list_historial_uids(limit: int = 500): list[str]\\
+ + delete_historial(uid: str): int\\
+ + get_historial(uid, desde = None, hasta = None, limit = 90): list[dict]\\
+ + write_audit_entry(form: str, actor: str | None, before: dict | None,\\
+ \quad after: dict): None \hfill INSERT historial_politicas\\
+ + list_audit_entries(limit: int = 50): list[dict]\\
+ + write_reentrenamiento_log(fecha: str, cantidad_eventos: int,\\
+ \quad variacion_metrica: str, actor: str | None): int | None \hfill historial_reentrenamientos\\
+ + update_variacion_metrica(reentrenamiento_id: int, variacion_metrica: str): None\\
+ + write_drift_alerts(uid: str, fecha: str, findings: list[DriftFinding]): None \hfill drift_alerts\\
+ + list_drift_alerts(limit: int = 50): list[dict]\\
+ + list_reentrenamiento_log(limit: int = 50): list[dict]\\
+ + get_ultimo_reentrenamiento(): dict | None\\
+ + contar_eventos_crudos(): int\\
+ + write_evento_crudo(uid: str, ts: datetime, tipo_evento: str,\\
+ \quad payload: dict): None \hfill INSERT eventos_crudos\\
+ + write_metrica_modelo(modelo: str, metrica_valor: float | None,\\
+ \quad cantidad_muestras: int | None, es_vigente: bool, rol = None,\\
+ \quad metricas: dict | None = None, motivo = None): None \hfill metricas_modelo\\
+ + marcar_metrica_no_vigente(modelo: str): None}
+
+\node[draw=cBorde, fill=cDato, font=\ttfamily\scriptsize, align=left, text width=11.6cm, anchor=north]
+ (tablas) at (17.4,-19.4) {\textbf{\normalsize Tablas Postgres (append-only, RLS sin políticas)}\\[2pt]
+ eventos_crudos \hfill 1 fila por evento (RF-19)\\
+ historial_scores \hfill 1 fila por uid y día cerrado\\
+ historial_politicas \hfill auditoría de cada PUT /config/* (RF-17)\\
+ historial_reentrenamientos \hfill log de reentrenamientos (RF-22)\\
+ drift_alerts \hfill corrimiento del baseline personal\\
+ metricas_modelo \hfill gate de promoción (RF-21)\\
+ historial_agent_keys \hfill solo scripts/manage_agent_key.py\\[2pt]
+ \textit{Postgres = historial; nunca se relee para decidir el score en vivo.}};
+
+\node[draw=cBorde, fill=cUi, font=\ttfamily\scriptsize, align=left, text width=11.6cm, anchor=north]
+ (notadep) at (17.4,-26.8) {\textbf{Dependencias en otras láminas}\\
+ routes → hybrid_service, isoforest_service, features, explainability,\\\quad coverage, artifacts (B); auth, dedup_service, iam_service,\\\quad iam_providers (C); redis_state (A); schemas (E)\\
+ main → artifacts.load_artifacts (B), auth (C), redis_state (A)\\
+ config_store → artifacts (B), redis_state (A)\\
+ history_store → drift_service.DriftFinding (B)\\
+ reentrenamiento_scheduler → history_store, config_store (diferidos)};
+
+\node[clase=4cm, anchor=north, fill=white, rectangle split parts=1] (sqla) at (0,-26.6)
+  {\textit{«externa»}\\\textbf{\normalsize sqlalchemy.Engine}};
+
+% ===================== RELACIONES
+\draw[usa] (main.east |- 0,-2) -- node[rotulo,above]{include_router} (routes.west |- 0,-2);
+\draw[usa] (main.north) -- ++(0,0.8) -| node[rotulo,pos=0.25,above]{«usa» lifespan: loop_reentrenamiento_periodico()} (sched.north);
+\draw[usa] (main.south) -- node[rotulo,right]{REPO_ROOT} (paths.north);
+\draw[usa] (sched.south) -- node[rotulo,right]{comparar_y_promover()} (metr.north);
+\draw[usa] ([xshift=-5cm]routes.south) |- ++(0,-0.7) -| node[rotulo,pos=0.75,right]{get/set_*} (cfg.north);
+\draw[usa] (routes.south) -- node[rotulo,right]{write_audit_entry, get_historial, list_*} (hist.north);
+\draw[usa] ([xshift=-3cm]metr.south) |- node[rotulo,pos=0.7,above]{write_metrica_modelo, update_variacion_metrica} ([yshift=2cm]hist.east);
+\draw[usa] (hist.south) -- node[rotulo,right]{«usa»} (sqla.north);
+\draw[usa] (hist.east |- tablas.west) -- node[rotulo,above]{escribe} (tablas.west);
+
+\end{tikzpicture}
+\end{document}

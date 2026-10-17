@@ -1,0 +1,112 @@
+% Diagrama de componentes con protocolos de comunicación (despliegue actual: host Windows + AWS EC2 + SaaS)
+% Compilar: pdflatex 02_componentes_protocolos.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  cmp/.style={draw=cBorde, fill=#1, rounded corners=1pt, align=center, font=\footnotesize,
+     text width=5.2cm, inner sep=4pt, minimum height=1.4cm,
+     execute at begin node={\hyphenpenalty=10000},
+     append after command={\pgfextra{\let\nodo\tikzlastnode}
+       node[draw=cBorde, fill=white, minimum width=3.2mm, minimum height=2.4mm, inner sep=0pt, anchor=north east]
+         at ([xshift=-1.5mm,yshift=-1.5mm]\nodo.north east) {}}},
+  cmp/.default=white,
+  actor/.style={draw=cBorde, fill=white, rounded corners=6pt, align=center, font=\footnotesize, text width=4.6cm, inner sep=4pt},
+  marco/.style={draw=cBorde, thick, rounded corners=4pt, inner sep=5mm, fill=#1},
+  mtit/.style={font=\bfseries\footnotesize, anchor=south west, inner sep=1pt, align=left},
+  pr/.style={font=\ttfamily\scriptsize, fill=white, inner sep=1pt, align=center},
+  enl/.style={-{Stealth[length=6pt]}, draw=cBorde, thick},
+  enl2/.style={{Stealth[length=6pt]}-{Stealth[length=6pt]}, draw=cBorde, thick},
+  enld/.style={-{Stealth[length=6pt]}, draw=cBorde, thick, dashed},
+}
+\newcommand{\st}[1]{{\scriptsize\textit{«#1»}}\\}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== ACTORES
+\node[actor] (analista) at (-13,9.6) {\textbf{Analista SOC}\\navegador web};
+\node[actor] (usuario) at (16.4,12.4) {\textbf{Usuario monitoreado}\\login en aplicaciones del realm};
+
+% ===================== HOST WINDOWS
+\node[cmp=cPep] (agente) at (-13,0.6) {\st{component} \textbf{Agente PEP}\\ Python 3 · \texttt{agent/main.py}\\ collectors · Debouncer · EventFactory · ScoringClient · Enforcer};
+\node[cmp=cPep] (files) at (-13,-3.4) {\st{artifact} \textbf{DEMO_ROOT} (C:/PFI_DEMO)\\ confidencial/ · event_buffer.jsonl · acl_backup.txt · suspended_procesos.json · overrides};
+\node[cmp=cOff] (so) at (-13,-7.2) {\st{SO} \textbf{Windows}\\ procesos y conexiones (psutil) · ACL NTFS (\texttt{icacls.exe})};
+\begin{scope}[on background layer]
+\node[marco=cPep!40, fit=(agente)(files)(so)] (mhost) {};
+\end{scope}
+\node[mtit] at (mhost.north west) {«device» Host Windows del usuario (endpoint)};
+
+% ===================== AWS
+\node[cmp=white] (caddy) at (0,7.6) {\st{component} \textbf{Caddy} (proxy inverso)\\ :80 / :443 · TLS Let's Encrypt\\ \texttt{<ip>.sslip.io} · HSTS};
+\node[cmp=cUi] (spa) at (0,11.6) {\st{artifact} \textbf{SPA React} (build Vite)\\ \texttt{/srv/pfi-frontend}\\ React 19 · React Query · zod};
+\node[cmp=cPdp, text width=6.2cm, minimum height=3.4cm] (api) at (0,1.2) {\st{component} \textbf{API de scoring · PDP}\\ FastAPI + uvicorn\\ \texttt{app.scoring.main:app} · 127.0.0.1:8001\\[2pt] routes · auth · dedup · hybrid_service\\ IsolationForest + LSTM AE (TensorFlow, in-process)\\ iam_service · notifications\\ (scheduler deshabilitado en EC2)};
+\node[cmp=cExt] (kc) at (7.6,11.6) {\st{component} \textbf{Keycloak 26}\\ realm \texttt{ueba-demo} · 127.0.0.1:8080/auth\\ H2 en EBS · flujo \texttt{browser-ueba} (OTP si riesgo alto|critico)};
+\node[cmp=cDato] (art) at (0,-5.6) {\st{artifact} \textbf{Artefactos de modelo}\\ isolation_forest.joblib · lstm_autoencoder.keras · scalers .pkl · config_score_hibrido.json};
+\begin{scope}[on background layer]
+\node[marco=cPdp!25, fit=(caddy)(spa)(api)(kc)(art)] (mec2) {};
+\end{scope}
+\node[mtit] at (mec2.north west) {«device» EC2 t3.small · Amazon Linux 2023 · SG: solo 80/443 · admin por SSM (sin SSH)};
+\node[cmp=cOff] (ssm) at (0,-10.4) {\st{service} \textbf{SSM Parameter Store}\\ 11 secretos SecureString};
+\node[cmp=cOff] (s3) at (6.6,-10.4) {\st{service} \textbf{S3 + SSM Run Command}\\ releases de API y frontend};
+\begin{scope}[on background layer]
+\node[marco=cOff!40, fit=(mec2)(ssm)(s3), inner sep=7mm] (maws) {};
+\end{scope}
+\node[mtit] at (maws.north west) {«cloud» AWS us-east-2 (VPC por defecto)};
+
+% ===================== SAAS
+\node[cmp=cDato] (redis) at (21,6.2) {\st{database} \textbf{Redis · Upstash}\\ estado vivo por uid, config, dedup, keys de agente, sesiones, cache IAM};
+\node[cmp=cDato] (pg) at (21,2.4) {\st{database} \textbf{PostgreSQL · Supabase}\\ eventos_crudos · historial_scores · historial_politicas · drift_alerts · reentrenamientos · metricas_modelo};
+\node[cmp=cExt] (smtp) at (21,-1.4) {\st{service} \textbf{Gmail SMTP}\\ smtp.gmail.com:587};
+\node[cmp=cExt] (gemini) at (21,-4.6) {\st{service} \textbf{Google Gemini}\\ generativelanguage.googleapis.com};
+\node[cmp=cExt] (entra) at (21,-7.8) {\st{service} \textbf{Microsoft Entra ID / Graph}\\ provider implementado, sin validar en vivo};
+\begin{scope}[on background layer]
+\node[marco=cExt!35, fit=(redis)(pg)(smtp)(gemini)(entra)] (msaas) {};
+\end{scope}
+\node[mtit] at (msaas.north west) {«cloud» Servicios gestionados (SaaS)};
+
+% ===================== ESTACIÓN LOCAL (offline / desarrollo)
+\node[cmp=cOff] (pipe) at (-13,-15.2) {\st{component} \textbf{Pipeline ML offline}\\ export_clue_combinado.py · Jupyter Fase1–Fase6 · gate benchmark → artefactos (copiados a la EC2 por release)};
+\node[cmp=cOff] (mak) at (-5.8,-15.2) {\st{component} \textbf{manage_agent_key.py}\\ alta / revocar key por agente};
+\node[cmp=cOff] (mock) at (1.4,-15.2) {\st{component} \textbf{iam_mock}\\ FastAPI · 127.0.0.1:8002 · GET /Users/\{uid\}};
+\node[cmp=cOff] (apiloc) at (8.6,-15.2) {\st{component} \textbf{API local (demo)}\\ misma app, mismo Redis y Supabase; una sola activa a la vez};
+\begin{scope}[on background layer]
+\node[marco=cOff!25, fit=(pipe)(mak)(mock)(apiloc)] (mloc) {};
+\end{scope}
+\node[mtit] at (mloc.north west) {«device» Estación de desarrollo (Windows) · no desplegado en AWS};
+
+% ===================== CONEXIONES
+% analista y usuario final
+\draw[enl] (analista.east) -| node[pr, pos=0.75, left]{HTTPS :443} (-4.2,7.9) -- ([yshift=3mm]caddy.west);
+\draw[enl] (usuario.south) |- node[pr, pos=0.3, right]{HTTPS :443\\/auth (OIDC + OTP)} ([yshift=3mm]caddy.east);
+% caddy
+\draw[enl] (caddy.north) -- node[pr, right]{archivos estáticos} (spa.south);
+\draw[enl] (caddy.south) -- node[pr, right]{HTTP 127.0.0.1:8001\\/api/* (prefijo quitado)} (api.north);
+\draw[enl] (caddy.east) -| node[pr, pos=0.7, right]{HTTP :8080 /auth/*} (kc.south);
+% agente
+\draw[enl] (agente.north) |- node[pr, pos=0.75, below, text width=4.6cm]{HTTPS :443 · REST JSON\\POST /api/eventos\\POST /api/usuarios/\{uid\}/confirmar-accion\\header X-API-Key (key por agente)} ([yshift=-3mm]caddy.west);
+\draw[enl2] (agente.south) -- node[pr, right]{archivos locales (JSONL, txt)} (files.north);
+\draw[enl] (agente.west) -- ++(-0.6,0) |- (so.west);
+\node[pr, rotate=90] at (-16.35,-3.4) {psutil (Win32) · subprocess icacls};
+% API -> datos y servicios
+\draw[enl] ([yshift=1.4cm]api.east) -| (4.5,0 |- redis.west) -- (redis.west);
+\node[pr] at (14.4,6.55) {RESP sobre TLS · \texttt{rediss://} · redis-py};
+\draw[enl] ([yshift=0.8cm]api.east) -| (5.1,0 |- pg.west) -- (pg.west);
+\node[pr] at (14.4,2.75) {PostgreSQL/TLS :5432 · SQLAlchemy + psycopg2};
+\draw[enl] ([yshift=-0.2cm]api.east) -| (6.9,0 |- smtp.west) -- (smtp.west);
+\node[pr] at (14.4,-1.05) {SMTP :587 STARTTLS · smtplib};
+\draw[enl] ([yshift=-0.7cm]api.east) -| (6.3,0 |- gemini.west) -- (gemini.west);
+\node[pr] at (14.4,-4.25) {HTTPS REST · generateContent};
+\draw[enl] ([yshift=-1.2cm]api.east) -| (5.7,0 |- entra.west) -- (entra.west);
+\node[pr] at (14.4,-7.45) {HTTPS · OAuth2 client_credentials + Graph};
+\draw[enl] ([xshift=-0.15cm]api.north east) |- node[pr, pos=0.35, right]{HTTP loopback · OIDC client_credentials\\+ Admin REST (role, department,\\ueba_risk_level, logout)} (kc.west);
+\draw[enl] (api.south) -- node[pr, left]{joblib · Keras · pickle\\(al arrancar / hot-swap)} (art.north);
+\draw[enld] (ssm.north) -- node[pr, right]{HTTPS (API de AWS)\\fetch-secrets al iniciar} (ssm.north |- mec2.south);
+\draw[enld] (s3.north) -- node[pr, right]{instalar_release.sh} (s3.north |- mec2.south);
+% estación local
+\draw[enld] (pipe.north) -- ++(0,1.0) -| node[pr, pos=0.2, above]{SELECT eventos_crudos (PostgreSQL)} ([xshift=-1.6cm]msaas.south);
+\draw[enld] (mak.north) -- ++(0,0.55) -| node[pr, pos=0.12, above]{Redis + PostgreSQL directo} ([xshift=-0.6cm]msaas.south);
+\draw[enld] (apiloc.west) -- node[pr, above]{HTTP :8002} (mock.east);
+\draw[enld] (apiloc.east) -| node[pr, pos=0.7, right]{mismo Redis / Supabase} ([xshift=0.8cm]msaas.south);
+
+
+\end{tikzpicture}
+\end{document}

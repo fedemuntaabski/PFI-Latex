@@ -1,0 +1,289 @@
+% Diagrama de clases de la API (PDP) — lámina E: contratos HTTP (schemas.py, pydantic v2)
+% Compilar: pdflatex 04e_clases_api_schemas.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\tikzset{sch/.style={clase=9.2cm, fill=cPdp, anchor=north}, sig/.style={sch, yshift=-9mm}}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== COLUMNA 1: eventos
+\umlclase[sch, fill=cPep]{evin}{-20.4,0}{BaseModel}{EventoIn \textmd{(contrato agente → API)}}{%
+ + id: int \hfill ge=0\\
+ + time: str \hfill ISO-8601, -90 d / +5 min\\
+ + uid: str \hfill min 1, sin prefijos reservados\\
+ + uidType: str\\
+ + type: str\\
+ + params: dict = \{\} \hfill (incluye agent_id)\\
+ + location: dict | None\\
+ + role: str | None\\
+ + isLocalIP: bool | None}{%
+ «validator» \_validate_time_iso8601(time)\\
+ «validator» \_validate_uid(uid)\\
+ «validator» \_validate_non_empty_text(uidType, type)}
+
+\umlclase[sig]{evout}{evin.south}{BaseModel}{EventoScoreOut}{%
+ + uid: str\\
+ + risk_score_hibrido: float | None\\
+ + nivel_sugerido: str | None\\
+ + cobertura: str\\
+ + accion_sugerida: str\\
+ + accion_id: str | None\\
+ + explicacion: list[FeatureContribucion] | None\\
+ + en_aprendizaje: bool\\
+ + total_events: int\\
+ + umbral_aprendizaje: int\\
+ + w_iso_efectivo: float | None\\
+ + regla_piso_aplicada: bool | None\\
+ + personal_baseline_n: int | None\\
+ + motivo: str | None\\
+ + role: str | None\\
+ + department: str | None\\
+ + iam_nivel: str | None\\
+ + iam_sesiones_revocadas: bool | None\\
+ + last_confirmacion_accion_id: str | None\\
+ + last_confirmacion_estado: str | None\\
+ + last_confirmacion_timestamp: str | None\\
+ + last_confirmacion_detalle: list[str] | None}{\vacio}
+
+\umlclase[sig]{fc}{evout.south}{BaseModel}{FeatureContribucion}{%
+ + feature: str\\
+ + z_score: float\\
+ + direccion: str \hfill por_encima | por_debajo}{\vacio}
+
+\umlclase[sig]{erout}{fc.south}{BaseModel}{EventosRecientesOut}{%
+ + uid: str\\
+ + items: list[EventoRecienteItem]}{\vacio}
+
+\umlclase[sig]{eritem}{erout.south}{BaseModel}{EventoRecienteItem}{%
+ + timestamp: str\\
+ + tipo: str\\
+ + risk_score_hibrido: float | None\\
+ + nivel_sugerido: str | None\\
+ + accion_id: str | None\\
+ + detalle: str | None\\
+ + explicacion: list[FeatureContribucion] | None = None}{\vacio}
+
+% ===================== COLUMNA 2: usuarios e historial
+\umlclase[sch]{ulist}{-10.2,0}{BaseModel}{UsuariosListOut}{%
+ + items: list[UsuarioResumen]\\
+ + total: int\\
+ + limit: int\\
+ + offset: int}{\vacio}
+
+\umlclase[sig]{ures}{ulist.south}{BaseModel}{UsuarioResumen}{%
+ + uid: str\\
+ + risk_score_hibrido: float | None\\
+ + nivel_sugerido: str | None\\
+ + cobertura: str\\
+ + accion_sugerida: str | None\\
+ + ultima_actividad: str | None\\
+ + en_aprendizaje: bool\\
+ + total_events: int\\
+ + umbral_aprendizaje: int\\
+ + segundos_sin_eventos: int | None\\
+ + sin_reportar: bool = False}{\vacio}
+
+\umlclase[sig]{uhout}{ures.south}{BaseModel}{UsuariosHistorialOut}{%
+ + items: list[UsuarioHistorialItem]\\
+ + total: int\\
+ + postgres_ok: bool}{\vacio}
+
+\umlclase[sig]{uhitem}{uhout.south}{BaseModel}{UsuarioHistorialItem}{%
+ + uid: str}{\vacio}
+
+\umlclase[sig]{hsout}{uhitem.south}{BaseModel}{HistorialScoresOut}{%
+ + uid: str\\
+ + items: list[HistorialScoreItem]}{\vacio}
+
+\umlclase[sig]{hsitem}{hsout.south}{BaseModel}{HistorialScoreItem}{%
+ + fecha: str\\
+ + risk_score_hibrido: float | None\\
+ + nivel_sugerido: str | None\\
+ + cobertura: str\\
+ + accion_sugerida: str\\
+ + explicacion: list[FeatureContribucion] | None\\
+ + motivo: str | None}{\vacio}
+
+\umlclase[sig]{reset}{hsitem.south}{BaseModel}{ResetOut}{%
+ + uid: str\\
+ + reset: bool}{\vacio}
+
+% ===================== COLUMNA 3: configuración
+\umlclase[sch]{uput}{0,0}{BaseModel}{UmbralesPutIn}{%
+ + umbrales: UmbralesConfig\\
+ + acciones: dict[str, str] | None\\
+ + notif_niveles: dict[str, bool] | None}{%
+ «model_validator(before)» \_separar_reservadas}
+
+\umlclase[sig]{umb}{uput.south}{RootModel[dict[str, tuple[float, float]]]}{UmbralesConfig}{%
+ + root: dict[str, tuple[float, float]] \hfill bajo/medio/alto/critico}{%
+ «validator» \_validate_cantidad(root)\\
+ + as_dict(): dict}
+
+\umlclase[sig]{acc}{umb.south}{RootModel[dict[str, str]]}{AccionesConfig}{%
+ + root: dict[str, str] \hfill nivel → accion_id}{%
+ «validator» \_validate_cantidad(root)\\
+ + as_dict(): dict}
+
+\umlclase[sig]{reent}{acc.south}{BaseModel}{ReentrenamientoConfig}{%
+ + periodo_dias: int\\
+ + reentrenamiento_automatico: bool | None\\
+ + ventana_horaria: str | None \hfill "HH:MM-HH:MM"\\
+ + nota: str}{\vacio}
+
+\umlclase[sig]{evcfg}{reent.south}{BaseModel}{EventosConfig}{%
+ + limite: int}{\vacio}
+
+\umlclase[sig]{apr}{evcfg.south}{BaseModel}{AprendizajeConfig}{%
+ + umbral_usuario_nuevo_total_events: int}{\vacio}
+
+\umlclase[sig]{notif}{apr.south}{BaseModel}{NotificacionesConfig}{%
+ + emails_admin: list[str] = []\\
+ + notif_niveles: dict[str, bool]}{\vacio}
+
+\umlclase[sig]{iamcfg}{notif.south}{BaseModel}{IAMConfig}{%
+ + proveedores: list[IAMProveedorItem]\\
+ + origen: str = "entorno"\\
+ + iam_provider_env: str = "none"}{\vacio}
+
+\umlclase[sig]{iamitem}{iamcfg.south}{BaseModel}{IAMProveedorItem}{%
+ + nombre: str\\
+ + tipo: str \hfill keycloak | entra | mock\\
+ + base_url: str = ""\\
+ + realm: str = ""\\
+ + client_id: str = ""\\
+ + secret_env: str = "" \hfill nombre de env var, nunca el secreto\\
+ + tenant: str = ""\\
+ + secret_definido: bool = False}{\vacio}
+
+% ===================== COLUMNA 4: auditoría, log, drift
+\umlclase[sch]{audl}{10.2,0}{BaseModel}{AuditoriaListOut}{%
+ + items: list[AuditoriaEntryOut]\\
+ + postgres_ok: bool}{\vacio}
+
+\umlclase[sig]{aude}{audl.south}{BaseModel}{AuditoriaEntryOut}{%
+ + form: str\\
+ + actor: str | None\\
+ + before: dict | None\\
+ + after: dict\\
+ + timestamp: str}{\vacio}
+
+\umlclase[sig]{rlin}{aude.south}{BaseModel}{ReentrenamientoLogEntryIn}{%
+ + fecha: str\\
+ + cantidad_eventos: int\\
+ + variacion_metrica: str\\
+ + actor: str | None}{\vacio}
+
+\umlclase[sig]{rllist}{rlin.south}{BaseModel}{ReentrenamientoLogListOut}{%
+ + items: list[ReentrenamientoLogEntryOut]\\
+ + postgres_ok: bool}{\vacio}
+
+\umlclase[sig]{rlout}{rllist.south}{BaseModel}{ReentrenamientoLogEntryOut}{%
+ + fecha: str\\
+ + cantidad_eventos: int\\
+ + variacion_metrica: str\\
+ + actor: str | None\\
+ + timestamp: str}{\vacio}
+
+\umlclase[sig]{dlist}{rlout.south}{BaseModel}{DriftAlertListOut}{%
+ + items: list[DriftAlertOut]\\
+ + postgres_ok: bool}{\vacio}
+
+\umlclase[sig]{dout}{dlist.south}{BaseModel}{DriftAlertOut}{%
+ + uid: str\\
+ + fecha: str\\
+ + lado: str \hfill iso | lstm\\
+ + features: list[DriftAlertFeature]\\
+ + corrimiento_max: float\\
+ + timestamp: str}{\vacio}
+
+\umlclase[sig]{dfeat}{dout.south}{BaseModel}{DriftAlertFeature}{%
+ + feature: str\\
+ + corrimiento_std: float}{\vacio}
+
+% ===================== COLUMNA 5: salud, auth, acciones, IAM
+\umlclase[sch]{health}{20.4,0}{BaseModel}{HealthStatus}{%
+ + status: str\\
+ + artefactos_cargados: bool\\
+ + redis_ok: bool\\
+ + redis_modo: str\\
+ + postgres_configurado: bool\\
+ + postgres_ok: bool\\
+ + detalle: dict[str, bool]\\
+ + total_eventos_crudos: int | None\\
+ + errores_redis_total: int\\
+ + errores_postgres_total: int}{\vacio}
+
+\umlclase[sig]{ready}{health.south}{BaseModel}{ReadinessStatus}{%
+ + status: str\\
+ + artefactos_cargados: bool\\
+ + redis_ok: bool}{\vacio}
+
+\umlclase[sig]{hmet}{ready.south}{BaseModel}{HealthMetrics}{%
+ + muestras: int\\
+ + promedio_ms: float | None\\
+ + p95_ms: float | None}{\vacio}
+
+\umlclase[sig]{reload}{hmet.south}{BaseModel}{ReloadArtifactsOut}{%
+ + reloaded: bool\\
+ + detalle: str}{\vacio}
+
+\umlclase[sig, fill=cPep]{cain}{reload.south}{BaseModel}{ConfirmarAccionIn}{%
+ + accion_id: str\\
+ + estado: Literal["ejecutado", "sin_cambios", "fallido", "parcial"]\\
+ + detalle: list[str] = []\\
+ + timestamp: str}{\vacio}
+
+\umlclase[sig]{caout}{cain.south}{BaseModel}{ConfirmarAccionOut}{%
+ + uid: str\\
+ + accion_id: str\\
+ + estado: str\\
+ + registrado: bool}{\vacio}
+
+\umlclase[sig, fill=cUi]{login}{caout.south}{BaseModel}{LoginIn}{%
+ + username: str\\
+ + password: str}{\vacio}
+
+\umlclase[sig, fill=cUi]{loginout}{login.south}{BaseModel}{LoginOut}{%
+ + role: str \hfill admin | operador\\
+ + api_key: str \hfill token opaco de sesión (8 h)}{\vacio}
+
+\umlclase[sig]{probout}{loginout.south}{BaseModel}{IAMProbarOut}{%
+ + resultados: list[IAMProbarItem]}{\vacio}
+
+\umlclase[sig]{probitem}{probout.south}{BaseModel}{IAMProbarItem}{%
+ + proveedor: str\\
+ + ok: bool\\
+ + ms: int\\
+ + error: str | None}{\vacio}
+
+% ===================== LEYENDA
+\node[draw=cBorde, fill=white, font=\ttfamily\scriptsize, align=left, text width=13.4cm, anchor=north west]
+ (ley) at (-25,2) {\textbf{\normalsize Leyenda}\\
+ «BaseModel» = hereda de pydantic.BaseModel; «RootModel[...]» = pydantic.RootModel\\
+ \fcolorbox{cBorde}{cPep}{\phantom{x}} contrato con el agente \quad
+ \fcolorbox{cBorde}{cUi}{\phantom{x}} login del dashboard \quad
+ \fcolorbox{cBorde}{cPdp}{\phantom{x}} resto de la API};
+\node[draw=cBorde, fill=white, font=\ttfamily\scriptsize, align=left, text width=20.8cm, anchor=north west]
+ (const) at (-10.6,2) {\textbf{\normalsize Constantes del módulo}\\
+ RESERVED_UID_PREFIXES = ("config:", "dedup:")\quad RESERVED_UID_SUFFIXES = (":eventos", ":notif_cooldown")\\
+ TIME_MAX_FUTURE = 5 min\quad TIME_MAX_PAST = 90 d\quad UMBRALES_PUT_CLAVES_RESERVADAS = ("acciones", "notif_niveles")};
+
+% ===================== COMPOSICIONES
+\draw[compone] (evout.south) -- node[rotulo,right]{explicacion 0..*} (fc.north);
+\draw[compone] (erout.south) -- node[rotulo,right]{items 0..*} (eritem.north);
+\draw[compone] (eritem.west) -- ++(-0.5,0) |- node[rotulo,pos=0.25,left]{explicacion 0..*} (fc.west);
+\draw[compone] (ulist.south) -- node[rotulo,right]{items 0..*} (ures.north);
+\draw[compone] (uhout.south) -- node[rotulo,right]{items 0..*} (uhitem.north);
+\draw[compone] (hsout.south) -- node[rotulo,right]{items 0..*} (hsitem.north);
+\draw[compone] (hsitem.west) -- ++(-0.5,0) |- node[rotulo,pos=0.75,above]{explicacion 0..*} ([yshift=-3mm]fc.east);
+\draw[compone] (uput.south) -- node[rotulo,right]{umbrales 1} (umb.north);
+\draw[compone] (iamcfg.south) -- node[rotulo,right]{proveedores 0..5} (iamitem.north);
+\draw[compone] (audl.south) -- node[rotulo,right]{items 0..*} (aude.north);
+\draw[compone] (rllist.south) -- node[rotulo,right]{items 0..*} (rlout.north);
+\draw[compone] (dlist.south) -- node[rotulo,right]{items 0..*} (dout.north);
+\draw[compone] (dout.south) -- node[rotulo,right]{features 1..*} (dfeat.north);
+\draw[compone] (probout.south) -- node[rotulo,right]{resultados 0..*} (probitem.north);
+
+\end{tikzpicture}
+\end{document}

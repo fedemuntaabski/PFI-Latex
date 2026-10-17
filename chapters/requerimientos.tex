@@ -1,53 +1,41 @@
 \chapter{Requerimientos, casos de uso e historias de usuario}
 \label{chap:requerimientos}
 
-Esta sección presenta los requerimientos del sistema. Se definen el alcance del relevamiento y los actores, los requerimientos funcionales y no funcionales, los casos de uso, las historias de usuario y la matriz de trazabilidad que los relaciona.
+% Formato compacto para las tablas de requerimientos: texto en \small,
+% interlineado simple y columnas ajustadas al ancho de texto (16 cm).
+\newcolumntype{P}[1]{>{\small\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\small\centering\arraybackslash}p{#1}}
+\newenvironment{tablacompacta}%
+	{\par\begingroup\setstretch{1}\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.25}}%
+	{\endgroup\par}
+\newenvironment{notastabla}%
+	{\par\begingroup\small\setstretch{1}\setlength{\parskip}{3pt}\noindent\textit{Notas:}\par}%
+	{\par\endgroup\medskip}
 
 \section{Alcance del relevamiento}
 \label{sec:alcance-relevamiento}
-Esta sección presenta el análisis funcional del sistema: un agente local que actúa como Punto de Cumplimiento de Políticas (PEP) y recolecta telemetría de actividad, una API central que actúa como Punto de Decisión de Políticas (PDP) y calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder, y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. La separación entre el punto de decisión y el punto de aplicación de políticas sigue los lineamientos de NIST SP~800-207 \parencite{Rose2020}.
 
-El análisis se organiza en cuatro casos de uso que cubren la lógica de negocio completa: detección y mitigación (CU-01), ajuste de políticas (CU-02), reentrenamiento periódico del modelo (CU-03) y alta de usuarios nuevos con período de aprendizaje (CU-04). La integración con sistemas de gestión de identidad (IAM) se trata como un módulo transversal. Los requerimientos se presentan en tablas por módulo, seguidos de los requerimientos no funcionales, los casos de uso, las historias de usuario y una matriz de trazabilidad.
+Esta sección presenta el análisis funcional del sistema, compuesto por tres elementos: un agente local que actúa como Punto de Cumplimiento de Políticas (PEP) y recolecta telemetría de actividad; una API central que funciona como Punto de Decisión de Políticas (PDP) y calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder; y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. La separación entre los puntos de decisión y aplicación de políticas sigue los lineamientos de NIST SP 800-207 \parencite{Rose2020}.
 
-Cada requerimiento indica su prioridad y su estado de implementación según la siguiente convención: \emph{Implementado} (cumple lo especificado), \emph{Parcial} (cumple con una limitación declarada), \emph{No implementado} y \emph{No verificable} (no existe todavía un criterio medible para evaluarlo). Las limitaciones declaradas se retoman en la sección de producto implementado y en las conclusiones. Cuando un requerimiento cumple lo especificado pero su verificación es limitada (sin prueba contra un servicio real o sin prueba automatizada), esa limitación se indica junto al estado sin modificarlo.
+El análisis se organiza en cuatro casos de uso que abarcan la lógica de negocio del sistema: detección y mitigación (CU-01), ajuste de políticas (CU-02), reentrenamiento periódico del modelo (CU-03) y alta de usuarios nuevos con período de aprendizaje (CU-04). La integración con sistemas de gestión de identidad (IAM) se aborda como un módulo transversal.
 
 \section{Actores del sistema}
 \label{sec:actores}
-La tabla~\ref{tab:actores} describe los actores del sistema.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{7.8cm}}
-	\caption{Actores del sistema}
-	\label{tab:actores}\\
-	\hline
-	\textbf{Actor} & \textbf{Tipo} & \textbf{Rol} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Actor} & \textbf{Tipo} & \textbf{Rol} \\
-	\hline
-	\endhead
-	Administrador de seguridad & Humano & Opera el \emph{dashboard}: monitorea a los usuarios, ajusta umbrales y políticas, configura el reentrenamiento y consulta la auditoría (rol admin del \emph{dashboard}). \\
-	\hline
-	Analista de seguridad & Humano & Consulta el historial y la explicación de cada puntaje para justificar decisiones posteriores (rol operador del \emph{dashboard}, de solo lectura). \\
-	\hline
-	Usuario monitoreado & Humano (indirecto) & Genera actividad en su \emph{endpoint}; es el sujeto de la observación y no interactúa directamente con el sistema. \\
-	\hline
-	Agente local (PEP) & Sistema & Recolecta metadatos de actividad, los envía a la API y ejecuta y confirma las acciones de mitigación en el \emph{endpoint}. \\
-	\hline
-	API de \emph{scoring} (PDP) & Sistema & Calcula el puntaje de riesgo, aplica el decaimiento temporal, asigna el nivel y decide la acción de mitigación. \\
-	\hline
-	Planificador del sistema & Sistema & Dispara el reentrenamiento periódico del modelo cuando se cumple la periodicidad configurada. \\
-	\hline
-	Proveedor IAM & Sistema externo & Provee, de forma opcional, el rol y el departamento del usuario monitoreado. \\
-	\hline
-\end{longtable}
+En el sistema intervienen siete actores: tres humanos, tres internos y uno externo.
+
+Entre los actores humanos, el administrador de seguridad opera el \emph{dashboard} con el rol \textit{admin}. Sus funciones incluyen monitorear a los usuarios, ajustar umbrales y políticas, configurar el reentrenamiento y consultar la auditoría. El analista de seguridad accede con el rol \textit{operador}, de solo lectura, y consulta el historial y las explicaciones de los puntajes para fundamentar decisiones posteriores. Por su parte, el usuario monitoreado es un actor indirecto: genera actividad en su \emph{endpoint} y constituye el sujeto de observación, pero no interactúa directamente con el sistema.
+
+Los actores internos son el agente local (PEP), que recolecta metadatos de actividad, los envía a la API y ejecuta y confirma las acciones de mitigación en el \emph{endpoint}; la API de \emph{scoring} (PDP), que calcula el puntaje de riesgo, aplica el decaimiento temporal, asigna el nivel de riesgo y decide la acción de mitigación; y el planificador del sistema, que activa el reentrenamiento periódico del modelo según la periodicidad configurada. Finalmente, el proveedor IAM es un sistema externo que proporciona, de forma opcional, el rol y el departamento del usuario monitoreado.
 
 \section{Requerimientos funcionales}
 \label{sec:requerimientos-funcionales}
-Los requerimientos funcionales se organizan en siete módulos. Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal. Las tablas~\ref{tab:rf-modulo1} a~\ref{tab:rf-modulo7} presentan los requerimientos de cada módulo.
+
+Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en siete módulos. Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal. Junto a cada identificador se indica la prioridad asignada. Los 31 requerimientos se encuentran implementados; cuando la implementación o su verificación presentan alguna salvedad, esta se indica en la columna de estado o en las notas al pie de cada tabla.
 
 \subsection{Módulo 1: Agente local y recolección de telemetría (CU-01)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 1}
 	\label{tab:rf-modulo1}\\
 	\hline
@@ -63,13 +51,11 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado (ver nota a) \\
 	\hline
 \end{longtable}
-
-\noindent Notas:
-
-\noindent a) Implementado: cada agente se autentica con una clave propia, de la que la API guarda solo el \emph{hash} junto con el identificador del agente y la lista de usuarios que puede reportar; se da de alta y se revoca con una herramienta de línea de comandos, y cada cambio queda registrado en una tabla en la que la aplicación solo inserta. La API rechaza con 403 un evento cuyo agente o usuario no corresponde a la clave, y una confirmación de acción para un usuario ajeno, antes de la deduplicación. Fuera de \emph{loopback}, el agente solo acepta URLs \texttt{https://}, verifica el certificado del servidor y no usa la clave de administración como respaldo, aunque la API todavía acepta esa clave en los endpoints de agente sin el control de identidad (sección~\ref{sec:sintesis-limitaciones}). Un 401 o un 403 abre un \emph{circuit breaker} y los eventos se guardan en un \emph{buffer} local con vigencia limitada hasta que el servicio responde. El 10 de octubre de 2026 se verifica con un agente real contra la instancia por HTTPS, con credencial individual: la API rechaza con 403 el usuario, el identificador de agente y la confirmación ajenos, y el agente aborta al configurarse con \texttt{http://} fuera de \emph{loopback}.
+\end{tablacompacta}
 
 \subsection{Módulo 2: Motor de scoring y decisión (CU-01)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 2}
 	\label{tab:rf-modulo2}\\
 	\hline
@@ -91,9 +77,11 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel\,$\rightarrow$\,acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
 
 \subsection{Módulo 3: Respuesta adaptativa y mitigación (CU-01)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 3}
 	\label{tab:rf-modulo3}\\
 	\hline
@@ -113,9 +101,11 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	RF-11 & El agente debe permitir revertir las acciones de mitigación aplicadas (restitución de permisos de carpeta y reanudación de procesos suspendidos). & Media & Implementado; la terminación de procesos no es reversible (ver RNF-06) \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
 
 \subsection{Módulo 4: Panel de administración y gestión de políticas (CU-02)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 4}
 	\label{tab:rf-modulo4}\\
 	\hline
@@ -138,12 +128,18 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial en el que la aplicación solo inserta, con fecha, valores anteriores y nuevos e identificador del actor (el rol de la sesión del panel o, para las claves que usan los scripts, un identificador derivado de la clave), consultable desde una vista de auditoría. & Media & Implementado \\
 	\hline
-	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el identificador del usuario, el puntaje, el nivel, las variables que lo explican y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado; servicio opcional con texto predefinido de respaldo y con controles de entrada y de salida (sección~\ref{sec:prompt-injection}) \\
+	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el identificador del usuario, el puntaje, el nivel, las variables que lo explican y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado (ver nota a) \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
+
+\begin{notastabla}
+\noindent a) Servicio opcional, con texto predefinido de respaldo y con controles de entrada y de salida (sección~\ref{sec:prompt-injection}).
+\end{notastabla}
 
 \subsection{Módulo 5: Ciclo de vida del modelo y reentrenamiento (CU-03)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 5}
 	\label{tab:rf-modulo5}\\
 	\hline
@@ -160,14 +156,17 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	\hline
 	RF-20 & El reentrenamiento debe ejecutarse en un proceso aislado del que atiende producción, disparado por un planificador cuando se cumple la periodicidad configurada. & Alta & Implementado \\
 	\hline
-	RF-21 & El sistema debe promover el modelo nuevo solo si no es inferior al vigente en la detección de escenarios de referencia (ROC-AUC medio no menor que el del vigente menos 0,02 y tasa de falsos positivos en nivel alto no mayor que la del vigente más 0,01), reemplazándolo sin reiniciar la API. & Alta & Implementado: el criterio de no inferioridad tiene 12 pruebas automatizadas y se verifica con el script de evaluación (el vigente contra sí mismo se promueve y el juego v2 se rechaza por falsos positivos); todavía no se ejecutó una promoción desde el planificador con un modelo genuinamente nuevo \\
+	RF-21 & El sistema debe promover el modelo nuevo solo si no es inferior al vigente en la detección de escenarios de referencia (ROC-AUC medio no menor que el del vigente menos 0,02 y tasa de falsos positivos en nivel alto no mayor que la del vigente más 0,01), reemplazándolo sin reiniciar la API. & Alta & Implementado \\
 	\hline
 	RF-22 & El sistema debe registrar cada reentrenamiento (fecha, eventos utilizados, variación de métricas y actor) y mostrarlo en el \emph{dashboard}; también admite la carga manual de un reentrenamiento. & Baja & Implementado \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
+
 
 \subsection{Módulo 6: Alta de usuario nuevo y cold-start (CU-04)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 6}
 	\label{tab:rf-modulo6}\\
 	\hline
@@ -189,9 +188,11 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	RF-27 & La transición de ``en aprendizaje'' a monitoreo normal debe ser automática al alcanzar el umbral. & Media & Implementado \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
 
 \subsection{Módulo 7: Integración con sistemas IAM (transversal)}
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{2.8cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.1cm}P{9.3cm}C{1.6cm}P{2.6cm}}
 	\caption{Requerimientos funcionales del Módulo 7}
 	\label{tab:rf-modulo7}\\
 	\hline
@@ -209,12 +210,15 @@ Los requerimientos funcionales se organizan en siete módulos. Los seis primeros
 	RF-30 & El contexto obtenido del proveedor IAM debe conservarse como último valor por usuario e incluirse en la respuesta del evento evaluado y mostrarse en el detalle del usuario del \emph{dashboard}, como información para el administrador; no es una variable de entrada del modelo. & Baja & Implementado \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
+
 
 \section{Requerimientos no funcionales}
 \label{sec:requerimientos-no-funcionales}
-Los requerimientos no funcionales son transversales a los casos de uso y definen criterios de calidad del sistema en su conjunto.
+Los requerimientos no funcionales son transversales a los casos de uso y definen criterios de calidad del sistema en su conjunto. La tabla~\ref{tab:rnf} los resume; las notas al pie amplían el estado de los que lo requieren.
 
-\begin{longtable}{p{1.6cm}>{\raggedright\arraybackslash}p{2.9cm}>{\raggedright\arraybackslash}p{6.4cm}>{\raggedright\arraybackslash}p{3.3cm}}
+\begin{tablacompacta}
+\begin{longtable}{P{1.3cm}P{2.4cm}P{8.0cm}P{2.9cm}}
 	\caption{Requerimientos no funcionales}
 	\label{tab:rnf}\\
 	\hline
@@ -229,13 +233,13 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-02 & Eficiencia & El agente opera con un consumo acotado que preserva el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & Implementado: CPU media 0,09\,\% y memoria residente de 33~MB \\
 	\hline
-	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado (ver nota a) \\
+	RNF-03 & Seguridad & Toda operación de configuración debe requerir autenticación de administrador, y el acceso al \emph{dashboard} requiere inicio de sesión. & Implementado \\
 	\hline
-	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado (ver nota c) \\
+	RNF-04 & Seguridad / arquitectura & La decisión de riesgo se origina siempre en el motor de \emph{scoring} central (PDP); el agente (PEP) ejecuta únicamente la acción que el PDP indica para cada evento, conforme a la separación entre PEP y PDP de NIST SP~800-207. & Implementado \\
 	\hline
 	RNF-05 & Disponibilidad & Ante una caída de la API o un error de autenticación, el agente continúa el monitoreo y conserva los eventos no enviados en un \emph{buffer} local acotado (vigencia de 3 horas y tope de 20\,000 eventos), que reenvía al restablecerse la conexión, con reintentos y un mecanismo de \emph{circuit breaker}. & Parcial: descarte por vigencia y tope \\
 	\hline
-	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado (ver nota b) \\
+	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado \\
 	\hline
 	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
@@ -243,347 +247,128 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & Parcial: cadena verificada manualmente, sin test automatizado ni inmutabilidad; esquema no estricto \\
 	\hline
-	RNF-10 & Aislamiento & El reentrenamiento se ejecuta en un proceso aislado que preserva la disponibilidad y la latencia del servicio de \emph{scoring} en producción. & Implementado: el pipeline corre en procesos separados; la lectura de métricas del criterio de promoción y la recarga de los modelos corren en el proceso de la API; sin medición de impacto \\
+	RNF-10 & Aislamiento & El reentrenamiento se ejecuta en un proceso aislado que preserva la disponibilidad y la latencia del servicio de \emph{scoring} en producción. & Implementado\\
 	\hline
 	RNF-11 & Explicabilidad & Cada puntaje debe acompañarse de una justificación legible (principales variables que lo explican) y persistirse en el historial. & Parcial: cubre Isolation Forest; LSTM sin explicación \\
 	\hline
 	RNF-12 & Portabilidad / despliegue & El agente corre como un proceso nativo por dispositivo Windows, sin servidor propio ni contenedores. & Implementado \\
 	\hline
-	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & Implementado en el despliegue (TLS con certificado público, redirección a HTTPS, API solo en \emph{loopback} detrás del proxy); el agente rechaza URLs \texttt{http} fuera de \emph{loopback}. Verificado de punta a punta el 10 de octubre de 2026 con un agente real: certificado de Let's Encrypt válido, redirección 308 y puerto de la API cerrado desde afuera. \\
+	RNF-13 & Confidencialidad en tránsito & La comunicación entre el agente y la API debe viajar cifrada mediante TLS. & Implementado en el despliegue \\
 	\hline
-	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado: el estado de cada usuario se guarda en claves separadas y se actualiza con transacciones optimistas con reintentos; verificado con un ensayo manual de contención sobre un usuario, sin prueba automatizada con varios usuarios \\
+	RNF-14 & Concurrencia & El motor de \emph{scoring} debe atender eventos concurrentes de múltiples usuarios manteniendo el estado de cada usuario consistente e independiente. & Implementado\\
 	\hline
 	RNF-15 & Usabilidad & El \emph{dashboard} debe representar el nivel de riesgo de cada usuario con indicadores visuales consistentes (color y etiqueta) en todas las vistas, para priorizar de un vistazo. & Implementado; evaluación heurística en la sección de pruebas \\
 	\hline
 \end{longtable}
+\end{tablacompacta}
 
-\noindent Notas:
-
-\noindent a) Implementado: el panel se autentica con usuario y contraseña, que son obligatorias (se rechazan los valores de ejemplo y los marcadores de posición). El inicio de sesión devuelve un token de sesión opaco y aleatorio de 256~bits, del que la API guarda solo el \emph{hash} junto con el rol y el vencimiento (8 horas); el token se invalida al cerrar sesión y el rol operador no accede a los \emph{endpoints} de administración (403). Las claves fijas de los niveles de acceso no viajan al navegador ni se incluyen en el \emph{bundle} del \emph{frontend}. Limitación: el token se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión; no se implementa una política de seguridad de contenido (CSP) que lo mitigue.
-
-\noindent b) Implementado: la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo tomado antes de aplicarla (\texttt{icacls /save} y \texttt{/restore}), con lo que se preservan las denegaciones que el usuario ya tenía; la suspensión de procesos se revierte reanudándolos. La terminación de procesos no es reversible por limitación del sistema operativo. La prueba manual de reversión dio resultado satisfactorio en una consola elevada: \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador.
-
-\noindent c) El agente conserva un mapeo de respaldo de nivel a acción para respuestas que no traigan acción. Con la API vigente no se ejecuta, porque toda respuesta con nivel incluye la acción decidida por el PDP (sección~\ref{sec:limitaciones-producto}).
 
 \section{Casos de uso}
 \label{sec:casos-de-uso}
 
-Esta sección describe los cuatro casos de uso del sistema: la detección de desviaciones conductuales con mitigación automática en el \emph{endpoint} (CU-01), el ajuste de umbrales y políticas de respuesta (CU-02), el reentrenamiento periódico del modelo (CU-03) y el alta de usuarios nuevos con período de aprendizaje (CU-04).
+Esta sección describe los cuatro casos de uso del sistema: la detección de desviaciones conductuales con mitigación automática en el \emph{endpoint} (CU-01), el ajuste de umbrales y políticas de respuesta (CU-02), el reentrenamiento periódico del modelo (CU-03) y el alta de usuarios nuevos con período de aprendizaje (CU-04). Para cada uno se describen los actores, el disparador y las precondiciones, el flujo principal y sus alternativas, el resultado esperado y los requerimientos e historias de usuario con que se vincula.
 
 \subsection{CU-01: Detección de desviación conductual y mitigación automática en el endpoint}
 \label{sec:cu01}
-\noindent\textbf{Actor principal:} Agente local (PEP). Actor secundario: API de \emph{scoring} (PDP).
 
-\noindent\textbf{Disparador:} El usuario realiza una actividad en el equipo monitoreado (ejecuta un proceso, crea, modifica, renombra o borra un archivo en una carpeta vigilada, o se conecta a un recurso de red).
+El actor principal de este caso de uso es el agente local (PEP), mientras que la API de \emph{scoring} (PDP) actúa como actor secundario. El caso se inicia cuando el usuario realiza una actividad en el equipo monitoreado: ejecuta un proceso, crea, modifica, renombra o elimina un archivo en una carpeta vigilada, o se conecta a un recurso de red. Como precondiciones, el agente debe estar instalado y autenticado ante la API mediante su clave, y los modelos deben estar cargados.
 
-\noindent\textbf{Precondiciones:} El agente está instalado y autenticado ante la API con su clave; los modelos están cargados en la API.
+El flujo comienza cuando el agente captura el evento y lo envía a la API. Esta valida su estructura, descarta los reenvíos duplicados, actualiza el estado del usuario y persiste el evento sin procesar. Luego calcula el puntaje de riesgo mediante el modelo híbrido, lo combina con la línea base personal del usuario, aplica el decaimiento temporal y asigna el nivel correspondiente según los umbrales vigentes y la regla de piso. A continuación, genera la explicación del puntaje y determina la acción de mitigación según el mapeo nivel $\rightarrow$ acción.
 
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El agente captura el evento y lo envía a la API.
-	\item La API valida el esquema, descarta reenvíos duplicados, actualiza el estado del usuario y persiste el evento crudo.
-	\item La API calcula el puntaje híbrido, lo combina con la línea base personal del usuario, aplica el decaimiento temporal y asigna el nivel según los umbrales y la regla de piso.
-	\item La API genera la explicación del puntaje y determina la acción según el mapeo nivel\,$\rightarrow$\,acción. Si hay un proveedor IAM configurado (por defecto, ninguno), resuelve el rol y el departamento del usuario con caché y tolerancia a fallas; este dato se muestra en el detalle del usuario del \emph{dashboard} y no interviene en el modelo.
-	\item La API responde al agente con el puntaje, el nivel y la acción.
-	\item El agente ejecuta la acción localmente y, si modifica el equipo, confirma el resultado.
-	\item Si el nivel está configurado para notificar, la API envía un correo al administrador antes de responder; una falla en el envío no afecta la respuesta al agente, pero un servidor de correo lento la demora.
-\end{enumerate}
+Si hay un proveedor IAM configurado, la API también consulta el rol y el departamento del usuario, utilizando caché y mecanismos de tolerancia a fallas. Esta integración es opcional y está desactivada por defecto. La información obtenida se muestra en el detalle del usuario en el \emph{dashboard}, pero no interviene en el cálculo del puntaje. Una vez completado el procesamiento, la API responde al agente con el puntaje, el nivel de riesgo y la acción correspondiente. El agente ejecuta esta última localmente y, si modifica el equipo, confirma el resultado a la API. Además, cuando el nivel asignado tiene habilitadas las notificaciones, la API envía un correo al administrador antes de responder. Si el envío falla, la respuesta no se ve afectada; sin embargo, una demora del servidor de correo puede retrasarla.
 
-\noindent\textbf{Flujos alternativos:}
-\begin{itemize}
-	\item 2a. La API no está disponible: el agente guarda el evento en el \emph{buffer} local y reintenta.
-	\item 2b. La clave del agente es rechazada: se abre el \emph{circuit breaker} y el reenvío del \emph{buffer} pasa a un sondeo cada 5 minutos; el agente continúa vigilando.
-	\item 3a. El usuario es nuevo: se aplica CU-04.
-	\item 6a. La acción falla en el sistema operativo: el agente informa el error y queda registrado.
-\end{itemize}
+El flujo contempla cuatro situaciones alternativas. Si la API no está disponible, el agente almacena el evento en el \emph{buffer} local y reintenta el envío. Si la API rechaza la clave del agente, se activa el \emph{circuit breaker} y el reenvío de los eventos pendientes pasa a realizarse mediante sondeos cada cinco minutos, mientras el agente continúa monitoreando la actividad. Si el evento corresponde a un usuario nuevo, el cálculo del puntaje sigue el flujo definido en CU-04. Por último, si el sistema operativo no permite ejecutar la acción de mitigación, el agente informa el error y este queda registrado.
 
-\noindent\textbf{Postcondición:} El evento queda registrado; su puntaje, nivel, acción y explicación se conservan en la lista acotada de eventos recientes y, para el último evento de cada día, en el historial diario. La mitigación quedó aplicada o, si falló, informada en la última confirmación de acción del usuario.
+Al finalizar, el evento queda registrado y su puntaje, nivel, acción y explicación se conservan en la lista acotada de eventos recientes. Además, el último evento de cada día se incorpora al historial diario. El resultado de la mitigación, tanto si se aplica correctamente como si falla, queda reflejado en la última confirmación de acción del usuario.
 
-\noindent\textbf{Requerimientos asociados:} RF-01 a RF-11 y RF-28 a RF-30. \textbf{Historias de usuario:} HU-01 a HU-04, HU-15 y HU-16.
-
-\noindent\textbf{Valor diferencial:} Cierra el ciclo detección\,$\rightarrow$\,decisión\,$\rightarrow$\,acción en el propio \emph{endpoint}, sin intermediarios ni nuevo inicio de sesión, a diferencia de las soluciones relevadas en el estado del arte, que detectan y alertan pero delegan la respuesta.
+Este caso de uso se relaciona con los requerimientos RF-01 a RF-11 y RF-28 a RF-30, así como con las historias de usuario HU-01 a HU-04, HU-15 y HU-16. Su principal valor diferencial es que integra la detección, la decisión y la ejecución de la acción de mitigación en el propio \emph{endpoint}, sin intermediarios ni necesidad de un nuevo inicio de sesión. Esto contrasta con las soluciones analizadas en el estado del arte, que detectan y generan alertas, pero delegan la respuesta.
 
 \subsection{CU-02: Ajuste de umbrales y políticas de respuesta}
 \label{sec:cu02}
-\noindent\textbf{Actor principal:} Administrador de seguridad.
 
-\noindent\textbf{Disparador:} El administrador necesita adaptar la sensibilidad del sistema o la respuesta ante cada nivel de riesgo.
+El actor principal es el administrador de seguridad, quien necesita ajustar la sensibilidad del sistema y definir las respuestas asociadas a cada nivel de riesgo. La única precondición es haber iniciado sesión en el \emph{dashboard}.
 
-\noindent\textbf{Precondiciones:} El administrador inició sesión en el \emph{dashboard}.
+Desde el \emph{dashboard}, el administrador consulta el estado de los usuarios y la configuración vigente. A partir de esta información, puede modificar los umbrales de riesgo, la cantidad de niveles, las acciones asociadas a cada uno y los niveles para los que se deben generar notificaciones. Una vez enviados los cambios a la API, esta valida la coherencia de la política, verificando que los rangos sean contiguos, que la cantidad de niveles sean 4, y que las acciones y la regla de piso sean consistentes con los niveles definidos. Si la configuración es válida, la API persiste la nueva política, registra el cambio en la auditoría y aplica la configuración actualizada a la evaluación de los eventos siguientes.
 
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El administrador consulta el estado de los usuarios y la configuración vigente.
-	\item Modifica umbrales, cantidad de niveles, acciones por nivel o niveles que notifican.
-	\item El \emph{dashboard} envía la configuración a la API.
-	\item La API valida la coherencia de la política (rangos contiguos, entre 3 y 6 niveles, acciones y regla de piso consistentes con los niveles).
-	\item La API persiste la nueva política y registra el cambio en la auditoría.
-	\item Los eventos siguientes se evalúan con la política nueva.
-\end{enumerate}
+El caso de uso contempla dos flujos alternativos. Si el token de sesión es inválido, está vencido o pertenece a un usuario sin permisos de administración, la API rechaza la operación con un código HTTP 401 o 403, según corresponda. La autorización se verifica siempre en la API, a partir del rol asociado al token, por lo que la sesión del \emph{dashboard} no sustituye esta validación. Por otro lado, si la configuración no cumple las reglas establecidas, la API rechaza el cambio e informa el motivo mediante un mensaje específico, sin modificar la política vigente.
 
-\noindent\textbf{Flujos alternativos:}
-\begin{itemize}
-	\item 3a. El token de sesión no es válido, venció o corresponde a un rol sin permiso de administración: la API rechaza la operación (401 o 403). La autorización efectiva la valida siempre la API a partir del rol asociado al token; la sesión del \emph{dashboard} no reemplaza esa validación.
-	\item 4a. La configuración es inválida: la API rechaza el cambio con un mensaje específico y la política vigente no se modifica.
-\end{itemize}
-
-\noindent\textbf{Postcondición:} La política nueva está activa sin reiniciar servicios y el cambio queda auditado.
-
-\noindent\textbf{Requerimientos asociados:} RF-12 a RF-17 y RF-31. \textbf{Historias de usuario:} HU-05 a HU-07 y HU-14.
-
-\noindent\textbf{Valor diferencial:} Permite calibrar el sistema a distintos contextos de seguridad sin intervención de desarrollo, y escalonar la respuesta según el nivel de riesgo, en línea con la preferencia por respuestas menos disruptivas relevada en la encuesta (sección~\ref{sec:encuesta-usuarios}).
+Como resultado, la nueva política queda activa sin necesidad de reiniciar los servicios y el cambio queda registrado en la auditoría. Este caso de uso se relaciona con los requerimientos RF-12 a RF-17 y RF-31, así como con las historias de usuario HU-05 a HU-07 y HU-14. Su principal aporte es permitir que el administrador adapte la configuración a distintos contextos de seguridad sin depender del equipo de desarrollo y defina respuestas graduales según el nivel de riesgo, en línea con la preferencia por medidas menos disruptivas identificada en la encuesta (sección~\ref{sec:encuesta-usuarios}).
 
 \subsection{CU-03: Reentrenamiento periódico del modelo}
 \label{sec:cu03}
-\noindent\textbf{Actor principal:} Planificador del sistema. Actor secundario: administrador de seguridad.
 
-\noindent\textbf{Disparador:} Se cumple la periodicidad configurada desde el último reentrenamiento registrado, dentro de la ventana horaria definida.
+El actor principal es el planificador del sistema, mientras que el administrador de seguridad participa como actor secundario. El caso de uso se activa cuando se cumple el período configurado desde el último reentrenamiento registrado, siempre que el planificador se encuentre dentro de la ventana horaria definida. Como precondiciones, el reentrenamiento automático debe estar habilitado y deben existir eventos crudos registrados en la base de datos. Sin embargo, el planificador no verifica si se incorporaron eventos nuevos desde el último entrenamiento.
 
-\noindent\textbf{Precondiciones:} El reentrenamiento automático está habilitado y hay eventos crudos registrados en la base; el planificador no comprueba que haya eventos nuevos desde el último entrenamiento.
+Cuando detecta que corresponde reentrenar, el sistema exporta los eventos crudos acumulados junto con el conjunto de datos original, adaptándolos al formato requerido por el \emph{pipeline} de entrenamiento. Este se ejecuta en un proceso aislado. Una vez generado el nuevo modelo, el sistema evalúa tanto este como el modelo vigente sobre los mismos escenarios de referencia. Si el nuevo modelo cumple el criterio de promoción, es decir, si su desempeño no resulta inferior al permitido, se incorpora como modelo vigente sin necesidad de reiniciar la API. Finalmente, el sistema registra el reentrenamiento, incluyendo la fecha, los eventos utilizados y la variación de las métricas obtenidas.
 
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item El planificador detecta que corresponde reentrenar.
-	\item El sistema exporta los eventos crudos acumulados, junto con el conjunto de datos original, al formato del \emph{pipeline} de entrenamiento.
-	\item El \emph{pipeline} de entrenamiento se ejecuta en un proceso aislado.
-	\item El sistema puntúa el modelo nuevo y el vigente sobre los mismos escenarios de referencia.
-	\item Si el modelo nuevo no es inferior al vigente según el criterio de promoción, se promueve sin reiniciar la API.
-	\item El sistema registra el reentrenamiento con fecha, eventos utilizados y variación de métricas.
-\end{enumerate}
+Como alternativa al disparo automático, el administrador de seguridad puede registrar manualmente un reentrenamiento realizado fuera del planificador. Si se produce un fallo en algún paso del \emph{pipeline}, se restauran los artefactos del modelo vigente, que continúa en servicio. En este caso, el intento queda registrado en el historial con la leyenda \emph{pipeline en curso}, que no se actualiza posteriormente, y el próximo reentrenamiento se dispara cuando vuelve a cumplirse el período configurado, contado desde ese intento. En cambio, si el intento finaliza por una excepción, no se registra y el planificador vuelve a intentarlo en el siguiente chequeo, cinco minutos después. Ambos comportamientos se encuentran identificados como correcciones previstas (sección~\ref{sec:sintesis-limitaciones}).
 
-\noindent\textbf{Flujos alternativos:}
-\begin{itemize}
-	\item 1a. El administrador registra manualmente un reentrenamiento realizado fuera del planificador.
-	\item 3a. Un paso del \emph{pipeline} falla: se restauran los artefactos del modelo vigente, que sigue en servicio; el intento queda registrado en el historial con la leyenda ``\emph{pipeline} en curso'', que no se actualiza, y el próximo reentrenamiento se dispara al cumplirse nuevamente el período, contado desde ese intento. Si el intento termina por una excepción, no se registra y el planificador lo reintenta en el chequeo siguiente, a los 5 minutos. Ambos comportamientos figuran como corrección prevista (sección~\ref{sec:sintesis-limitaciones}).
-	\item 4a. El modelo nuevo no cumple el criterio de promoción, faltan escenarios, su corte temporal no coincide o el puntuado falla: se conserva el vigente y se registra el motivo del rechazo.
-\end{itemize}
+Por otra parte, si el nuevo modelo no cumple el criterio de promoción, faltan escenarios de referencia, el corte temporal no coincide con el esperado o se produce un error durante el cálculo de las métricas, el sistema rechaza la promoción, conserva el modelo vigente y registra el motivo del rechazo.
 
-\noindent\textbf{Postcondición:} El modelo vigente es el que cumple el criterio de promoción y el reentrenamiento quedó registrado.
-
-\noindent\textbf{Requerimientos asociados:} RF-18 a RF-22. \textbf{Historias de usuario:} HU-08 a HU-10.
-
-\noindent\textbf{Valor diferencial:} Mitiga la degradación del modelo por \emph{concept drift} sin interrumpir el servicio y sin aceptar modelos cuyo desempeño empeore más allá del margen de tolerancia.
+Al finalizar el proceso, el modelo vigente se mantiene o se actualiza según el resultado de la evaluación, y el reentrenamiento queda registrado cuando corresponde. Este caso de uso se relaciona con los requerimientos RF-18 a RF-22 y con las historias de usuario HU-08 a HU-10. Su principal aporte es reducir el riesgo de degradación del modelo ante el \emph{concept drift}, mediante reentrenamientos periódicos y una evaluación previa a la promoción, sin interrumpir el servicio ni incorporar modelos cuyo desempeño supere el margen de degradación permitido.
 
 \subsection{CU-04: Alta de usuario nuevo y período de aprendizaje (cold-start)}
 \label{sec:cu04}
-\noindent\textbf{Actor principal:} Agente local y API. Actor secundario: administrador de seguridad.
 
-\noindent\textbf{Disparador:} Llega el primer evento de un identificador de usuario no registrado.
+Los actores principales son el agente local y la API, mientras que el administrador de seguridad participa como actor secundario. El caso de uso se activa cuando la API recibe el primer evento de un usuario que aún no está registrado. Como precondición, el agente local debe estar operativo en el equipo del usuario.
 
-\noindent\textbf{Precondiciones:} El agente está operativo en el equipo del usuario nuevo.
+Al detectar que el usuario no está registrado, la API crea su estado y lo establece en modo de aprendizaje, de acuerdo con el umbral configurado. Durante este período, los eventos se evalúan normalmente, pero la acción de mitigación se aplica de forma atenuada. A su vez, el \emph{dashboard} muestra al usuario en aprendizaje e informa su progreso. Una vez alcanzado el umbral establecido, el sistema lo incorpora automáticamente al monitoreo normal. Si el administrador modifica el umbral durante el aprendizaje, el cambio se aplica a partir del siguiente evento. Sin embargo, cuando un evento afecta a un recurso sensible, se aplica la política normal, sin atenuar la acción de mitigación.
 
-\noindent\textbf{Flujo principal:}
-\begin{enumerate}
-	\item La API detecta que el usuario no existe y crea su estado.
-	\item El usuario queda ``en aprendizaje'' según el umbral configurado.
-	\item Los eventos se evalúan normalmente, pero la acción de mitigación se atenúa.
-	\item El \emph{dashboard} muestra al usuario en aprendizaje con su progreso.
-	\item Al alcanzar el umbral, el usuario pasa automáticamente a monitoreo normal.
-\end{enumerate}
-
-\noindent\textbf{Flujos alternativos:}
-\begin{itemize}
-	\item 2a. El administrador modifica el umbral: el cambio aplica desde el evento siguiente.
-	\item 3a. El evento afecta un recurso sensible: se aplica la política normal, sin atenuación.
-\end{itemize}
-
-\noindent\textbf{Postcondición:} El usuario sale del aprendizaje y se le aplica la acción del mapeo sin atenuación. Su cobertura de puntaje puede seguir siendo parcial hasta completar 50 eventos para el LSTM (RF-03).
-
-\noindent\textbf{Requerimientos asociados:} RF-23 a RF-27. \textbf{Historias de usuario:} HU-11 a HU-13.
-
-\noindent\textbf{Valor diferencial:} Reduce los falsos positivos iniciales asociados al \emph{cold-start}, una limitación reportada en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
+Al finalizar el caso de uso, el usuario deja el modo de aprendizaje y las acciones se aplican sin atenuación, según el mapeo configurado. No obstante, la cobertura del puntaje puede seguir siendo parcial hasta que se completen los 50 eventos requeridos por el modelo LSTM (RF-03). Este caso de uso se relaciona con los requerimientos RF-23 a RF-27 y con las historias de usuario HU-11 a HU-13. Su principal aporte es reducir los falsos positivos durante la incorporación de nuevos usuarios, asociados al problema de \emph{cold-start}, una limitación documentada en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
 
 \section{Historias de usuario}
 \label{sec:historias-usuario}
-Las historias de usuario se expresan con el formato ``Como [rol], quiero [funcionalidad], para [beneficio]'', y sus criterios de aceptación con la estructura ``Dado / Cuando / Entonces''. Se agrupan en cinco épicas alineadas con los casos de uso.
+
+Las historias de usuario se expresan con el formato ``Como [rol], quiero [funcionalidad], para [beneficio]'', y sus criterios de aceptación se derivan de la estructura ``Dado / Cuando / Entonces''. Se agrupan en cinco épicas alineadas con los casos de uso.
 
 \subsection{Épica 1: Detección y respuesta en el endpoint (CU-01)}
 
-Esta épica agrupa las historias de usuario asociadas a CU-01: la recolección de actividad en el \emph{endpoint}, el puntaje de riesgo por evento, la mitigación automática y la reversión de acciones (HU-01 a HU-04).
+Esta épica reúne las historias asociadas a CU-01: la recolección de actividad, el puntaje de riesgo por evento, la mitigación automática y la reversión de acciones.
 
-\subsubsection{HU-01: Recolección de actividad en el endpoint}
-Como administrador de seguridad, quiero que el agente recolecte en segundo plano la actividad de procesos, archivos, aplicaciones y red de cada equipo, para contar con la información necesaria para evaluar el comportamiento sin interrumpir al usuario.
-\begin{itemize}
-	\item Dado un agente instalado, cuando el usuario ejecuta un proceso o accede a un archivo, entonces el evento llega a la API con identificador de usuario, tipo y marca temporal.
-	\item Dado que la API no responde, cuando se genera un evento, entonces queda en el \emph{buffer} local y se envía al restablecerse la conexión.
-	\item Dado cualquier evento, entonces no incluye contenido de archivos, capturas de pantalla ni pulsaciones de teclado.
-\end{itemize}
+\textbf{HU-01: Recolección de actividad en el endpoint.} Como administrador de seguridad, quiero que el agente recolecte en segundo plano la actividad de procesos, archivos, aplicaciones y red de cada equipo, para contar con la información necesaria para evaluar el comportamiento sin interrumpir al usuario. La historia se considera cumplida cuando, con un agente instalado, cada proceso ejecutado o archivo accedido por el usuario llega a la API como evento con identificador de usuario, tipo y marca temporal; cuando, si la API no responde, el evento queda en el \emph{buffer} local y se envía al restablecerse la conexión; y cuando ningún evento incluye contenido de archivos, capturas de pantalla ni pulsaciones de teclado.
 
-\subsubsection{HU-02: Puntaje de riesgo por evento}
-Como administrador de seguridad, quiero que cada evento reciba un puntaje de riesgo y un nivel, para saber en tiempo casi real cuánto se desvía un usuario de su conducta esperada.
-\begin{itemize}
-	\item Dado un evento válido, cuando la API lo evalúa, entonces devuelve un puntaje entre 0 y 100 y el nivel que corresponde a los umbrales vigentes.
-	\item Dado un usuario que vuelve tras un período sin actividad, entonces su riesgo acumulado se reduce por decaimiento temporal.
-	\item Dado que al menos uno de los dos modelos marca anomalía, entonces el nivel no queda por debajo del piso (por defecto, alto).
-\end{itemize}
+\textbf{HU-02: Puntaje de riesgo por evento.} Como administrador de seguridad, quiero que cada evento reciba un puntaje de riesgo y un nivel, para saber en tiempo casi real cuánto se desvía un usuario de su conducta esperada. Ante un evento válido, la API debe devolver un puntaje entre 0 y 100 y el nivel que corresponde a los umbrales vigentes. Cuando un usuario vuelve tras un período sin actividad, su riesgo acumulado debe haberse reducido por decaimiento temporal, y cuando al menos uno de los dos modelos marca anomalía, el nivel no debe quedar por debajo del piso, que por defecto es alto.
 
-\subsubsection{HU-03: Mitigación automática}
-Como administrador de seguridad, quiero que el agente aplique automáticamente la acción definida para cada nivel, para contener un posible compromiso sin depender de una intervención manual.
-\begin{itemize}
-	\item Dado un nivel mapeado a \texttt{terminar\_y\_denegar}, cuando el evento se evalúa, entonces el agente termina el proceso y deniega el acceso a la carpeta.
-	\item Dado que se ejecuta una acción que modifica el equipo, entonces el agente confirma el resultado a la API.
-	\item Dado que el usuario mantiene la sesión abierta, entonces no se le solicita un nuevo inicio de sesión.
-\end{itemize}
+\textbf{HU-03: Mitigación automática.} Como administrador de seguridad, quiero que el agente aplique automáticamente la acción definida para cada nivel, para contener un posible compromiso sin depender de una intervención manual. Si un nivel está mapeado a \texttt{terminar\_y\_denegar}, al evaluarse el evento el agente debe terminar el proceso y denegar el acceso a la carpeta. Toda acción que modifica el equipo debe confirmarse a la API, y al usuario que mantiene la sesión abierta no debe solicitársele un nuevo inicio de sesión.
 
-\subsubsection{HU-04: Reversión de acciones}
-Como administrador de seguridad, quiero revertir las acciones de mitigación aplicadas, para restituir el acceso ante un falso positivo.
-\begin{itemize}
-	\item Dado un permiso de carpeta denegado, cuando se ejecuta la reversión, entonces el permiso original se restituye.
-	\item Dado un proceso suspendido, cuando se ejecuta la reversión, entonces el proceso se reanuda.
-	\item Dado un proceso terminado, entonces el resultado de la acción indica que no es reversible.
-\end{itemize}
+\textbf{HU-04: Reversión de acciones.} Como administrador de seguridad, quiero revertir las acciones de mitigación aplicadas, para restituir el acceso ante un falso positivo. Al ejecutarse la reversión, un permiso de carpeta denegado debe volver a su estado original y un proceso suspendido debe reanudarse; para un proceso terminado, en cambio, el resultado de la acción debe indicar que no es reversible.
 
 \subsection{Épica 2: Panel de administración y políticas (CU-02)}
 
-Esta épica agrupa las historias de usuario asociadas a CU-02: el estado de riesgo de los usuarios, la configuración de umbrales, niveles y acciones, y las notificaciones y la auditoría (HU-05 a HU-07).
+Esta épica reúne las historias asociadas a CU-02: el estado de riesgo de los usuarios, la configuración de umbrales, niveles y acciones, y las notificaciones y la auditoría.
 
-\subsubsection{HU-05: Estado de riesgo de los usuarios}
-Como administrador de seguridad, quiero ver en el \emph{dashboard} el estado de riesgo de cada usuario y su historial, para priorizar qué casos revisar.
-\begin{itemize}
-	\item Dado el ingreso al \emph{dashboard}, entonces se muestra cada usuario con puntaje, nivel y estado de aprendizaje.
-	\item Cuando se abre el detalle de un usuario, entonces se muestran sus eventos recientes con la explicación de cada puntaje.
-\end{itemize}
+\textbf{HU-05: Estado de riesgo de los usuarios.} Como administrador de seguridad, quiero ver en el \emph{dashboard} el estado de riesgo de cada usuario y su historial, para priorizar qué casos revisar. Al ingresar al \emph{dashboard}, cada usuario debe aparecer con su puntaje, nivel y estado de aprendizaje, y al abrir su detalle deben mostrarse sus eventos recientes con la explicación de cada puntaje.
 
-\subsubsection{HU-06: Configuración de umbrales, niveles y acciones}
-Como administrador de seguridad, quiero configurar umbrales, cantidad de niveles y acción por nivel, para adaptar el sistema al contexto de seguridad de la organización.
-\begin{itemize}
-	\item Dado un cambio de umbrales válido, cuando se guarda, entonces los eventos siguientes se evalúan con los nuevos rangos.
-	\item Dado un cambio con rangos solapados, menos de 3 o más de 6 niveles, o una acción para un nivel inexistente, entonces el cambio se rechaza con un mensaje específico.
-\end{itemize}
+\textbf{HU-06: Configuración de umbrales, niveles y acciones.} Como administrador de seguridad, quiero configurar umbrales, cantidad de niveles y acción por nivel, para adaptar el sistema al contexto de seguridad de la organización. Un cambio de umbrales válido, una vez guardado, debe aplicarse a la evaluación de los eventos siguientes, mientras que un cambio con rangos solapados, con menos de 3 o más de 6 niveles, o con una acción asignada a un nivel inexistente debe rechazarse con un mensaje específico.
 
-\subsubsection{HU-07: Notificaciones y auditoría}
-Como administrador de seguridad, quiero recibir notificaciones por correo en los niveles que elija y consultar la auditoría de cambios, para enterarme de los casos relevantes y saber cuándo, qué y con qué rol o clave se modificó la política.
-\begin{itemize}
-	\item Dado un nivel marcado para notificar, cuando un usuario lo alcanza, entonces se envía un correo con puntaje, nivel y eventos recientes, como máximo uno por intervalo mínimo por usuario (10 minutos por defecto).
-	\item Dado un cambio de política, entonces queda registrado con fecha y valores en la vista de auditoría.
-\end{itemize}
+\textbf{HU-07: Notificaciones y auditoría.} Como administrador de seguridad, quiero recibir notificaciones por correo en los niveles que elija y consultar la auditoría de cambios, para enterarme de los casos relevantes y saber cuándo, qué y con qué rol o clave se modificó la política. Cuando un usuario alcanza un nivel marcado para notificar, debe enviarse un correo con el puntaje, el nivel y los eventos recientes, con un máximo de uno por usuario dentro del intervalo mínimo (10 minutos por defecto). Todo cambio de política, a su vez, debe quedar registrado con fecha y valores en la vista de auditoría.
 
 \subsection{Épica 3: Ciclo de vida del modelo (CU-03)}
 
-Esta épica agrupa las historias de usuario asociadas a CU-03: la planificación del reentrenamiento, el reentrenamiento aislado con promoción controlada y el historial de reentrenamientos (HU-08 a HU-10).
+Esta épica reúne las historias asociadas a CU-03: la planificación del reentrenamiento, el reentrenamiento aislado con promoción controlada y el historial de reentrenamientos.
 
-\subsubsection{HU-08: Planificación del reentrenamiento}
-Como administrador de seguridad, quiero configurar cada cuánto y en qué franja horaria se reentrena el modelo, para que el reentrenamiento no interfiera con el entorno productivo.
-\begin{itemize}
-	\item Dado un período entre 1 y 365 días y una ventana horaria válida, cuando se guardan, entonces quedan persistidos.
-	\item Dado un valor fuera de rango o con formato inválido, entonces se rechaza.
-\end{itemize}
+\textbf{HU-08: Planificación del reentrenamiento.} Como administrador de seguridad, quiero configurar cada cuánto y en qué franja horaria se reentrena el modelo, para que el reentrenamiento no interfiera con el entorno productivo. Un período de entre 1 y 365 días y una ventana horaria válida deben quedar persistidos al guardarse, y un valor fuera de rango o con formato inválido debe rechazarse.
 
-\subsubsection{HU-09: Reentrenamiento aislado y promoción controlada}
-Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si no detecta peor que el vigente, para incorporar cambios de comportamiento sin degradar la detección más allá del margen tolerado ni arriesgar el servicio.
-\begin{itemize}
-	\item Dado que se cumplió el período, cuando se ejecuta el planificador, entonces el \emph{pipeline} se ejecuta en un proceso aparte.
-	\item Dado un modelo nuevo que cumple el criterio de no inferioridad sobre los escenarios de referencia, entonces reemplaza al vigente sin reiniciar la API.
-	\item Dado un modelo nuevo que no cumple ese criterio, o una evaluación incompleta, entonces se conserva el vigente y se registra el motivo.
-\end{itemize}
+\textbf{HU-09: Reentrenamiento aislado y promoción controlada.} Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si no detecta peor que el vigente, para incorporar cambios de comportamiento sin degradar la detección más allá del margen tolerado ni arriesgar el servicio. Cumplido el período, el planificador debe ejecutar el \emph{pipeline} en un proceso aparte. Un modelo nuevo que satisface el criterio de no inferioridad sobre los escenarios de referencia debe reemplazar al vigente sin reiniciar la API; si no lo satisface, o si la evaluación queda incompleta, debe conservarse el vigente y registrarse el motivo.
 
-\subsubsection{HU-10: Historial de reentrenamientos}
-Como administrador de seguridad, quiero ver el historial de reentrenamientos, para auditar cómo evolucionó el modelo.
-\begin{itemize}
-	\item Dado un reentrenamiento finalizado, entonces el \emph{dashboard} muestra fecha, eventos utilizados, variación de métricas y actor.
-	\item Dado un reentrenamiento realizado manualmente, entonces puede registrarse desde el \emph{dashboard}.
-\end{itemize}
+\textbf{HU-10: Historial de reentrenamientos.} Como administrador de seguridad, quiero ver el historial de reentrenamientos, para auditar cómo evolucionó el modelo. Para cada reentrenamiento finalizado, el \emph{dashboard} debe mostrar la fecha, los eventos utilizados, la variación de métricas y el actor, y debe permitir registrar los reentrenamientos realizados manualmente.
 
 \subsection{Épica 4: Alta de usuarios y cold-start (CU-04)}
 
-Esta épica agrupa las historias de usuario asociadas a CU-04: el período de aprendizaje, el seguimiento de los usuarios en aprendizaje y la transición automática al monitoreo normal (HU-11 a HU-13).
+Esta épica reúne las historias asociadas a CU-04: el período de aprendizaje, el seguimiento de los usuarios en aprendizaje y la transición automática al monitoreo normal.
 
-\subsubsection{HU-11: Período de aprendizaje}
-Como administrador de seguridad, quiero que los usuarios nuevos se den de alta automáticamente y atraviesen un período de aprendizaje con acciones atenuadas, para evitar bloquear a alguien solo por no tener historial.
-\begin{itemize}
-	\item Dado un identificador nuevo, cuando llega su primer evento, entonces se crea su estado en aprendizaje.
-	\item Dado un usuario en aprendizaje, entonces la acción se atenúa pero el nivel informado no cambia.
-	\item Dado un evento sobre un recurso sensible, entonces se aplica la política normal.
-\end{itemize}
+\textbf{HU-11: Período de aprendizaje.} Como administrador de seguridad, quiero que los usuarios nuevos se den de alta automáticamente y atraviesen un período de aprendizaje con acciones atenuadas, para evitar bloquear a alguien solo por no tener historial. Al llegar el primer evento de un identificador nuevo, debe crearse su estado en aprendizaje. Mientras dure ese período, la acción debe atenuarse sin alterar el nivel informado, salvo en los eventos sobre recursos sensibles, a los que se aplica la política normal.
 
-\subsubsection{HU-12: Seguimiento de usuarios en aprendizaje}
-Como administrador de seguridad, quiero ver qué usuarios están en aprendizaje y su progreso, y ajustar el umbral, para saber qué puntajes son todavía preliminares.
-\begin{itemize}
-	\item Dado un usuario en aprendizaje, entonces el \emph{dashboard} muestra un indicador con los eventos acumulados sobre el umbral.
-	\item Dado un umbral entre 1 y 1000, cuando se guarda, entonces aplica desde el evento siguiente.
-\end{itemize}
+\textbf{HU-12: Seguimiento de usuarios en aprendizaje.} Como administrador de seguridad, quiero ver qué usuarios están en aprendizaje y su progreso, y ajustar el umbral, para saber qué puntajes son todavía preliminares. Para cada usuario en aprendizaje, el \emph{dashboard} debe mostrar un indicador con los eventos acumulados sobre el umbral, y un nuevo umbral entre 1 y 1000, una vez guardado, debe aplicarse desde el evento siguiente.
 
-\subsubsection{HU-13: Transición automática a monitoreo normal}
-Como administrador de seguridad, quiero que la salida del aprendizaje sea automática, para no tener que habilitar manualmente a cada usuario.
-\begin{itemize}
-	\item Dado un usuario que alcanza el umbral, entonces pasa a monitoreo normal y el indicador desaparece del \emph{dashboard}.
-\end{itemize}
+\textbf{HU-13: Transición automática a monitoreo normal.} Como administrador de seguridad, quiero que la salida del aprendizaje sea automática, para no tener que habilitar manualmente a cada usuario. Cuando un usuario alcanza el umbral, debe pasar a monitoreo normal y su indicador debe desaparecer del \emph{dashboard}.
 
 \subsection{Épica 5: Requerimientos transversales}
 
-Esta épica agrupa las historias de usuario que no dependen de un único caso de uso: la autenticación de acceso a la configuración, la explicación persistida de cada puntaje y el contexto organizacional obtenido del IAM (HU-14 a HU-16).
+Esta épica reúne las historias que no dependen de un único caso de uso: la autenticación de acceso a la configuración, la explicación persistida de cada puntaje y el contexto organizacional obtenido del IAM.
 
-\subsubsection{HU-14: Autenticación de acceso y configuración}
-Como administrador de seguridad, quiero que el acceso al \emph{dashboard} y a la configuración requiera autenticación, para que nadie sin autorización modifique las políticas.
-\begin{itemize}
-	\item Dado un usuario sin sesión iniciada, entonces no accede al \emph{dashboard}.
-	\item Dada una operación de configuración sin un token de sesión de rol administrador vigente, entonces la API la rechaza.
-	\item Dado un token de sesión cuya sesión se cerró o venció, entonces la API lo rechaza.
-\end{itemize}
+\textbf{HU-14: Autenticación de acceso y configuración.} Como administrador de seguridad, quiero que el acceso al \emph{dashboard} y a la configuración requiera autenticación, para que nadie sin autorización modifique las políticas. Un usuario sin sesión iniciada no debe acceder al \emph{dashboard}, y la API debe rechazar toda operación de configuración que no presente un token de sesión vigente con rol administrador, así como cualquier token cuya sesión se haya cerrado o haya vencido.
 
-\subsubsection{HU-15: Explicación persistida}
-Como analista de seguridad, quiero que la explicación de cada puntaje quede guardada en el historial, para poder justificar una decisión tiempo después, aunque el modelo se haya reentrenado.
-\begin{itemize}
-	\item Dado un evento evaluado, entonces su explicación y motivo se persisten en el historial.
-	\item Dado un reentrenamiento posterior, entonces las explicaciones ya guardadas no se recalculan.
-\end{itemize}
+\textbf{HU-15: Explicación persistida.} Como analista de seguridad, quiero que la explicación de cada puntaje quede guardada en el historial, para poder justificar una decisión tiempo después, aunque el modelo se haya reentrenado. La explicación y el motivo de cada evento evaluado deben persistirse en el historial, y un reentrenamiento posterior no debe recalcular las explicaciones ya guardadas.
 
-\subsubsection{HU-16: Contexto organizacional desde el IAM}
-Como administrador de seguridad, quiero que el sistema obtenga el rol y el departamento del usuario desde el IAM de la organización, para ver en el \emph{dashboard} el contexto organizacional existente.
-\begin{itemize}
-	\item Dado un proveedor IAM configurado, cuando llega un evento de un usuario sin datos en caché, entonces la API consulta rol y departamento y los almacena en caché.
-	\item Dado que el proveedor IAM no responde, entonces el evento se evalúa igual, sin contexto IAM.
-\end{itemize}
-
-\section{Matriz de trazabilidad}
-\label{sec:matriz-trazabilidad}
-La tabla~\ref{tab:trazabilidad} vincula cada requerimiento funcional, y el requerimiento no funcional RNF-03 que origina HU-14, con el caso de uso y las historias de usuario que lo soportan. El estado de cada requerimiento figura en las tablas de la sección~\ref{sec:requerimientos-funcionales}.
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{4.2cm}}
-	\caption{Matriz de trazabilidad entre requerimientos, casos de uso e historias de usuario}
-	\label{tab:trazabilidad}\\
-	\hline
-	\textbf{Requerimiento} & \textbf{Caso de uso} & \textbf{Historias de usuario} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Requerimiento} & \textbf{Caso de uso} & \textbf{Historias de usuario} \\
-	\hline
-	\endhead
-	RF-01, RF-02 & CU-01 & HU-01 \\
-	\hline
-	RF-03 a RF-06 & CU-01 & HU-02 \\
-	\hline
-	RF-07, RF-08, RF-10 & CU-01 & HU-03 \\
-	\hline
-	RF-09 & CU-01 & HU-05, HU-15 \\
-	\hline
-	RF-11 & CU-01 & HU-04 \\
-	\hline
-	RF-12 a RF-14 & CU-02 & HU-06 \\
-	\hline
-	RF-15, RF-17, RF-31 & CU-02 & HU-07 \\
-	\hline
-	RF-16 & CU-02 & HU-05 \\
-	\hline
-	RF-18 & CU-03 & HU-08 \\
-	\hline
-	RF-19 a RF-21 & CU-03 & HU-09 \\
-	\hline
-	RF-22 & CU-03 & HU-10 \\
-	\hline
-	RF-23, RF-25 & CU-04 & HU-11 \\
-	\hline
-	RF-24 & CU-04 & HU-11, HU-12 \\
-	\hline
-	RF-26 & CU-04 & HU-12 \\
-	\hline
-	RF-27 & CU-04 & HU-13 \\
-	\hline
-	RF-28 a RF-30 & Transversal (CU-01, paso 4) & HU-16 \\
-	\hline
-	RNF-03 & CU-02 & HU-14 \\
-	\hline
-\end{longtable}
-
-En síntesis, el sistema comprende 31 requerimientos funcionales, de los cuales los 31 están implementados, y 15 requerimientos no funcionales, de los cuales 12 se encuentran implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11); su estado se detalla en la tabla~\ref{tab:rnf}.
+\textbf{HU-16: Contexto organizacional desde el IAM.} Como administrador de seguridad, quiero que el sistema obtenga el rol y el departamento del usuario desde el IAM de la organización, para ver en el \emph{dashboard} el contexto organizacional existente. Con un proveedor IAM configurado, la llegada de un evento de un usuario sin datos en caché debe provocar la consulta del rol y el departamento y su almacenamiento en caché. Si el proveedor no responde, el evento debe evaluarse igualmente, sin contexto IAM.

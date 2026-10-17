@@ -1,0 +1,170 @@
+% Diagrama de clases de la API (PDP) — lámina A: estado operativo en Redis (redis_state.py)
+% Compilar: pdflatex 04a_clases_api_estado.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\begin{document}
+\begin{tikzpicture}
+
+% ---------- estado por usuario
+\umlclase[clase=9.6cm, fill=cPdp, anchor=north]{uss}{0,0}{dataclass}{UserScoringState}{%
+ + continuity: ContinuityState\\
+ + lstm: LstmState\\
+ + iso_day: IsoDayState\\
+ + hybrid_anchor: HybridAnchorState\\
+ + personal_baseline: PersonalBaselineState\\
+ + total_events: int = 0\\
+ + last_day_score: float | None\\
+ + last_risk_score_hibrido: float | None\\
+ + last_nivel_sugerido: str | None\\
+ + last_cobertura: str | None\\
+ + last_accion_sugerida: str | None\\
+ + last_accion_id: str | None\\
+ + last_explicacion: list[dict] | None\\
+ + last_motivo: str | None\\
+ + last_role: str | None\\
+ + last_department: str | None\\
+ + last_iam_nivel: str | None\\
+ + last_event_epoch: float | None\\
+ + last_confirmacion_accion_id: str | None\\
+ + last_confirmacion_estado: str | None\\
+ + last_confirmacion_timestamp: str | None\\
+ + last_confirmacion_detalle: list[str]}{%
+ + en_aprendizaje(umbral: int): bool \hfill total_events < umbral}
+
+\umlclase[clase=6cm, fill=cPdp, anchor=north]{cont}{-15,-14.5}{dataclass}{ContinuityState}{%
+ + last_time: str | None = None\\
+ + last_country: str | None = None\\
+ + last_type: str | None = None}{\vacio}
+
+\umlclase[clase=6cm, fill=cPdp, anchor=north]{lstm}{-8.6,-14.5}{dataclass}{LstmState}{%
+ + buffer: list[list[float]] \hfill (≤ 50 pasos)\\
+ + chunks_completed: int = 0\\
+ + error_sum: float = 0.0}{\vacio}
+
+\umlclase[clase=6cm, fill=cPdp, anchor=north]{iso}{-2.2,-14.5}{dataclass}{IsoDayState}{%
+ + date: str | None = None\\
+ + n_events: int = 0\\
+ + distinct_types: list[str]\\
+ + distinct_countries: list[str]\\
+ + n_file_events: int = 0\\
+ + n_login_events: int = 0\\
+ + sum_hours: float = 0.0\\
+ + n_off_hours: int = 0\\
+ + type_counts: dict[str, int]\\
+ + n_share_events: int = 0}{\vacio}
+
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{anchor}{4,-14.5}{dataclass}{HybridAnchorState}{%
+ + date: str | None = None\\
+ + score: float | None = None}{\vacio}
+
+\umlclase[clase=7.4cm, fill=cPdp, anchor=north]{pbs}{11,-14.5}{dataclass}{PersonalBaselineState}{%
+ + iso: dict[str, WelfordStat] \hfill (8 features)\\
+ + lstm: dict[str, WelfordStat] \hfill (8 features)\\
+ + anchor_iso: dict[str, WelfordStat]\\
+ + anchor_lstm: dict[str, WelfordStat]\\
+ + anchor_date: str | None = None}{\vacio}
+
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{welford}{11,-19.6}{dataclass}{WelfordStat}{%
+ + n: int = 0\\
+ + mean: float = 0.0\\
+ + m2: float = 0.0}{\vacio}
+
+% ---------- módulo redis_state
+\umlclase[clase=11.2cm, fill=cPdp, anchor=north]{rs}{14,0}{module}{redis_state}{%
+ + REDIS_URL: str = env | "redis://127.0.0.1:6379/0"\\
+ + CONFIG_KEY_PREFIX = "config:"\\
+ + EVENTOS_KEY_SUFFIX = ":eventos"\\
+ + NOTIF_COOLDOWN_KEY_SUFFIX = ":notif_cooldown"\\
+ + DEDUP_KEY_PREFIX = "dedup:"\\
+ + AGENT_KEY_PREFIX = "agent_key:"\\
+ + IAM_CACHE_KEY_PREFIX = "iam_cache:"\\
+ + IAM_KEYCLOAK_TOKEN_KEY_PREFIX = "iam_keycloak_token:"\\
+ + SESSION_KEY_PREFIX = "session:"\\
+ - \_redis_client: Redis | \_InMemoryRedis | None \hfill «singleton»\\
+ - \_errores_redis_total: int}{%
+ + contar_error_redis(): None\\
+ + get_errores_redis_total(): int\\
+ + fake_redis_activo(): bool \hfill SCORING_FAKE_REDIS=1\\
+ + get_redis_client(): Redis\\
+ - \_redis_key(uid: str): str\\
+ + list_uids(): list[str] \hfill SCAN, excluye prefijos reservados\\
+ - \_deserialize_baseline(data: dict | None): PersonalBaselineState\\
+ - \_deserialize(raw: str | None): UserScoringState\\
+ + load_state(uid: str): UserScoringState\\
+ + save_state(uid: str, state: UserScoringState): None\\
+ + reset_state(uid: str): None\\
+ - \_eventos_key(uid: str): str\\
+ + push_recent_event(uid: str, entry: dict, max_len: int | None): None\\
+ + list_recent_events(uid: str): list[dict]\\
+ + delete_recent_events(uid: str): None\\
+ - \_notif_cooldown_key(uid: str): str\\
+ + notif_cooldown_activo(uid: str): bool\\
+ + marcar_notif_cooldown(uid: str, segundos: int): None\\
+ + delete_notif_cooldown(uid: str): None\\
+ + update_state(uid: str, mutate_fn: Callable[[UserScoringState],\\
+ \quad UserScoringState], max_retries: int = 20): UserScoringState\\
+ \hfill WATCH/MULTI/EXEC + backoff}
+
+\umlclase[clase=8.8cm, fill=white, anchor=north]{fake}{27.6,0}{test double}{\_InMemoryRedis}{%
+ - \_store: dict[str, str]\\
+ - \_lists: dict[str, list[str]]}{%
+ + \_\_init\_\_(): None\\
+ + get(key: str): str | None\\
+ + set(key: str, value: str, ex: int | None = None): None\\
+ + mset(mapping: dict[str, str]): None\\
+ + delete(key: str): None\\
+ + ping(): bool\\
+ + lpush(key: str, value: str): None\\
+ + ltrim(key: str, start: int, end: int): None\\
+ + lrange(key: str, start: int, end: int): list[str]\\
+ + scan_iter(match: str | None, count: int | None): Iterator[str]\\
+ + pipeline(transaction: bool = True): \_InMemoryPipeline}
+
+\umlclase[clase=8.8cm, fill=white, anchor=north]{pipe}{27.6,-8.4}{test double}{\_InMemoryPipeline}{%
+ - \_store: dict[str, str] \hfill (compartido)\\
+ - \_pending: tuple[str, str] | None}{%
+ + \_\_init\_\_(store: dict[str, str])\\
+ + watch(key: str): None\\
+ + get(key: str): str | None\\
+ + multi(): None\\
+ + set(key: str, value: str): None\\
+ + execute(): list\\
+ + reset(): None}
+
+\node[clase=5cm, anchor=north, fill=white, rectangle split parts=1] (redis) at (14,-11.6)
+  {\textit{«externa: redis-py»}\\\textbf{\normalsize redis.Redis}};
+
+% ---------- nota: claves Redis
+\node[draw=cBorde, fill=cDato, font=\ttfamily\scriptsize, align=left, anchor=north, text width=8.6cm]
+ (claves) at (-11,0) {\textbf{\normalsize Claves Redis (prefijo scoring:)}\\[2pt]
+ \{uid\} \hfill JSON UserScoringState\\
+ \{uid\}:eventos \hfill LIST EventoRecienteItem (LTRIM)\\
+ \{uid\}:notif_cooldown \hfill epoch de vencimiento\\
+ config:umbrales | acciones | notif_niveles\\
+ config:emails_admin | reentrenamiento\\
+ config:eventos_recientes | umbral_aprendizaje | iam\\
+ dedup:\{sha256\} \hfill respuesta cacheada, TTL 6 h\\
+ agent_key:\{sha256(key)\} \hfill \{agent_id, uids, enabled\}\\
+ session:\{sha256(token)\} \hfill \{role, expira_epoch\}, 8 h\\
+ iam_cache:\{uid\} \hfill \{role, department\}, 30 min\\
+ iam_cache:sync_fail:\{uid\} \hfill fallo IAM, 60 s\\
+ iam_keycloak_token:\{client\}:\{hash\} \hfill token OAuth2\\[2pt]
+ \textit{Redis = única fuente de verdad operativa.}};
+
+% ---------- relaciones
+\coordinate (busU) at (0,-13.6);
+\draw[draw=cBorde, thick] (uss.south) -- (busU);
+\draw[draw=cBorde, thick] (cont.north |- busU) -- (pbs.north |- busU);
+\foreach \n in {cont, lstm, iso, anchor, pbs}
+  \draw[draw=cBorde, thick, -{Stealth[length=5pt]}] (\n.north |- busU) -- node[rotulo,right,pos=0.5]{1} (\n.north);
+\node[draw=cBorde, fill=cBorde, diamond, inner sep=1.6pt, anchor=north] at (uss.south) {};
+
+\draw[compone] (pbs.south) -- node[rotulo,right]{iso, lstm, anchor_iso, anchor_lstm: 0..*} (welford.north);
+
+\draw[usa] (rs.west |- uss.east) -- node[rotulo,above]{load/save/update_state} node[rotulo,below]{scoring:\{uid\}} (uss.east);
+\draw[usa] (rs.east |- fake.west) -- node[rotulo,above]{«crea»} node[rotulo,below]{si fake} (fake.west);
+\draw[usa] (rs.south) -- node[rotulo,right]{«usa» from_url()} (redis.north);
+\draw[usa] (fake.south) -- node[rotulo,right]{pipeline()} (pipe.north);
+
+\end{tikzpicture}
+\end{document}

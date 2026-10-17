@@ -1,0 +1,185 @@
+% Diagrama de objetos: instantánea durante el procesamiento de un POST /eventos
+% (valores ilustrativos, coherentes con la configuración vigente: w_iso = 0,5, vida_media_dias = 3, umbrales 40/70/90)
+% Compilar: pdflatex 05_objetos_evento.tex
+\documentclass[tikz,border=6pt]{standalone}
+\input{estilos_uml}
+\tikzset{ob/.style={objeto=#1, anchor=north}, ob/.default=6.4cm,
+  lnk/.style={draw=cBorde, thick}, lr/.style={font=\ttfamily\tiny, fill=white, inner sep=1pt}}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== LADO AGENTE (PEP)
+\node[font=\bfseries\normalsize] at (-15,1.2) {Agente (PEP) · host Windows};
+\umlobjeto[ob, fill=cPep]{sig}{-15,0}{sig:Signal}{%
+ event_type = "file_written"\\
+ params = \{"file": "clientes.xlsx"\}\\
+ dedup_key = "written:clientes.xlsx"}
+\umlobjeto[ob, fill=cPep]{fab}{-15,-3.2}{factory:EventFactory}{%
+ \_uid = "DESKTOP-DEMO-usuario1"\\
+ \_agent_id = "DESKTOP-DEMO-usuario1"\\
+ \_ids = count(1760715727)}
+\umlobjeto[ob, fill=cPep]{cli}{-15,-6.4}{client:ScoringClient}{%
+ api_url = "https://<ip>.sslip.io/api"\\
+ api_key = "••••" \hfill (key del agente)\\
+ timeout_sec = 30.0\\
+ breaker_threshold = 3\\
+ breaker_open = False}
+\umlobjeto[ob, fill=cPep]{enf}{-15,-10.6}{enforcer:Enforcer}{%
+ \_dry_run = False\\
+ \_path_denied = False → True\\
+ ultimos_fallos = []}
+\umlobjeto[ob, fill=cPep]{pol}{-15,-13.8}{policy:EnforcementPolicy}{%
+ process_markers = ("demo_exfil",)\\
+ protected_path = C:/PFI_DEMO/confidencial\\
+ acl_backup_path = C:/PFI_DEMO/acl_backup.txt\\
+ suspended_state_path = .../suspended_procesos.json}
+
+% ===================== EVENTO Y AUTORIZACIÓN
+\node[font=\bfseries\normalsize] at (-6.8,1.2) {Contrato HTTP · POST /eventos};
+\umlobjeto[ob=7cm, fill=cPep]{ev}{-6.8,0}{evento:EventoIn}{%
+ id = 1760715843\\
+ time = "2026-10-17T18:42:07Z"\\
+ uid = "DESKTOP-DEMO-usuario1"\\
+ uidType = "name"\\
+ type = "file_written"\\
+ params = \{file: "clientes.xlsx",\\
+ \quad agent_id: "DESKTOP-DEMO-usuario1"\}\\
+ location = \{countryCode: "AR"\}\\
+ role = None\\
+ isLocalIP = True}
+\umlobjeto[ob=7cm, fill=cDato]{key}{-6.8,-6.4}{entrada:agent_key (Redis)}{%
+ clave = scoring:agent_key:9f3c…\\
+ agent_id = "DESKTOP-DEMO-usuario1"\\
+ uids = ["DESKTOP-DEMO-usuario1"]\\
+ enabled = True\\
+ label = "notebook demo"}
+\umlobjeto[ob=7cm, fill=cDato]{dd}{-6.8,-10.6}{dedup:hash (Redis)}{%
+ clave = scoring:dedup:5be1…\\
+ resultado = no existe → evento nuevo}
+
+% ===================== ESTADO DEL USUARIO
+\node[font=\bfseries\normalsize] at (3,1.2) {Estado vivo · scoring:\{uid\}};
+\umlobjeto[ob=7.4cm, fill=cPdp]{st}{3,0}{estado:UserScoringState}{%
+ total_events = 137\\
+ last_day_score = 58.4\\
+ last_risk_score_hibrido = 91.3\\
+ last_nivel_sugerido = "critico"\\
+ last_cobertura = "completa"\\
+ last_accion_id = "terminar_y_denegar"\\
+ last_role = "analista"\\
+ last_department = "finanzas"\\
+ last_iam_nivel = "critico"\\
+ last_event_epoch = 1760726527.4}
+\umlobjeto[ob=5.6cm, fill=cPdp]{cont}{0.2,-6.8}{:ContinuityState}{%
+ last_time = "2026-10-17T18:41:55Z"\\
+ last_country = "AR"\\
+ last_type = "file_created"}
+\umlobjeto[ob=5.6cm, fill=cPdp]{lstm}{0.2,-9.8}{:LstmState}{%
+ buffer = [37 pasos × 8 features]\\
+ chunks_completed = 2\\
+ error_sum = 3.91}
+\umlobjeto[ob=5.6cm, fill=cPdp]{iso}{6.2,-6.8}{:IsoDayState}{%
+ date = "2026-10-17"\\
+ n_events = 41\\
+ distinct_types = [file_*, app_*, ...]\\
+ distinct_countries = ["AR"]\\
+ n_file_events = 29\\
+ n_login_events = 1\\
+ n_off_hours = 12}
+\umlobjeto[ob=5.6cm, fill=cPdp]{anc}{6.2,-13.6}{:HybridAnchorState}{%
+ date = "2026-10-16"\\
+ score = 58.4}
+\umlobjeto[ob=5.6cm, fill=cPdp]{pb}{0.2,-12.8}{:PersonalBaselineState}{%
+ iso = \{8 WelfordStat\}\\
+ lstm = \{8 WelfordStat\}\\
+ anchor_date = "2026-10-13"}
+\umlobjeto[ob=5.6cm, fill=cPdp]{wf}{0.2,-16}{nfile:WelfordStat}{%
+ \textit{(feature n_file_events)}\\
+ n = 96\\
+ mean = 7.8\\
+ m2 = 1210.4}
+
+% ===================== CONFIGURACIÓN Y RESULTADOS
+\node[font=\bfseries\normalsize] at (13.6,1.2) {Configuración y resultado del scoring};
+\umlobjeto[ob=7cm, fill=cOff!60]{art}{13.6,0}{artifacts:Artifacts}{%
+ config.w_iso = 0.5\\
+ config.vida_media_dias = 3.0\\
+ config.umbrales = \{bajo: [0, 40), medio: [40, 70),\\
+ \quad alto: [70, 90), critico: [90, 100]\}\\
+ config.regla_piso.nivel_minimo = "alto"\\
+ lstm_threshold = 0.0874}
+\umlobjeto[ob=7cm, fill=cDato]{acc}{13.6,-4.6}{acciones:config (Redis)}{%
+ bajo = "alertar"\\
+ medio = "alertar"\\
+ alto = "alertar"\\
+ critico = "terminar_y_denegar"}
+\umlobjeto[ob=7cm, fill=cPdp]{ir}{13.6,-8.4}{isoRes:IsoForestResult}{%
+ decision_function_raw = -0.081\\
+ is_anomaly = True\\
+ risk_score_iso = 96.2}
+\umlobjeto[ob=7cm, fill=cPdp]{lr}{13.6,-11.4}{lstmRisk:LstmUserRisk}{%
+ lstm_risk_user = 71.4\\
+ is_anomaly_lstm_user = False}
+\umlobjeto[ob=7cm, fill=cPdp]{fc}{13.6,-14}{c1:FeatureContribucion}{%
+ feature = "n_file_events"\\
+ z_score = 3.4\\
+ direccion = "por_encima"}
+
+\umlobjeto[ob=7.4cm, fill=cPep]{out}{23,0}{respuesta:EventoScoreOut}{%
+ uid = "DESKTOP-DEMO-usuario1"\\
+ risk_score_hibrido = 91.3\\
+ nivel_sugerido = "critico"\\
+ cobertura = "completa"\\
+ accion_sugerida = "terminar_y_denegar"\\
+ accion_id = "terminar_y_denegar"\\
+ explicacion = [c1, c2, c3]\\
+ en_aprendizaje = False\\
+ total_events = 137\\
+ umbral_aprendizaje = 20\\
+ w_iso_efectivo = 0.5\\
+ regla_piso_aplicada = False\\
+ personal_baseline_n = 96\\
+ motivo = "Score combinado ISO/LSTM."\\
+ role = "analista", department = "finanzas"\\
+ iam_nivel = "critico"\\
+ iam_sesiones_revocadas = True}
+\umlobjeto[ob=7.4cm, fill=cPep]{conf}{23,-9.6}{conf:ConfirmarAccionIn}{%
+ accion_id = "terminar_y_denegar"\\
+ estado = "ejecutado"\\
+ detalle = ["proceso terminado demo_exfil.exe\\
+ \quad (pid=8412) - no reversible",\\
+ \quad "acceso denegado a C:/PFI_DEMO/confidencial"]\\
+ timestamp = "2026-10-17T18:42:08Z"}
+
+% ===================== ENLACES
+\draw[lnk] (sig) -- node[lr, right]{build(sig)} (fab);
+\draw[lnk] (fab.east) -- ++(0.5,0) |- node[lr, pos=0.75, above]{produce} ([yshift=-5mm]ev.west);
+\draw[lnk] (cli.east) -- ++(0.5,0) |- node[lr, pos=0.75, above]{post_event()} ([yshift=-1.5cm]ev.west);
+\draw[lnk] (cli) -- node[lr, right]{verdict → apply(nivel, accion_id)} (enf);
+\draw[lnk] (enf) -- node[lr, right]{\_policy} (pol);
+\draw[lnk] (ev.south) -- node[lr, right]{autorizar_agente(uid, agent_id)} (key.north);
+\draw[lnk] (key.south) -- node[lr, right]{compute_event_hash()} (dd.north);
+\draw[lnk] (ev.east |- st.west) -- node[lr, above]{uid → load_state} (st.west);
+% partes del estado (bus)
+\draw[lnk] (st.south) -- (3,-6.2);
+\draw[lnk] (-3.0,-6.2) -- (9.4,-6.2);
+\draw[lnk] (cont.north |- 0,-6.2) -- node[lr, right]{continuity} (cont.north);
+\draw[lnk] (iso.north |- 0,-6.2) -- node[lr, right]{iso_day} (iso.north);
+\draw[lnk] (-3.0,-6.2) |- node[lr, pos=0.75, above]{lstm} (lstm.west);
+\draw[lnk] (-3.0,-6.2) |- node[lr, pos=0.6, above]{personal_baseline} (pb.west);
+\draw[lnk] (9.4,-6.2) |- node[lr, pos=0.9, above]{hybrid_anchor} (anc.east);
+\draw[lnk] (pb) -- node[lr, right]{iso["n_file_events"]} (wf);
+% configuración y resultados
+\draw[lnk] (st.east |- art.west) -- node[lr, above]{usa} (art.west);
+\draw[lnk] (art) -- node[lr, right]{umbrales + mapeo → accion_id} (acc);
+\draw[lnk] ([yshift=-1cm]iso.east) -- ([yshift=-1cm]iso.east -| ir.west);
+\draw[lnk] (lstm.east) -- ++(0.4,0) |- node[lr, pos=0.8, above]{compute_lstm_user_risk} (lr.west);
+\draw[lnk] (lr) -- node[lr, right]{explicar_features → top-3} (fc);
+\draw[lnk] (art.east) -- node[lr, above]{0,5·iso + 0,5·lstm} node[lr, below]{+ decay, piso} (art.east -| out.west);
+\draw[lnk] (acc.east) -- ++(0.5,0) |- node[lr, pos=0.75, above]{accion_id} ([yshift=-1.2cm]out.west);
+\draw[lnk] (ir.east) -- ++(1.0,0) |- node[lr, pos=0.75, above]{risk_score_iso} ([yshift=-1.7cm]out.west);
+\draw[lnk] (fc.east) -- ++(1.5,0) |- node[lr, pos=0.75, above]{explicacion[0]} ([yshift=-2.2cm]out.west);
+\draw[lnk] (out.south) -- node[lr, right]{enforcement local → POST confirmar-accion} (conf.north);
+
+\end{tikzpicture}
+\end{document}

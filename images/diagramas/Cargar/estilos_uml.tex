@@ -1,0 +1,74 @@
+% Estilos comunes de los diagramas (TikZ puro, sin tikz-uml).
+% Se carga con \input{estilos_uml} desde cada diagrama standalone.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{underscore}   % permite escribir identificadores con "_" sin escapar
+\usepackage{xcolor}
+\DeclareUnicodeCharacter{2192}{\ensuremath{\rightarrow}}
+\DeclareUnicodeCharacter{2190}{\ensuremath{\leftarrow}}
+\DeclareUnicodeCharacter{2194}{\ensuremath{\leftrightarrow}}
+\DeclareUnicodeCharacter{2265}{\ensuremath{\geq}}
+\DeclareUnicodeCharacter{2264}{\ensuremath{\leq}}
+\DeclareUnicodeCharacter{2260}{\ensuremath{\neq}}
+\DeclareUnicodeCharacter{00D7}{\ensuremath{\times}}
+\DeclareUnicodeCharacter{21D2}{\ensuremath{\Rightarrow}}
+\DeclareUnicodeCharacter{2026}{\ldots}
+\usetikzlibrary{shapes.multipart,shapes.geometric,shapes.misc,arrows.meta,positioning,fit,backgrounds,calc}
+
+% Paleta (sobria, imprime bien en B/N)
+\definecolor{cPep}{HTML}{E3EEF9}     % agente / PEP
+\definecolor{cPdp}{HTML}{FCEBD9}     % API / PDP
+\definecolor{cDato}{HTML}{E4F2E2}    % datos / persistencia
+\definecolor{cExt}{HTML}{EEE6F5}     % servicios externos
+\definecolor{cUi}{HTML}{FFF6CC}      % frontend
+\definecolor{cOff}{HTML}{EDEDED}     % offline
+\definecolor{cBorde}{HTML}{3A3A3A}
+
+\tikzset{
+  % --- UML: clase de 3 compartimentos
+  clase/.style={rectangle split, rectangle split parts=3, draw=cBorde, fill=white,
+    font=\ttfamily\scriptsize, inner sep=2.5pt, text width=#1,
+    rectangle split part align={center,left,left}},
+  clase/.default=6cm,
+  % --- UML: objeto (2 compartimentos, nombre subrayado)
+  objeto/.style={rectangle split, rectangle split parts=2, draw=cBorde, fill=white,
+    font=\ttfamily\scriptsize, inner sep=2.5pt, text width=#1,
+    rectangle split part align={center,left}},
+  objeto/.default=5cm,
+  % --- relaciones UML
+  herencia/.style={-{Triangle[open,length=7pt,width=8pt]}, draw=cBorde, thick},
+  realiza/.style={-{Triangle[open,length=7pt,width=8pt]}, draw=cBorde, thick, dashed},
+  compone/.style={{Diamond[length=9pt,width=6pt]}-{Stealth[length=5pt]}, draw=cBorde, thick},
+  agrega/.style={{Diamond[open,length=9pt,width=6pt]}-{Stealth[length=5pt]}, draw=cBorde, thick},
+  usa/.style={-{Stealth[length=5pt]}, draw=cBorde, dashed},
+  asocia/.style={-{Stealth[length=5pt]}, draw=cBorde},
+  enlace/.style={draw=cBorde, thick},
+  rotulo/.style={font=\ttfamily\tiny, fill=white, inner sep=1pt},
+  % --- componentes / flujo
+  comp/.style={draw=cBorde, rounded corners=2pt, align=center, font=\small, inner sep=4pt, minimum height=9mm},
+  paso/.style={draw=cBorde, rounded corners=3pt, align=center, font=\footnotesize, inner sep=3pt, text width=#1},
+  paso/.default=3.4cm,
+  decision/.style={draw=cBorde, diamond, aspect=2.2, align=center, font=\footnotesize, inner sep=1pt},
+  almacen/.style={draw=cBorde, cylinder, shape border rotate=90, aspect=0.18, align=center,
+    font=\footnotesize, minimum width=2.6cm, minimum height=1.2cm},
+  zona/.style={draw=cBorde, dashed, rounded corners=4pt, inner sep=8pt},
+  zonatit/.style={font=\bfseries\small, anchor=north west, inner sep=2pt},
+  flujo/.style={-{Stealth[length=6pt]}, draw=cBorde, thick},
+  flujofallo/.style={-{Stealth[length=6pt]}, draw=red!60!black, thick, dashed},
+  proto/.style={font=\scriptsize\ttfamily, fill=white, inner sep=1pt, align=center},
+}
+
+% \umlclase[opciones]{nombre-nodo}{x,y}{estereotipo}{Nombre}{atributos}{operaciones}
+% atributos/operaciones: líneas separadas con \\ ; usar \vacio si no hay.
+\newcommand{\vacio}{\phantom{x}}
+\newcommand{\umlclase}[7][]{%
+  \node[clase,#1] (#2) at (#3) {\makebox[\linewidth][c]{%
+    \begin{tabular}{@{}c@{}}\if\relax\detokenize{#4}\relax\else\textit{«#4»}\\\fi\textbf{\normalsize #5}\end{tabular}}%
+    \nodepart{two}\begin{tabular}{@{}l@{}}#6\end{tabular}%
+    \nodepart{three}\begin{tabular}{@{}l@{}}#7\end{tabular}};}
+
+% \umlobjeto[opciones]{nombre-nodo}{x,y}{nombre:Clase}{slots}
+\newcommand{\umlobjeto}[5][]{%
+  \node[objeto,#1] (#2) at (#3) {\makebox[\linewidth][c]{\underline{\textbf{#4}}}%
+    \nodepart{two}\begin{tabular}{@{}l@{}}#5\end{tabular}};}
