@@ -46,7 +46,7 @@ El modelo \emph{Attribute-Based Access Control} (ABAC) extiende RBAC incorporand
 
 Este enfoque es relevante porque permite considerar el contexto en el que ocurre cada acción, evaluando si el comportamiento es coherente con lo esperado para un usuario en particular.
 
-\subsubsection{Control de acceso adaptado al riesgo (RADAC)}
+\subsubsection{Control de acceso adaptado al riesgo (RADAC)}\label{sec:radac-marco}
 El modelo \emph{Risk-Adaptive Access Control} (RADAC) extiende los mecanismos tradicionales de control de acceso mediante la incorporación de una evaluación dinámica del riesgo durante el proceso de autorización. Este enfoque considera información contextual y factores situacionales para determinar el nivel de confianza requerido en cada solicitud, permitiendo que las decisiones de acceso se ajusten en tiempo real según el riesgo asociado a la operación \parencite{Xiao2022}.
 
 
@@ -214,7 +214,7 @@ No obstante, la solución presenta algunas limitaciones. El cálculo del riesgo 
 
 Esta subsección reúne trabajos académicos que proponen modelos de detección de anomalías y de control de acceso basado en riesgo. Se agrupan en tres líneas: el control de acceso adaptativo basado en riesgo, los enfoques UEBA con aprendizaje profundo y la aplicación de Isolation Forest a la seguridad.
 
-\subsubsection{Control de acceso adaptativo basado en riesgo (RADAC)}
+\subsubsection{Control de acceso adaptativo basado en riesgo (RADAC)}\label{sec:ea-radac}
 El control de acceso adaptativo basado en riesgo (RAdAC) se ha consolidado como una de las principales líneas de investigación para abordar los desafíos de seguridad en entornos dinámicos. Dentro de este enfoque, destaca el desarrollo de \emph{ad-RACs} (\emph{Adaptive Risk-Based Access Control System}), un sistema diseñado para gestionar autorizaciones de acceso en tiempo real mediante la evaluación continua del riesgo asociado a cada solicitud \parencite{Aliyu2024}. A diferencia de los mecanismos tradicionales, que suelen basarse en verificaciones realizadas únicamente durante la autenticación inicial, esta propuesta considera el contexto de cada interacción antes de tomar una decisión de acceso.
 
 Para ello, el sistema recopila y analiza cuatro factores principales: el contexto del usuario, incluyendo información como la ubicación geográfica y el horario de acceso; la sensibilidad del recurso solicitado; la criticidad de la acción que se desea ejecutar; y el historial de riesgo acumulado del usuario. Estos datos son procesados por un modelo de estimación de riesgo basado en el algoritmo de aprendizaje automático CatBoost, encargado de calcular un puntaje dinámico para cada solicitud. Posteriormente, este puntaje es evaluado mediante una política de control de acceso, que determina si el nivel de riesgo es aceptable para autorizar la operación.
@@ -258,9 +258,7 @@ Para validar el enfoque, los autores desarrollaron una aplicación específica p
 Sin embargo, los investigadores también identificaron limitaciones importantes. El rendimiento del sistema depende de la disponibilidad continua de interacciones del usuario y puede verse afectado cuando los patrones de comportamiento cambian con el tiempo. Además, la recopilación constante de datos biométricos plantea desafíos relacionados con privacidad y consumo de recursos en los dispositivos.
 
 \subsubsection{Control de acceso adaptativo basado en riesgo}
-El concepto de Control de Acceso Adaptativo Basado en Riesgo (RAdAC) ha sido impulsado dentro de las arquitecturas Zero Trust. Este enfoque plantea que las decisiones de acceso no deben basarse únicamente en la identidad del usuario o en permisos predefinidos, sino también en una evaluación dinámica del riesgo asociada a cada solicitud en tiempo real.
-
-En este modelo, se tienen en cuenta distintos factores que influyen en la decisión de autorización, como la sensibilidad del recurso solicitado, el contexto en el que se realiza la operación, el estado del dispositivo y otras señales de seguridad relevantes. Con esta información, el sistema puede ajustar el nivel de acceso de forma dinámica, aplicando controles según el nivel de riesgo.
+El control de acceso adaptativo basado en riesgo (RAdAC), definido en la sección~\ref{sec:radac-marco}, ha sido impulsado dentro de las arquitecturas Zero Trust como alternativa a las decisiones basadas solo en la identidad o en permisos predefinidos, y considera además la sensibilidad del recurso, el contexto de la operación, el estado del dispositivo y otras señales de seguridad.
 
 Una de las principales ventajas de este enfoque es su capacidad para adaptarse a escenarios cambiantes, donde las condiciones de seguridad no son estáticas y pueden variar rápidamente. Esto permite responder a situaciones que los modelos tradicionales basados únicamente en roles o atributos no contemplan de manera efectiva. Sin embargo, distintos estudios señalan que su implementación puede ser compleja, ya que requiere la recolección y análisis de grandes volúmenes de información contextual, además de mecanismos de evaluación avanzados. Esto puede aumentar la dificultad operativa del sistema y, en algunos casos, reducir la transparencia de las decisiones de acceso tomadas automáticamente.
 
