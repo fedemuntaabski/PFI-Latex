@@ -1,101 +1,118 @@
 \chapter{Producto implementado}
 \label{chap:producto}
-
-Esta sección describe el producto tal como se encuentra implementado: sus componentes, las funcionalidades de cada uno, el grado de cumplimiento de los requerimientos de la sección~\ref{chap:requerimientos}, el estado de su despliegue y las limitaciones conocidas. Las pruebas que respaldan este estado se presentan en la sección~\ref{chap:pruebas}.
-
 \section{Visión general}
 \label{sec:vision-producto}
-El producto se compone de tres piezas de software y de un proceso de mantenimiento del modelo. El agente local recolecta metadatos de actividad en cada equipo y ejecuta las mitigaciones. La API central evalúa cada evento, decide la respuesta y conserva el estado y el historial. El \emph{dashboard} permite monitorear a los usuarios y administrar las políticas. El reentrenamiento periódico, disparado por la propia API, actualiza el modelo sin interrumpir el servicio. La tabla~\ref{tab:componentes-producto} resume cada componente.
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{7.1cm}}
-	\caption{Componentes del producto}
-	\label{tab:componentes-producto}\\
-	\hline
-	\textbf{Componente} & \textbf{Tecnología principal} & \textbf{Responsabilidad} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Componente} & \textbf{Tecnología principal} & \textbf{Responsabilidad} \\
-	\hline
-	\endhead
-	Agente local (PEP) & Python, psutil, icacls & Captura de actividad en Windows, envío de eventos, ejecución, confirmación y reversión de mitigaciones. \\
-	\hline
-	API de \emph{scoring} (PDP) & Python, FastAPI, scikit-learn, TensorFlow & Validación de eventos, cálculo del puntaje de riesgo, asignación de nivel y acción, explicación, notificaciones y configuración. \\
-	\hline
-	Almacenamiento & Redis y PostgreSQL & Estado vigente de cada usuario y configuración en Redis; historial diario, eventos crudos, auditoría y métricas del modelo en PostgreSQL. \\
-	\hline
-	\emph{Dashboard} & React, TypeScript, Vite & Monitoreo de usuarios, alertas, configuración de políticas, auditoría y estado del sistema. \\
-	\hline
-	Reentrenamiento & Planificador de la API y \emph{notebooks} del \emph{pipeline} & Reentrenamiento periódico en un proceso aislado, evaluación del candidato sobre escenarios de referencia y promoción del modelo sin reinicio. \\
-	\hline
-\end{longtable}
+El producto se compone de tres piezas de software, el agente local, la API de \emph{scoring} y el \emph{dashboard}, y de un proceso de reentrenamiento periódico del modelo. La sección~\ref{chap:arquitectura} describe cómo se organizan estos componentes, el flujo de información entre ellos (sección~\ref{sec:arquitectura-logica}) y las tecnologías con que se construyen, junto con la justificación de su elección (sección~\ref{sec:frameworks}). Esta sección, en cambio, se centra en el producto en su estado actual: las funcionalidades que ofrece cada componente, el grado de cumplimiento de los requerimientos, el estado del despliegue, el tratamiento de los datos personales y las limitaciones conocidas.
 
 \section{Funcionalidades}
 \label{sec:funcionalidades}
-
-Esta sección describe las funcionalidades implementadas en el agente local, el motor de \emph{scoring} y el \emph{dashboard}, junto con el reentrenamiento periódico, el tratamiento de los usuarios nuevos y el control de acceso.
-
 \subsection{Agente local}
-El agente se ejecuta como un proceso nativo en cada equipo Windows y consulta periódicamente el estado del sistema operativo. Genera eventos a partir de cuatro fuentes:
-\begin{itemize}
-	\item \textbf{Archivos:} creación, modificación, renombrado y borrado dentro de las carpetas vigiladas.
-	\item \textbf{Procesos:} inicio y finalización de procesos. Los procesos de los navegadores se agrupan para que su actividad de fondo no domine la telemetría.
-	\item \textbf{Aplicaciones sensibles:} inicio y finalización de aplicaciones de compresión, almacenamiento en la nube, transferencia de archivos y correo electrónico, marcadas como aplicaciones vigiladas.
-	\item \textbf{Red:} conexiones salientes, con la dirección y el puerto remotos.
-\end{itemize}
+El agente es un proceso de Python que se ejecuta de forma nativa en cada equipo Windows, sin controladores del sistema operativo. Consulta periódicamente el estado del sistema y genera eventos a partir de la comparación entre dos consultas sucesivas. Utiliza cuatro fuentes:
+\begin{description}[leftmargin=0pt, itemsep=2pt]
+	\item[Archivos:] creación, modificación, renombrado y borrado en el primer nivel de las carpetas vigiladas.
+	\item[Procesos:] inicio y finalización de procesos. Los procesos de los navegadores se agrupan para que su actividad de fondo no domine la telemetría.
+	\item[Aplicaciones sensibles:] inicio y finalización de aplicaciones de compresión, almacenamiento en la nube, transferencia de archivos y correo electrónico.
+	\item[Red:] conexiones salientes nuevas, con la dirección y el puerto remotos. En la configuración por defecto, esta fuente se limita a los procesos marcados para la demostración; una opción del agente la extiende a todos los procesos del usuario.
+\end{description}
 
-Cada evento incluye solo metadatos: nombre del archivo o del proceso, dirección y puerto remotos, marca temporal e identificador del par equipo-usuario. El agente no captura contenido de archivos, pantallas ni pulsaciones de teclado.
+Cada evento contiene únicamente metadatos: el nombre del archivo o del proceso, la dirección y el puerto remotos, la marca temporal y el identificador del par equipo-usuario. El agente no captura el contenido de los archivos, las pantallas ni las pulsaciones de teclado.
 
-Los eventos se envían a la API autenticados con una clave propia de cada agente. Si la API no está disponible, se conservan en un \emph{buffer} local con una vigencia de 3 horas y un tope de 20\,000 eventos, y se reenvían al restablecerse la conexión. Un \emph{circuit breaker} distingue los rechazos de autenticación, que suspenden el envío y lo reintentan cada 5 minutos, de las fallas transitorias del servidor, que se reintentan normalmente.
+Los eventos se envían a la API autenticados con una clave propia de cada agente. Si la API no está disponible, el agente los conserva en un \emph{buffer} local, con una vigencia de 3 horas y un tope de 20\,000 eventos, y los reenvía, del más antiguo al más reciente, cuando se restablece la conexión. Las fallas transitorias del servidor se reintentan hasta dos veces, con una espera creciente entre intentos. Los rechazos de autenticación, en cambio, se tratan de otro modo: tras tres rechazos consecutivos se abre un \emph{circuit breaker} que espacia el reenvío del \emph{buffer} a un intento cada 5 minutos hasta que la API vuelva a aceptar la credencial.
 
-La respuesta de la API indica la acción de mitigación. El agente la ejecuta y, si modifica el equipo, confirma el resultado:
-\begin{itemize}
-	\item \texttt{alertar}: no realiza ninguna acción local.
-	\item \texttt{terminar\_procesos}: finaliza los procesos del usuario relacionados con la actividad evaluada.
-	\item \texttt{denegar\_carpeta}: agrega una entrada de denegación en los permisos de la carpeta sensible.
-	\item \texttt{terminar\_y\_denegar}: combina las dos anteriores.
-	\item \texttt{suspender\_proceso}: suspende el proceso de forma reversible.
-\end{itemize}
+La respuesta de la API indica la acción de mitigación que corresponde aplicar. El agente la ejecuta y, cuando la acción modifica el equipo, informa el resultado a la API. Una acción desconocida no se ejecuta. La tabla~\ref{tab:acciones-agente} resume las acciones disponibles y su reversibilidad.
 
-Las acciones pueden revertirse con un comando del agente que restituye los permisos previos, en forma exacta cuando el agente se ejecuta con privilegios de administrador (sección~\ref{sec:sintesis-limitaciones}), y reanuda los procesos suspendidos. La terminación de procesos no es reversible. El agente dispone además de un modo de simulación, que registra las acciones sin aplicarlas y se utiliza en las pruebas y demostraciones.
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.1cm}>{\raggedright\arraybackslash}p{5.9cm}>{\raggedright\arraybackslash}p{4.1cm}}
+	\caption{Acciones de mitigación del agente}
+	\label{tab:acciones-agente}\\
+	\hline
+	\textbf{Acción} & \textbf{Efecto en el equipo} & \textbf{Reversión} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Acción} & \textbf{Efecto en el equipo} & \textbf{Reversión} \\
+	\hline
+	\endhead
+	\texttt{alertar} & Ninguno. & No corresponde. \\
+	\hline
+	\texttt{terminar\_procesos} & Finaliza los procesos del usuario relacionados con la actividad evaluada. & No reversible. \\
+	\hline
+	\texttt{denegar\_carpeta} & Agrega una entrada de denegación en los permisos de la carpeta sensible. & Restituye los permisos previos desde un respaldo. \\
+	\hline
+	\texttt{terminar\_y\_denegar} & Combina las dos acciones anteriores. & Solo la denegación. \\
+	\hline
+	\texttt{suspender\_proceso} & Suspende el proceso sin finalizarlo. & Reanuda el proceso. \\
+	\hline
+\end{longtable}
+
+La reversión se ejecuta mediante un comando del agente. La restitución de los permisos es exacta cuando el agente se ejecuta con privilegios de administrador (sección~\ref{sec:sintesis-limitaciones}). El agente dispone, además, de un modo de simulación que registra las acciones sin aplicarlas y que se utiliza en las pruebas y las demostraciones.
 
 \subsection{Motor de \emph{scoring}}
 \label{sec:motor-scoring-producto}
-La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 días en el pasado y 5 minutos en el futuro), descarta reenvíos duplicados durante 6 horas y lo evalúa en los siguientes pasos:
-\begin{enumerate}
-	\item Isolation Forest evalúa el día en curso del usuario a partir de ocho variables agregadas (sección~\ref{sec:if-variables}).
-	\item El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos del usuario a partir del error de reconstrucción.
-	\item Con ambos modelos disponibles (cobertura completa), los puntajes se combinan en partes iguales; mientras el usuario no completa su primera secuencia de 50 eventos (cobertura parcial), se utiliza solo Isolation Forest.
-	\item El puntaje se combina con una línea base personal del usuario, que se actualiza en forma incremental con el algoritmo de Welford y gana peso a medida que el usuario acumula historial.
-	\item El riesgo acumulado decae con una vida media de 3 días: el decaimiento se consolida al cerrar cada día y se aplica en forma provisional en cada evento del día en curso, cuyo puntaje es provisional.
-	\item Se asigna el nivel según los umbrales vigentes. Una regla de piso eleva el nivel a alto cuando alguno de los dos modelos marca anomalía.
-	\item Se determina la acción según el mapeo nivel\,$\rightarrow$\,acción y se genera una explicación con las tres variables de Isolation Forest que más se apartan de los valores de la población de entrenamiento.
-\end{enumerate}
+La API recibe cada evento y valida tanto su esquema como su ventana temporal, que admite eventos de hasta 90 días de antigüedad y hasta 5 minutos en el futuro. Para evitar el procesamiento redundante, los eventos duplicados recibidos dentro de un intervalo de 6 horas se descartan. Cada evento válido se evalúa mediante los modelos de detección de anomalías. En primer lugar, Isolation Forest analiza la actividad diaria del usuario a partir de ocho variables agregadas (sección~\ref{sec:if-variables}), mientras que el LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos mediante el error de reconstrucción. Cuando ambos modelos cuentan con cobertura completa, sus puntajes se combinan con la misma ponderación. En cambio, durante la etapa inicial, antes de que el usuario complete su primera secuencia de 50 eventos, se utiliza únicamente el puntaje de Isolation Forest.
+El puntaje obtenido se integra con una línea base personal del usuario, actualizada de manera incremental mediante el algoritmo de Welford, cuya influencia aumenta a medida que se acumula historial. Sobre esta base, el sistema calcula el riesgo acumulado, que disminuye con una vida media de 3 días. Este decaimiento se consolida al cierre de cada día y se aplica de forma provisional a los eventos del día en curso, por lo que el puntaje de riesgo correspondiente también tiene carácter provisional.
+Finalmente, el sistema determina el nivel de riesgo según los umbrales vigentes, con una regla de piso que lo eleva a alto cuando cualquiera de los dos modelos detecta una anomalía. A partir del nivel asignado, se selecciona la acción correspondiente mediante el mapeo nivel\,$\rightarrow$\,acción. Además, se genera una explicación basada en hasta tres variables de Isolation Forest que presentan las mayores desviaciones respecto de los valores de la población de entrenamiento, siempre que estas superen al menos una desviación estándar.
 
-Cuando un nivel está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes, con un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido. Si hay un proveedor IAM configurado, la API agrega el rol y el departamento del usuario como contexto informativo, con caché de 30 minutos y sin interrumpir la evaluación ante una falla del proveedor. En sentido inverso, cuando el nivel del usuario cambia, la API informa el nuevo nivel al proveedor IAM y, en nivel crítico, solicita el cierre de sus sesiones; con Keycloak, un nivel alto o crítico exige además un segundo factor (OTP) en el próximo inicio de sesión.
+Cuando el nivel asignado está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes del usuario, respetando un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido (sección~\ref{sec:prompt-injection}).
 
-La API también detecta corrimientos significativos de la línea base personal y los registra como alertas de \emph{drift}. El estado vigente de cada usuario y una lista acotada de sus eventos recientes se mantienen en Redis; el historial diario con su explicación y los eventos crudos se persisten en PostgreSQL. Los eventos crudos se encadenan mediante \emph{hashes} por usuario, lo que permite detectar modificaciones posteriores.
+La integración con el proveedor IAM, cuando está configurada, opera en ambos sentidos. Por un lado, la API incorpora el rol y el departamento del usuario como contexto informativo, con una caché de 30 minutos, y una falla del proveedor no interrumpe la evaluación. Por otro, cuando el nivel del usuario cambia, la API informa el nuevo nivel al proveedor y, si el nivel es crítico, solicita el cierre de sus sesiones. Con Keycloak, un nivel alto o crítico exige además un segundo factor (OTP) en el próximo inicio de sesión.
+
+La API detecta también los corrimientos significativos de la línea base personal y los registra como alertas de \emph{drift}. El estado vigente de cada usuario y una lista acotada de sus eventos recientes se mantienen en Redis, mientras que el historial diario, con su explicación, y los eventos crudos se persisten en PostgreSQL. Los eventos crudos se encadenan mediante \emph{hashes} por usuario, lo que permite detectar modificaciones posteriores.
 
 \subsection{\emph{Dashboard}}
 \label{sec:dashboard-producto}
-El \emph{dashboard} consulta la API cada 2 segundos (sección~\ref{sec:protocolos}) y se organiza en ocho pantallas: inicio de sesión, usuarios, detalle de usuario, usuarios con historial, alertas, configuración, auditoría y estado del sistema. El diseño de cada una se presenta en la sección~\ref{sec:catalogo-pantallas}. Desde la configuración, el administrador edita en tiempo de ejecución los umbrales y la acción de cada nivel, la periodicidad y la ventana horaria del reentrenamiento, el umbral de aprendizaje, los niveles que notifican con sus destinatarios, y consulta el registro de reentrenamientos. En las alertas puede marcar a los usuarios como reconocidos durante la sesión.
+El \emph{dashboard} consulta la API cada 2 segundos (sección~\ref{sec:protocolos}) y se organiza en nueve pantallas: inicio de sesión, usuarios, detalle de usuario, explicación del puntaje, usuarios con historial, alertas, configuración, auditoría y estado del sistema. El diseño de cada una se presenta en la sección~\ref{sec:catalogo-pantallas}.
+
+La pantalla de configuración concentra la administración de las políticas en tiempo de ejecución. Desde ella, el administrador edita los umbrales y la acción asociada a cada nivel, la periodicidad y la ventana horaria del reentrenamiento, el umbral de aprendizaje y los niveles que generan notificaciones, junto con sus destinatarios. También configura los proveedores IAM y consulta el registro de reentrenamientos. En la pantalla de alertas, el administrador puede marcar a los usuarios como reconocidos durante la sesión.
 
 \subsection{Reentrenamiento periódico}
 \label{sec:reentrenamiento-producto}
-Un planificador integrado en la API verifica si se cumple la periodicidad configurada y si el momento actual está dentro de la ventana horaria. En ese caso, exporta los eventos crudos acumulados, junto con el conjunto de datos original, y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar nada, respalda el juego completo de artefactos vigentes (modelos, escaladores, codificación y referencias de percentil), de modo que un rechazo los restaura juntos; la exportación de las referencias de percentil es el último paso del \emph{pipeline}.
+Un planificador integrado en la API verifica si se cumple la periodicidad configurada y si el momento actual se encuentra dentro de la ventana horaria. Cuando ambas condiciones se cumplen, exporta los eventos crudos acumulados, excluidos los de prueba y las reproducciones, junto con el conjunto de datos original, y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar cualquier archivo, respalda el juego completo de artefactos vigentes (modelos, escaladores, codificación y referencias de percentil), de modo que, ante un rechazo, todos se restauran juntos. La exportación de las referencias de percentil es el último paso del \emph{pipeline}.
 
-Luego aplica un criterio de promoción de no inferioridad sobre los escenarios de DEV de la sección~\ref{sec:benchmark}: el modelo candidato y el vigente se puntúan sobre los mismos escenarios, y HOLDOUT nunca participa. El candidato se promueve solo si (a) el ROC-AUC medio del híbrido en los cuatro escenarios primarios sin país (S2 con $k$ = 2, 5 y 10, y S3) es al menos el del vigente menos 0,02, y (b) su tasa de falsos positivos en nivel alto o superior sobre los días limpios de DEV es como máximo la del vigente más 0,01. En ese caso, la API recarga los modelos en memoria sin reiniciarse. El candidato no se promueve, y se registra el motivo, si faltan escenarios, si su corte temporal no es el 2 de agosto de 2021 o si el puntuado falla; ante cualquier rechazo se restaura el respaldo. El criterio agrega entre 5,5 y 7,5 minutos al reentrenamiento, según la máquina.
+Finalizado el entrenamiento, se aplica un criterio de promoción de no inferioridad sobre los escenarios de DEV descritos en la sección~\ref{sec:benchmark}. El modelo candidato y el vigente se puntúan sobre los mismos escenarios, sin que HOLDOUT participe en ningún caso. El candidato se promueve solo si cumple las dos condiciones siguientes:
+\begin{enumerate}[label=(\alph*)]
+	\item el ROC-AUC medio del híbrido en los cuatro escenarios primarios sin país (S2 con $k$ = 2, 5 y 10, y S3) es al menos el del modelo vigente menos 0,02;
+	\item su tasa de falsos positivos en nivel alto o superior sobre los días limpios de DEV es, como máximo, la del modelo vigente más 0,01.
+\end{enumerate}
 
-Este criterio reemplaza al anterior, que comparaba la tasa de anomalías de Isolation Forest y el error de reconstrucción del LSTM y exigía que el valor del modelo nuevo fuera menor o igual al del vigente. Ninguna de esas dos magnitudes mide detección: con esa regla, un modelo que no marcara nada resultaría el mejor. Los márgenes de 0,02 y 0,01 se fijan de antemano y son del orden de la variación entre semillas de entrenamiento, por lo que un candidato equivalente al vigente puede rechazarse por azar; el criterio protege contra regresiones grandes, pero no distingue diferencias pequeñas. Como demostración, el modelo vigente evaluado contra sí mismo se promueve (ROC-AUC medio de 0,7726 y tasa de falsos positivos de 0,0557 en ambos casos), y los modelos v2 se rechazan por falsos positivos: su tasa es de 0,0734, frente a un máximo admitido de 0,0657. El criterio está implementado, tiene 12 pruebas automatizadas y la demostración anterior se realiza con su script de evaluación, pero todavía no se ejecuta una promoción desde el planificador con un modelo genuinamente nuevo: la única corrida real del planificador, del 25 de agosto de 2026, y las dos manuales, del 23 de agosto y del 2 de septiembre, producen candidatos que la regla anterior rechaza. El conjunto de variables del modelo queda versionado y, con la versión 1 vigente, la salida del puntaje no cambia (sección~\ref{sec:resultados-holdout}). En el despliegue en la nube el planificador está desactivado. El juego de modelos vigente proviene de la corrida del 2 de septiembre de 2026, que la regla anterior rechaza por diferencias del orden del ruido; se adopta después como vigente por la consistencia del juego completo y no por una promoción (sección~\ref{sec:evaluacion-modelo}).
+Si el candidato se promueve, la API recarga los modelos en memoria sin reiniciarse. El candidato tampoco se promueve, y se registra el motivo, cuando faltan escenarios, cuando su corte temporal entre entrenamiento y prueba no coincide con el de la partición original (sección~\ref{sub:particion-parametros}) o cuando falla el puntuado. La verificación del corte garantiza que los días de los escenarios de DEV no formen parte del entrenamiento del candidato, lo que inflaría artificialmente sus métricas. Ante cualquier rechazo se restaura el respaldo. La evaluación agrega entre 5,5 y 7,5 minutos al reentrenamiento, según la máquina.
 
-Cada corrida queda registrada con la fecha, la cantidad de eventos, las métricas de ambos modelos y el motivo de la decisión. El administrador puede registrar también reentrenamientos realizados en forma manual.
+Este criterio reemplaza al anterior, que comparaba la tasa de anomalías de Isolation Forest y el error de reconstrucción del LSTM y exigía que el valor del modelo nuevo fuera menor o igual al del vigente. Ninguna de esas dos magnitudes mide la capacidad de detección: con esa regla, un modelo que no marcara nada resultaría el mejor. Los márgenes de 0,02 y 0,01 se fijan de antemano y son del orden de la variación entre semillas de entrenamiento. En consecuencia, un candidato equivalente al vigente puede rechazarse por azar: el criterio protege contra regresiones grandes, pero no distingue diferencias pequeñas.
+
+El funcionamiento del criterio se demuestra con su script de evaluación. El modelo vigente, evaluado contra sí mismo, se promueve, con un ROC-AUC medio de 0,7726 y una tasa de falsos positivos de 0,0557 en ambos casos. Los modelos v2, en cambio, se rechazan por falsos positivos: su tasa es de 0,0734, frente a un máximo admitido de 0,0657. El criterio cuenta además con 12 pruebas automatizadas. Sin embargo, todavía no se ha ejecutado una promoción desde el planificador con un modelo genuinamente nuevo: la única corrida real del planificador, del 25 de agosto de 2026, y las dos corridas manuales, del 23 de agosto y del 2 de septiembre, producen candidatos que la regla anterior rechaza.
+
+El juego de modelos vigente proviene de la corrida del 2 de septiembre de 2026. La regla anterior lo rechaza por diferencias del orden del ruido, y se adopta después como vigente por la consistencia del juego completo, no como resultado de una promoción (sección~\ref{sec:evaluacion-modelo}). El conjunto de variables del modelo queda versionado y, con la versión 1 vigente, la salida del puntaje no cambia (sección~\ref{sec:resultados-holdout}). En el despliegue en la nube, el planificador está desactivado.
+
+Cada corrida queda registrada con su fecha, la cantidad de eventos, las métricas de ambos modelos y el motivo de la decisión. El administrador puede registrar también los reentrenamientos realizados en forma manual.
 
 \subsection{Usuarios nuevos y período de aprendizaje}
-Un usuario se da de alta automáticamente con su primer evento y permanece en período de aprendizaje hasta acumular la cantidad de eventos configurada (20 por defecto, entre 1 y 1000). Durante ese período sus eventos se evalúan normalmente y el nivel informado no cambia, pero la acción se atenúa a \texttt{alertar}, salvo en los eventos sobre archivos, que reciben la política normal. El \emph{dashboard} muestra el progreso de cada usuario respecto del umbral, y la salida del período es automática.
+Un usuario se da de alta automáticamente con su primer evento y permanece en período de aprendizaje hasta acumular la cantidad de eventos configurada, que es de 20 por defecto y puede fijarse entre 1 y 1000. Durante ese período, sus eventos se evalúan normalmente y el nivel informado no se modifica, pero la acción se atenúa a \texttt{alertar}. La excepción son los eventos de creación, modificación, renombrado y borrado de archivos, que reciben la política normal. El \emph{dashboard} muestra el progreso de cada usuario respecto del umbral, y la salida del período es automática.
 
 \subsection{Control de acceso}
 \label{sec:control-acceso-producto}
-La API expone 32 \emph{endpoints} con cuatro niveles de acceso: públicos (salud del servicio, inicio y cierre de sesión), de consulta para el \emph{dashboard}, de administración para los cambios de configuración y de agente para el envío de eventos y la confirmación de acciones. La credencial de cada agente y el \emph{token} de sesión del \emph{dashboard} se describen en la sección~\ref{sec:protocolos}. La API rechaza con 403 un evento o una confirmación de acción que no corresponda a la identidad del agente; todavía acepta la clave de administración en ese nivel y con ella omite el control de identidad (sección~\ref{sec:sintesis-limitaciones}). El inicio de sesión del \emph{dashboard} rechaza las contraseñas por defecto o de ejemplo, el \emph{token} vence a las 8 horas o al cerrar sesión, y el rol operador solo consulta (403 en los \emph{endpoints} de administración). Cada cambio de configuración queda registrado en la auditoría con un identificador derivado de la credencial utilizada, que indica además el nivel de acceso de la sesión.
+La API expone 34 \emph{endpoints}, agrupados en cuatro niveles de acceso que se resumen en la tabla~\ref{tab:niveles-acceso}. La credencial de cada agente y el \emph{token} de sesión del \emph{dashboard} se describen en la sección~\ref{sec:protocolos}.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{4.5cm}}
+	\caption{Niveles de acceso de la API}
+	\label{tab:niveles-acceso}\\
+	\hline
+	\textbf{Nivel} & \textbf{\emph{Endpoints}} & \textbf{Alcance} & \textbf{Credencial} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Nivel} & \textbf{\emph{Endpoints}} & \textbf{Alcance} & \textbf{Credencial} \\
+	\hline
+	\endhead
+	Público & 4 & Estado del servicio, inicio y cierre de sesión. & Ninguna. \\
+	\hline
+	Consulta & 16 & Lecturas del \emph{dashboard}. & \emph{Token} de sesión de cualquier rol o clave fija de consulta. \\
+	\hline
+	Administración & 12 & Cambios de configuración. & \emph{Token} de sesión con rol administrador o clave fija de administración. \\
+	\hline
+	Agente & 2 & Envío de eventos y confirmación de acciones. & Clave individual del agente o clave fija de administración. \\
+	\hline
+\end{longtable}
+
+En el nivel de agente, la API rechaza con un código 403 cualquier evento o confirmación de acción que no corresponda a la identidad del agente. Ese nivel todavía acepta la clave de administración, con la cual se omite el control de identidad (sección~\ref{sec:sintesis-limitaciones}). En el \emph{dashboard}, el inicio de sesión rechaza las contraseñas por defecto o de ejemplo, y el \emph{token} vence a las 8 horas o al cerrar la sesión. El rol operador tiene acceso de solo lectura y recibe un 403 en los \emph{endpoints} de administración. Por último, cada cambio de configuración queda registrado en la auditoría con un identificador derivado de la credencial utilizada, que en las sesiones del \emph{dashboard} indica además el rol.
 
 \section{Cumplimiento de los requerimientos}
 \label{sec:cumplimiento}
@@ -126,17 +143,26 @@ La tabla~\ref{tab:cumplimiento-cu} resume el estado de los requerimientos funcio
 	\hline
 \end{longtable}
 
-De los 15 requerimientos no funcionales, 12 se encuentran implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11); ninguno queda sin implementar.
+Dos de los requerimientos implementados merecen una aclaración. RF-02 se verifica de punta a punta con un agente real contra la instancia en la nube (sección~\ref{sec:estado-despliegue}), aunque subsiste la limitación de la clave de administración descrita en la sección~\ref{sec:sintesis-limitaciones}. RF-21 cuenta con pruebas automatizadas y se verifica con el script de evaluación, pero todavía no se ha ejecutado una promoción desde el planificador con un modelo genuinamente nuevo (sección~\ref{sec:reentrenamiento-producto}).
 
-Los 31 requerimientos funcionales están implementados. RF-02 está implementado (sección~\ref{sec:control-acceso-producto}) y se verifica de punta a punta con un agente real contra la instancia (sección~\ref{sec:estado-despliegue}); la limitación que subsiste con la clave de administración figura en la sección~\ref{sec:sintesis-limitaciones}. RF-21 está implementado, tiene 12 pruebas automatizadas y se verifica con el script de evaluación, pero todavía no se ejecuta una promoción desde el planificador con un modelo genuinamente nuevo (sección~\ref{sec:reentrenamiento-producto}).
+En cuanto a los 15 requerimientos no funcionales, 12 se encuentran implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF-11); ninguno queda sin implementar.
 
 \section{Estado del despliegue}
 \label{sec:estado-despliegue}
-El sistema completo se ejecuta y se verifica en un entorno local: el agente, la API y el \emph{dashboard} en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube. La infraestructura para la nube está definida como código con Terraform y está aplicada: existen la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración, con el proxy inverso y los controles descritos en la sección~\ref{sec:despliegue-nube}. La verificación del 6 de octubre de 2026 confirma que la verificación de estado de la API responde por HTTPS con TLS verificado y con los artefactos cargados, que el \emph{dashboard} se sirve por HTTPS, que HTTP redirige a HTTPS, que la documentación interactiva no está expuesta y que, tras detener y arrancar la instancia, el proxy y la API vuelven a funcionar solos. El 10 de octubre de 2026 se verifican la API, el proxy y el panel desplegados en la instancia: el certificado es válido (Let's Encrypt), HTTP redirige con un 308, el puerto de la API está cerrado desde afuera y la documentación interactiva no está expuesta. Un agente real envía eventos por HTTPS con credencial individual y llega al nivel crítico (97,06) con la acción de terminar el proceso y denegar la carpeta, que ejecuta; no se observa el nivel alto, porque el puntaje pasa de 52 a 97 en un solo evento. La API rechaza con 403 los eventos con usuario o identificador de agente ajeno y la confirmación de un usuario ajeno. El inicio de sesión del administrador entrega un \emph{token} de 43 caracteres distinto de las claves fijas, el operador recibe 403 en los \emph{endpoints} de administración y el \emph{token} queda inválido tras cerrar sesión. La instancia se mantiene apagada fuera de las pruebas y las demostraciones. El detalle de la arquitectura diseñada y desplegada se presenta en la sección~\ref{chap:arquitectura}.
+El sistema completo se ejecuta y se verifica en un entorno local: el agente, la API y el \emph{dashboard} funcionan en un equipo Windows, conectados a Redis y PostgreSQL gestionados en la nube.
+
+La infraestructura en la nube está definida como código con Terraform y se encuentra aplicada. Comprende la instancia de cómputo para la API, su dirección IP fija, los \emph{buckets} de almacenamiento, el rol de acceso y los parámetros de configuración, además del proxy inverso y los controles descritos en la sección~\ref{sec:despliegue-nube}. Las verificaciones realizadas sobre la instancia el 6 y el 10 de octubre de 2026 confirman lo siguiente:
+\begin{description}[leftmargin=0pt, itemsep=2pt]
+	\item[Transporte y exposición.] La API y el \emph{dashboard} se sirven por HTTPS con un certificado válido de Let's Encrypt, y HTTP redirige a HTTPS con un código 308. La verificación de estado de la API responde con los artefactos cargados, el puerto de la API está cerrado desde el exterior y la documentación interactiva no está expuesta. Tras detener y volver a arrancar la instancia, el proxy y la API se restablecen sin intervención.
+	\item[Agente real.] Un agente envía eventos por HTTPS con su credencial individual y alcanza el nivel crítico (97,06), con la acción de terminar el proceso y denegar la carpeta, que ejecuta. El nivel alto no se observa, porque el puntaje pasa de 52 a 97 en un solo evento.
+	\item[Control de acceso.] La API rechaza con 403 los eventos con usuario o identificador de agente ajenos y la confirmación de un usuario ajeno. El inicio de sesión del administrador entrega un \emph{token} de 43 caracteres, distinto de las claves fijas; el operador recibe 403 en los \emph{endpoints} de administración, y el \emph{token} queda inválido tras cerrar la sesión.
+\end{description}
+
+La instancia se mantiene apagada fuera de las pruebas y las demostraciones. El detalle de la arquitectura diseñada y desplegada se presenta en la sección~\ref{chap:arquitectura}.
 
 \section{Tratamiento de datos personales y viabilidad legal}
 \label{sec:tratamiento-datos}
-El sistema actúa como herramienta de una organización que monitorea los equipos que provee a sus empleados. En un despliegue real, la organización cliente es la responsable del tratamiento en los términos de la Ley 25.326, y el proveedor del sistema actúa como prestador de servicios de tratamiento por cuenta de ella. La tabla~\ref{tab:tratamiento-datos} relaciona cada principio del marco legal (sección~\ref{sec:marco-legal}) con la forma en que el sistema lo contempla y con lo que queda a cargo de la organización.
+El sistema actúa como herramienta de una organización que monitorea los equipos que provee a sus empleados. En un despliegue real, la organización cliente es la responsable del tratamiento en los términos de la Ley 25.326, y el proveedor del sistema actúa como prestador de servicios de tratamiento por cuenta de ella. La tabla~\ref{tab:tratamiento-datos} relaciona cada principio del marco legal (sección~\ref{sec:marco-legal}) con la forma en que el sistema lo contempla y con las obligaciones que quedan a cargo de la organización o pendientes.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{5.8cm}>{\raggedright\arraybackslash}p{5.3cm}}
 	\caption{Principios de la Ley 25.326 y su tratamiento en el sistema}
@@ -149,21 +175,21 @@ El sistema actúa como herramienta de una organización que monitorea los equipo
 	\textbf{Principio} & \textbf{Cómo lo contempla el sistema} & \textbf{A cargo de la organización / pendiente} \\
 	\hline
 	\endhead
-	Finalidad (art.~4) & Finalidad única y declarada: detectar el uso indebido de credenciales y responder ante él. Los datos no se usan para medir productividad ni para otros fines. & Declarar la finalidad en la política interna y no reutilizar los datos para otros fines. \\
+	Finalidad (art.~4) & Finalidad única y declarada: detectar el uso indebido de credenciales y responder ante él. Los datos no se usan para medir la productividad ni para otros fines. & Declarar la finalidad en la política interna y no reutilizar los datos para otros fines. \\
 	\hline
-	Datos no excesivos (art.~4) & El agente recolecta solo metadatos de actividad (RNF-08): no captura contenido de archivos, mensajes, pantallas ni pulsaciones de teclado. Las direcciones IP y las cuentas de volumen muy alto quedan sin puntaje. & Configurar las carpetas y aplicaciones vigiladas de forma acotada. \\
+	Datos no excesivos (art.~4) & El agente recolecta solo metadatos de actividad (RNF-08): no captura el contenido de archivos, mensajes, pantallas ni pulsaciones de teclado. Las cuentas identificadas por dirección IP y las de volumen muy alto quedan fuera del puntaje. & Configurar las carpetas y aplicaciones vigiladas de forma acotada. \\
 	\hline
-	Consentimiento e información (arts.~5 y 6) & El panel muestra, para cada puntaje, las variables que lo explican, lo que permite informar al empleado por qué se toma una acción. & Informar a los empleados la existencia del control, su finalidad y sus derechos (política de uso aceptable o cláusula contractual); la LCT exige que los controles relativos a la actividad del trabajador sean conocidos por este (art.~71). \\
+	Consentimiento e información (arts.~5 y 6) & El panel muestra, para cada puntaje, las variables que lo explican, lo que permite informar al empleado por qué se toma una acción. & Informar a los empleados la existencia del control, su finalidad y sus derechos mediante una política de uso aceptable o una cláusula contractual. La LCT exige que los controles relativos a la actividad del trabajador sean conocidos por este (art.~71). \\
 	\hline
-	Seguridad (art.~9) & Cifrado con TLS y certificado verificado entre el panel o el agente y la API en la nube (sección~\ref{sec:despliegue-nube}); el agente se niega a usar \texttt{http://} fuera de \emph{loopback}. Credencial individual por agente y token de sesión del panel con vencimiento (sección~\ref{sec:control-acceso-producto}). Cadena de hashes sobre los eventos crudos, seguridad a nivel de fila en seis de las siete tablas (sección~\ref{sec:modelo-datos}) y secretos en el almacén de parámetros de la nube. Lo verificado en la instancia figura en la sección~\ref{sec:estado-despliegue} y lo pendiente, en la tabla~\ref{tab:limitaciones-producto}. & Gestionar los accesos al panel y rotar las claves. \\
+	Seguridad (art.~9) & Cifrado con TLS y certificado verificado entre el panel o el agente y la API en la nube (sección~\ref{sec:despliegue-nube}); el agente se niega a usar \texttt{http://} fuera de \emph{loopback}. Credencial individual por agente y \emph{token} de sesión del panel con vencimiento (sección~\ref{sec:control-acceso-producto}). Cadena de \emph{hashes} sobre los eventos crudos, seguridad a nivel de fila en seis de las siete tablas (sección~\ref{sec:modelo-datos}) y secretos en el almacén de parámetros de la nube. Lo verificado en la instancia figura en la sección~\ref{sec:estado-despliegue}, y lo pendiente, en la tabla~\ref{tab:limitaciones-producto}. & Gestionar los accesos al panel y rotar las claves. \\
 	\hline
 	Confidencialidad (art.~10) & Acceso al panel con inicio de sesión y roles diferenciados de consulta y administración; registro de auditoría de los cambios de configuración. & Limitar el acceso al personal de seguridad. \\
 	\hline
-	Transferencia internacional (art.~12): infraestructura & Los servicios gestionados que usa el sistema procesan datos fuera de Argentina: la API corre en una instancia de AWS en Estados Unidos (región us-east-2), mientras que PostgreSQL (Supabase) y Redis (Upstash) están en la región de São Paulo, Brasil. & Ni Estados Unidos ni Brasil figuran en la lista de países con legislación adecuada de la Disposición 60-E/2016, por lo que la transferencia requiere las cláusulas contractuales tipo. Formalizar la transferencia con esas cláusulas, o desplegar en una región con protección adecuada. \\
+	Transferencia internacional (art.~12): infraestructura & Los servicios gestionados procesan datos fuera de Argentina: la API corre en una instancia de AWS en Estados Unidos (región us-east-2), mientras que PostgreSQL (Supabase) y Redis (Upstash) se alojan en la región de São Paulo, Brasil. & Ni Estados Unidos ni Brasil figuran en la lista de países con legislación adecuada de la Disposición 60-E/2016, por lo que la transferencia requiere cláusulas contractuales tipo. Corresponde formalizarla con esas cláusulas o desplegar en una región con protección adecuada. \\
 	\hline
-	Transferencia internacional (art.~12): redacción asistida & El servicio opcional de redacción de correos (Gemini) recibe el identificador del usuario (equipo-usuario), el puntaje, el nivel, las variables que explican el puntaje y hasta los 10 eventos más recientes de la alerta, con nombres de archivo o de proceso y, en los accesos a recursos compartidos, dirección y puerto remotos; solo redacta la sección narrativa del correo, sin intervenir en el nivel ni en la acción (sección~\ref{sec:prompt-injection}). & Desactivar o minimizar lo que se envía al servicio de redacción. \\
+	Transferencia internacional (art.~12): redacción asistida & El servicio opcional de redacción de correos (Gemini) recibe el identificador del usuario (equipo-usuario), el puntaje, el nivel, las variables que lo explican y hasta los 10 eventos más recientes de la alerta, con nombres de archivo o de proceso y, en los accesos a recursos compartidos, la dirección y el puerto remotos. Solo redacta la sección narrativa del correo, sin intervenir en el nivel ni en la acción (sección~\ref{sec:prompt-injection}). & Desactivar el servicio de redacción o minimizar los datos que se le envían. \\
 	\hline
-	Acceso, rectificación y supresión (arts.~14 a 16) & El panel permite consultar el historial de un usuario. La API permite eliminar su estado y su historial de puntajes, pero conserva los eventos crudos y las alertas de corrimiento asociadas, por lo que no constituye un mecanismo de supresión completo. & Pendiente: definir un plazo de conservación y un procedimiento de supresión que alcance a los eventos crudos. Ese procedimiento entra en tensión con la cadena de hashes por usuario, porque borrar una fila impide verificar las siguientes (sección~\ref{sec:conservacion-datos}). \\
+	Acceso, rectificación y supresión (arts.~14 a 16) & El panel permite consultar el historial de un usuario. La API permite eliminar su estado y su historial de puntajes, pero conserva los eventos crudos y las alertas de corrimiento asociadas, por lo que no constituye un mecanismo de supresión completo. & Pendiente: definir un plazo de conservación y un procedimiento de supresión que alcance a los eventos crudos. Ese procedimiento entra en tensión con la cadena de \emph{hashes} por usuario, porque borrar una fila impide verificar las siguientes (sección~\ref{sec:conservacion-datos}). \\
 	\hline
 	Registro (art.~21) & No aplica al proveedor. & Evaluar la inscripción de la base según el uso que la organización haga de ella. \\
 	\hline
@@ -172,24 +198,30 @@ El sistema actúa como herramienta de una organización que monitorea los equipo
 
 \subsection{Conservación de los datos y cadena de hashes}
 \label{sec:conservacion-datos}
-Hoy los eventos crudos y el historial de puntajes no tienen un plazo de conservación definido, y el borrado que ofrece la API no es un mecanismo de supresión completo (tabla~\ref{tab:tratamiento-datos}). La cadena de hashes que protege la integridad de los eventos (sección~\ref{sec:modelo-datos}) dificulta la supresión: eliminar una fila rompe la verificación de las siguientes del mismo usuario. Se identifican tres alternativas: cerrar la cadena por período (por ejemplo, mensual), conservar el último hash de cada período y eliminar los períodos vencidos; reemplazar el identificador del usuario por un seudónimo calculado con una clave secreta, de modo que destruir la clave anonimice los registros sin modificarlos; o eliminar el contenido de la fila y conservar solo su hash. Se adopta como trabajo futuro la primera, por ser la que preserva la verificación de los períodos vigentes con el menor cambio en el modelo de datos.
+Actualmente, los eventos crudos y el historial de puntajes no tienen un plazo de conservación definido, y el borrado que ofrece la API no constituye un mecanismo de supresión completo (tabla~\ref{tab:tratamiento-datos}). La cadena de \emph{hashes} que protege la integridad de los eventos (sección~\ref{sec:modelo-datos}) dificulta, además, la supresión, porque eliminar una fila rompe la verificación de las filas siguientes del mismo usuario. Se identifican tres alternativas para conciliar ambos requisitos:
+\begin{enumerate}
+	\item cerrar la cadena por período (por ejemplo, mensualmente), conservar el último \emph{hash} de cada período y eliminar los períodos vencidos;
+	\item reemplazar el identificador del usuario por un seudónimo calculado con una clave secreta, de modo que destruir la clave anonimice los registros sin modificarlos;
+	\item eliminar el contenido de la fila y conservar solo su \emph{hash}.
+\end{enumerate}
+Se adopta como trabajo futuro la primera alternativa, por ser la que preserva la verificación de los períodos vigentes con el menor cambio en el modelo de datos.
 
 \subsection{Datos de entrenamiento}
 \label{sec:datos-entrenamiento}
 El modelo inicial se entrena con CLUE-LDS, un conjunto público de registros reales seudonimizados mediante identificadores descriptivos y distribuido bajo licencia CC BY 4.0 (sección~\ref{sec:dataset}). Su uso respeta la licencia mediante la atribución a sus autores y no requiere el tratamiento de datos de personas identificables.
 
-El reentrenamiento periódico, en cambio, incorpora los eventos que el agente registra en la organización (RF-19), que son datos personales de los empleados en los términos de la Ley 25.326. En el prototipo, la exportación copia esos eventos sin seudonimizar (identificador del usuario, nombres de archivo y de proceso, direcciones y puertos remotos y ubicación) a un archivo local, excluido del control de versiones, que se sobrescribe en cada corrida pero no se elimina. Reentrenar el modelo de detección puede considerarse compatible con la finalidad declarada del tratamiento (tabla~\ref{tab:tratamiento-datos}), pero el prototipo no aplica controles específicos sobre ese archivo. Un despliegue productivo requiere seudonimizar los identificadores antes de la exportación, eliminar el archivo al terminar cada reentrenamiento e incluirlo en el plazo de conservación (sección~\ref{sec:conservacion-datos}).
+El reentrenamiento periódico, en cambio, incorpora los eventos que el agente registra en la organización (RF-19), que constituyen datos personales de los empleados en los términos de la Ley 25.326. En el prototipo, la exportación copia esos eventos sin seudonimizar (identificador del usuario, nombres de archivo y de proceso, direcciones y puertos remotos y ubicación) a un archivo local excluido del control de versiones, que se sobrescribe en cada corrida pero no se elimina. Reentrenar el modelo de detección puede considerarse compatible con la finalidad declarada del tratamiento (tabla~\ref{tab:tratamiento-datos}); sin embargo, el prototipo no aplica controles específicos sobre ese archivo. Un despliegue productivo requiere seudonimizar los identificadores antes de la exportación, eliminar el archivo al finalizar cada reentrenamiento e incluirlo en el plazo de conservación (sección~\ref{sec:conservacion-datos}).
 
 \subsection{Descargo de responsabilidad}
-El sistema es una herramienta de apoyo a la seguridad de la información y no reemplaza el criterio del personal de seguridad. Las acciones automáticas que ejecuta (terminación de procesos, denegación de acceso a carpetas) pueden afectar el trabajo legítimo de un empleado ante un falso positivo; por eso las acciones más severas se reservan para el nivel crítico y pueden revertirse cuando el sistema operativo lo permite. La organización que lo adopte es responsable de configurar las políticas de respuesta, de informar a sus empleados y de cumplir la normativa de protección de datos y laboral aplicable.
+El sistema es una herramienta de apoyo a la seguridad de la información y no reemplaza el criterio del personal de seguridad. Las acciones automáticas que ejecuta, como la terminación de procesos o la denegación de acceso a carpetas, pueden afectar el trabajo legítimo de un empleado ante un falso positivo. Por ese motivo, las acciones más severas se reservan para el nivel crítico y pueden revertirse cuando el sistema operativo lo permite. La organización que adopte el sistema es responsable de configurar las políticas de respuesta, de informar a sus empleados y de cumplir la normativa de protección de datos y laboral aplicable.
 
 \section{Limitaciones conocidas}
 \label{sec:limitaciones-producto}
-Esta sección presenta primero una síntesis de las limitaciones conocidas del producto y luego describe en detalle los controles contra una de ellas, la inyección de instrucciones en la redacción asistida del correo de notificación.
+Esta sección presenta, en primer lugar, una síntesis de las limitaciones conocidas del producto y, a continuación, describe en detalle los controles frente a una de ellas: la inyección de instrucciones en la redacción asistida del correo de notificación.
 
 \subsection{Síntesis de las limitaciones}
 \label{sec:sintesis-limitaciones}
-La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del producto, su impacto y el tratamiento previsto. Dos limitaciones de versiones anteriores quedan resueltas y se retiran de la tabla: la clave de agente, que ahora está ligada a su identificador y a sus usuarios, y la reversión de permisos, que restaura la ACL previa desde un respaldo y ya no borra denegaciones ajenas al agente (sección~\ref{sec:decisiones-pruebas}).
+La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del producto, agrupadas según el componente o el aspecto al que afectan, junto con su impacto y el tratamiento previsto. Dos limitaciones de versiones anteriores quedan resueltas y se retiran de la tabla: la clave de agente, que ahora está ligada a su identificador y a sus usuarios, y la reversión de permisos, que restaura la ACL previa desde un respaldo y ya no elimina denegaciones ajenas al agente (sección~\ref{sec:decisiones-pruebas}).
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{4.7cm}}
 	\caption{Limitaciones conocidas del producto}
@@ -202,9 +234,11 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\textbf{Limitación} & \textbf{Impacto} & \textbf{Tratamiento} \\
 	\hline
 	\endhead
+	\multicolumn{3}{l}{\textit{Modelo y detección}} \\
+	\hline
 	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). La evaluación con escenarios etiquetados lo confirma (sección~\ref{sec:lectura-benchmark}). & Trabajo futuro: variables con granularidad menor al día y evaluación con datos etiquetados del dominio del agente. \\
 	\hline
-	El país actúa como interruptor & En ambos modelos, la ubicación decide la detección operativa de los ataques con país y el nivel crítico de la demostración, no el comportamiento (sección~\ref{sec:benchmark}). & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
+	El país actúa como interruptor & En ambos modelos, la ubicación, y no el comportamiento, decide la detección operativa de los ataques con país y el nivel crítico de la demostración (sección~\ref{sec:benchmark}). & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
 	\hline
 	El LSTM no aprovecha el orden de los eventos & Permutar los 50 eventos de una secuencia no cambia el ordenamiento (Spearman 0,989), y la variable de cambio de país explica el 66,7\,\% del error de reconstrucción en la muestra del diagnóstico y cerca del 72\,\% en todo el período de test. & Trabajo futuro: rediseñar o reemplazar el LSTM. \\
 	\hline
@@ -212,21 +246,21 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Calibración del híbrido sin datos independientes & El peso de cada modelo, la regla de piso y los umbrales se calibran sin escenarios etiquetados. & La recalibración evaluada sobre el benchmark no mejora la detección (sección~\ref{sec:decisiones-pruebas}); los umbrales son editables en tiempo de ejecución. \\
 	\hline
-	Salto al cerrar la primera secuencia del LSTM & El puntaje pasa de depender solo de Isolation Forest a combinar ambos modelos en partes iguales de un evento al siguiente. & Trabajo futuro: transición gradual entre ambos cálculos. \\
-	\hline
-	Fragilidad del corte temporal del criterio de promoción & Con unos 28 usuario-días nuevos posteriores a 2022, el corte temporal del candidato se mueve y el criterio rechaza por precaución todo reentrenamiento con datos del agente (sección~\ref{sec:reentrenamiento-producto}). & Trabajo futuro: fijar el corte en el \emph{pipeline} o evaluar el criterio solo sobre los días posteriores al corte del candidato. \\
+	Salto al cerrar la primera secuencia del LSTM & De un evento al siguiente, el puntaje pasa de depender solo de Isolation Forest a combinar ambos modelos en partes iguales. & Trabajo futuro: transición gradual entre ambos cálculos. \\
 	\hline
 	Transferencia de dominio del conjunto de datos & El modelo se entrena con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints}. \\
 	\hline
-	Explicación solo de Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM, o su reemplazo por un modelo explicable. \\
+	Explicación limitada a Isolation Forest & Un puntaje impulsado por el LSTM no identifica qué lo causó. & Trabajo futuro: explicabilidad del LSTM o su reemplazo por un modelo explicable. \\
 	\hline
 	Sesgo de la línea base personal en usuarios con poco historial & El componente personal tiende a valores altos en usuarios nuevos, lo que eleva las alertas en ese grupo. & Se evalúan cinco alternativas sin una mejora general; se documenta como limitación. \\
 	\hline
-	Cobertura parcial prolongada & El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos y se evalúa solo con Isolation Forest. & Comportamiento previsto (RF-03); se informa la cobertura en el \emph{dashboard}. \\
+	Cobertura parcial prolongada & El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos y se evalúa solo con Isolation Forest. & Comportamiento previsto (RF-03); el \emph{dashboard} informa la cobertura. \\
 	\hline
-	Canal HTTP en \emph{loopback} entre agente y API & Fuera de \emph{loopback}, el agente exige HTTPS y verifica el certificado del servidor, de modo que la clave no puede viajar en claro; en \emph{loopback} el canal usa HTTP. & TLS terminado por el proxy en la instancia, con redirección de HTTP a HTTPS. Verificado de extremo a extremo con un agente real (sección~\ref{sec:estado-despliegue}). \\
+	\multicolumn{3}{l}{\textit{Agente local}} \\
 	\hline
-	Reversión de la denegación de carpeta con privilegios & \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}). Sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones que el usuario ya tenía. & El agente se ejecuta como administrador; la prueba manual de reversión se verifica en una consola elevada. \\
+	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
+	\hline
+	Reversión de la denegación de carpeta sin privilegios & \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}). Sin elevación, la reversión recurre a \texttt{/remove:d} y pierde las denegaciones que el usuario ya tenía. & El agente se ejecuta como administrador; la prueba manual de reversión se verifica en una consola elevada. \\
 	\hline
 	Terminación de procesos irreversible y repetida & Un proceso terminado no puede restaurarse, y la acción se reintenta en cada evento mientras el nivel se mantiene. & Reservada para el nivel crítico por política (RF-07). \\
 	\hline
@@ -234,50 +268,56 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Envío con el \emph{circuit breaker} abierto & Los eventos nuevos siguen intentando enviarse y, con el \emph{buffer} lleno, se descartan los más recientes. & Corrección prevista en el agente. \\
 	\hline
-	Reentrenamiento fallido registrado como en curso & Si un paso del \emph{pipeline} falla, el intento queda en el historial como ``\emph{pipeline} en curso''; si termina por una excepción, no se registra y se reintenta a los 5 minutos, y el \emph{pipeline} no tiene un tiempo máximo. En todos los casos se restaura el modelo vigente. & Corrección prevista en el planificador. \\
+	Mapeo nivel\,$\rightarrow$\,acción de respaldo en el agente & El agente conserva un mapeo propio (alto\,$\rightarrow$\,terminar, crítico\,$\rightarrow$\,terminar y denegar) para respuestas sin acción. Con la API actual no se ejecuta, porque toda respuesta con nivel incluye la acción. & Eliminar el respaldo. \\
 	\hline
-	Autenticación permisiva sin claves configuradas & Fuera del modo estricto y sin claves configuradas, la API acepta solicitudes sin autenticar.  & El modo estricto, activo en el despliegue en la nube, rechaza las solicitudes sin claves configuradas. \\
+	\multicolumn{3}{l}{\textit{Reentrenamiento}} \\
 	\hline
-	Clave de administración aceptada en el nivel de agente & La API acepta la clave de administración en el envío de eventos y la confirmación de acciones y, con ella, omite el control de identidad: quien la obtenga puede reportar eventos o confirmar acciones de cualquier usuario. La clave no sale del servidor y el agente no la usa como respaldo. & Trabajo futuro: rechazarla en el nivel de agente (sección~\ref{sec:trabajo-futuro}). \\
+	Fragilidad del corte temporal del criterio de promoción & Con unos 28 usuario-días nuevos posteriores al período del conjunto de datos, el corte temporal del candidato se desplaza, porque el \emph{pipeline} lo recalcula sobre el conjunto combinado, y el criterio rechaza, por precaución, todo reentrenamiento con datos del agente (sección~\ref{sec:reentrenamiento-producto}). Fijar la fecha no alcanza: los datos del agente, posteriores al corte, quedarían en la partición de prueba y no se aprenderían. & Trabajo futuro: definir la partición por origen del dato, con el conjunto de datos hasta el corte y todos los datos del agente en entrenamiento, y conservar como prueba y referencia del criterio el conjunto de datos posterior al corte. \\
 	\hline
-	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
+	Partición del LSTM sensible a usuarios nuevos & El LSTM separa entrenamiento y prueba por sorteo de usuarios, y la incorporación de usuarios nuevos altera ese sorteo. Víctimas de los escenarios de evaluación podrían quedar en el entrenamiento del candidato, y el criterio de promoción no lo detecta, porque solo verifica el corte de Isolation Forest. & Trabajo futuro: conservar la asignación vigente de los usuarios del conjunto de datos, asignar los usuarios nuevos a entrenamiento y verificar en el criterio que ninguna víctima de los escenarios participe del entrenamiento. \\
+	\hline
+	Reentrenamiento fallido registrado como en curso & Si un paso del \emph{pipeline} falla, el intento queda en el historial como ``\emph{pipeline} en curso''; si termina por una excepción, no se registra y se reintenta a los 5 minutos. El \emph{pipeline} no tiene un tiempo máximo de ejecución. En todos los casos se restaura el modelo vigente. & Corrección prevista en el planificador. \\
+	\hline
+	\multicolumn{3}{l}{\textit{Autenticación y comunicaciones}} \\
+	\hline
+	Autenticación permisiva sin claves configuradas & Fuera del modo estricto y sin claves configuradas, la API acepta solicitudes sin autenticar. & El modo estricto, activo en el despliegue en la nube, rechaza las solicitudes cuando no hay claves configuradas. \\
+	\hline
+	Clave de administración aceptada en el nivel de agente & Con esa clave, la API omite el control de identidad en el envío de eventos y la confirmación de acciones: quien la obtenga puede reportar eventos o confirmar acciones de cualquier usuario. La clave no sale del servidor y el agente no la usa como respaldo. & Trabajo futuro: rechazarla en el nivel de agente (sección~\ref{sec:trabajo-futuro}). \\
+	\hline
+	Canal HTTP en \emph{loopback} entre agente y API & Fuera de \emph{loopback}, el agente exige HTTPS y verifica el certificado del servidor, de modo que la clave no puede viajar en claro; en \emph{loopback}, el canal usa HTTP. & TLS terminado por el proxy en la instancia, con redirección de HTTP a HTTPS, verificado de extremo a extremo con un agente real (sección~\ref{sec:estado-despliegue}). \\
+	\hline
+	Sin autenticación mutua por certificado (mTLS) & El agente se autentica con una clave individual, no con un certificado de cliente; una clave robada sigue sirviendo para reportar los eventos del usuario al que está ligada. & Trabajo futuro: autenticación mutua por certificado (sección~\ref{sec:trabajo-futuro}). \\
+	\hline
+	Sin firma de las respuestas & Las respuestas del PDP no se firman, por lo que su integridad en tránsito depende de TLS. La respuesta solo indica la clase de acción: el objetivo concreto lo determina la política local del agente, y una acción desconocida no se ejecuta. & Trabajo futuro: firma de las respuestas (sección~\ref{sec:trabajo-futuro}). \\
+	\hline
+	Sin política de seguridad de contenido (CSP) en el \emph{dashboard} & El \emph{token} de sesión se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión. & Trabajo futuro: CSP en el proxy. El \emph{token} vence a las 8 horas y se invalida al cerrar la sesión. La cabecera HSTS está implementada en el proxy y verificada en la instancia, con \texttt{max-age=31536000} y sin \texttt{includeSubDomains} ni \texttt{preload}. \\
 	\hline
 	Integración con Microsoft Entra ID sin validación real & El proveedor está implementado y probado con solicitudes simuladas, sin acceso a un \emph{tenant} real. & Validación pendiente contra un \emph{tenant} real. \\
+	\hline
+	Inyección de instrucciones en la redacción asistida (Gemini) & Un nombre de archivo o de proceso puede contener instrucciones dirigidas al modelo. El peor caso es un correo engañoso, porque el nivel y la acción los decide el motor de \emph{scoring} (RNF-04). & Controles implementados en la entrada y la salida (sección~\ref{sec:prompt-injection}). Quedan documentados el uso de nombres crudos y la llamada síncrona. \\
+	\hline
+	\multicolumn{3}{l}{\textit{Datos personales}} \\
 	\hline
 	Sin plazo de conservación ni supresión completa de datos & Los eventos crudos y las alertas de corrimiento de un usuario no se suprimen. & Trabajo futuro: plazo de conservación y procedimiento de supresión compatible con la cadena de \emph{hashes} (sección~\ref{sec:conservacion-datos}). \\
 	\hline
 	Telemetría sin seudonimizar en el reentrenamiento & La exportación del reentrenamiento copia los eventos del agente sin seudonimizar a un archivo local que no se elimina. & Trabajo futuro: seudonimizar y eliminar el archivo (sección~\ref{sec:datos-entrenamiento}). \\
 	\hline
-	Inyección de instrucciones mediante telemetría (nombres de archivo o de proceso) en la redacción asistida del correo (Gemini) & Un nombre de archivo o de proceso puede contener instrucciones dirigidas al modelo; el peor caso es un correo engañoso, porque el nivel y la acción los decide el motor de \emph{scoring} (RNF-04). & Controles implementados en la entrada y la salida (sección~\ref{sec:prompt-injection}). Quedan documentados el uso de nombres crudos y la llamada síncrona. \\
-	\hline
-	Sin autenticación mutua por certificado (mTLS) & El agente se autentica con una clave individual, no con un certificado de cliente; una clave robada sigue sirviendo para reportar los eventos del usuario al que está ligada. & Trabajo futuro: autenticación mutua por certificado (sección~\ref{sec:trabajo-futuro}). \\
-	\hline
-	Sin firma de las respuestas & Las respuestas del PDP no se firman: su integridad en tránsito depende de TLS. Además, la respuesta solo indica la clase de acción; el objetivo concreto lo determina la política local del agente, y una acción desconocida no se ejecuta. & Trabajo futuro: firma de las respuestas (sección~\ref{sec:trabajo-futuro}). \\
-	\hline
-	Sin política de seguridad de contenido (CSP) en el \emph{dashboard} & El token de sesión vive en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión. & Trabajo futuro: CSP en el proxy. La cabecera HSTS está implementada en el proxy y verificada en la instancia, con \texttt{max-age=31536000} y sin \texttt{includeSubDomains} ni \texttt{preload}. El token tiene vencimiento de 8 horas y se invalida al cerrar sesión. \\
-	\hline
-	El agente conserva un mapeo propio nivel\,$\rightarrow$\,acción de respaldo (alto\,$\rightarrow$\,terminar, crítico\,$\rightarrow$\,terminar y denegar) para respuestas sin acción & Con la API actual no se ejecuta: toda respuesta con nivel trae la acción. & Eliminar el respaldo. \\
-	\hline
 \end{longtable}
 
 \subsection{Inyección de instrucciones en la redacción asistida}
 \label{sec:prompt-injection}
-La redacción asistida del correo (RF-31) usa un modelo de lenguaje externo, Gemini, invocado desde la API mediante su API REST \texttt{generateContent} con el modelo \texttt{gemini-3.1-flash-lite} y, ante un error 429, \texttt{gemini-2.5-flash}; si el servicio no está disponible, el correo se envía con un texto predefinido. El modelo recibe telemetría parcialmente controlada por el usuario vigilado: los nombres de archivo y de proceso. Es, por lo tanto, un vector posible de inyección indirecta de instrucciones, que OWASP ubica en el primer lugar de los riesgos de las aplicaciones basadas en modelos de lenguaje y que NIST clasifica entre los ataques a los sistemas de IA generativa \parencite{OWASP2025LLM, NIST_AI100_2_2025}. El diseño parte de un principio: el modelo no tiene autoridad sobre nada. El nivel y la acción ya están decididos y persistidos antes de la llamada, y la salida solo se usa como un párrafo de un correo en texto plano, que no se guarda ni vuelve al agente.
+La redacción asistida del correo (RF-31) utiliza un modelo de lenguaje externo, Gemini, que la API invoca mediante el método \texttt{generateContent} de su API REST, con el modelo \texttt{gemini-3.1-flash-lite} y, ante un error 429, con \texttt{gemini-2.5-flash}. Si el servicio no está disponible, el correo se envía con un texto predefinido. El modelo recibe telemetría parcialmente controlada por el usuario vigilado, como los nombres de archivo y de proceso, y constituye por lo tanto un vector posible de inyección indirecta de instrucciones. OWASP ubica este riesgo en el primer lugar de los que afectan a las aplicaciones basadas en modelos de lenguaje, y NIST lo clasifica entre los ataques a los sistemas de IA generativa \parencite{OWASP2025LLM, NIST_AI100_2_2025}.
 
-Sobre esa base se aplican controles en la entrada y en la salida.
-\begin{itemize}
-	\item \textbf{Entrada.} Las reglas viajan en la instrucción de sistema, separadas de los datos. Los datos se envían como JSON dentro de un bloque delimitado, que las reglas declaran explícitamente como información y nunca como instrucciones. Antes de serializarlos se eliminan los caracteres de control de los campos de texto de la telemetría, que se truncan a 80 caracteres, y solo se incluyen los 10 eventos más recientes. Los caracteres \texttt{<} y \texttt{>} se escapan para que un nombre de archivo no pueda cerrar el bloque.
-	\item \textbf{Salida.} Antes de usarla, se exige que el modelo haya terminado normalmente, que el texto tenga como máximo 1500 caracteres, que incluya la sección ``Que hacer ahora:'' y que no contenga enlaces, direcciones de correo ni identificadores de acción fuera del catálogo del sistema (heurística: cualquier identificador con guion bajo que no esté en el catálogo). Cualquier incumplimiento, igual que un error, un \emph{timeout} o la falta de configuración, hace que se use un texto predefinido y queda registrado con su motivo, sin el texto generado.
-	\item \textbf{Bloque fijo.} El usuario, el nivel, el puntaje, la acción aplicada y la explicación mecánica de la alerta se muestran siempre en un bloque fijo del correo, de modo que el administrador nunca depende solo del texto generado.
-	\item \textbf{Credencial y cabeceras.} La credencial del servicio viaja en una cabecera HTTP y no en la URL, y los registros de error de la llamada no incluyen el texto de las excepciones. El identificador de usuario se sanea antes de usarlo en el asunto, para evitar la inyección de cabeceras.
-\end{itemize}
+El diseño parte de un principio: el modelo no tiene autoridad sobre ninguna decisión. El nivel y la acción ya están decididos y persistidos antes de la llamada, y la salida solo se utiliza como un párrafo de un correo en texto plano, que no se almacena ni vuelve al agente. Sobre esa base se aplican los siguientes controles:
+\begin{description}[leftmargin=0pt, itemsep=2pt]
+	\item[Entrada.] Las reglas viajan en la instrucción de sistema, separadas de los datos. Los datos se envían como JSON dentro de un bloque delimitado, que las reglas declaran explícitamente como información y nunca como instrucciones. Antes de serializarlos, se eliminan los caracteres de control de los campos de texto de la telemetría, que se truncan a 80 caracteres, y solo se incluyen los 10 eventos más recientes. Los caracteres \texttt{<} y \texttt{>} se escapan para que un nombre de archivo no pueda cerrar el bloque.
+	\item[Salida.] Antes de usar el texto generado, se exige que el modelo haya terminado normalmente, que el texto tenga como máximo 1500 caracteres, que incluya la sección ``Que hacer ahora:'' y que no contenga enlaces, direcciones de correo ni identificadores de acción ajenos al catálogo del sistema. Esta última comprobación es heurística: rechaza cualquier identificador con guion bajo que no figure en el catálogo. Cualquier incumplimiento, al igual que un error, un \emph{timeout} o la falta de configuración, hace que se utilice el texto predefinido y queda registrado con su motivo, sin el texto generado.
+	\item[Bloque fijo.] El usuario, el nivel, el puntaje, la acción aplicada y la explicación mecánica de la alerta se muestran siempre en un bloque fijo del correo, de modo que el administrador nunca depende únicamente del texto generado.
+	\item[Credencial y cabeceras.] La credencial del servicio viaja en una cabecera HTTP y no en la URL, y los registros de error de la llamada no incluyen el texto de las excepciones. El identificador de usuario se sanea antes de incluirlo en el asunto, para evitar la inyección de cabeceras.
+\end{description}
 
-Quedan dos decisiones documentadas.
-\begin{itemize}
-	\item Se envían los datos indicados en la tabla~\ref{tab:tratamiento-datos}, con nombres crudos de archivo y de proceso en lugar de variables solo agregadas, porque sin ellos la narrativa pierde su utilidad interpretativa. Ese riesgo queda mitigado por el delimitado, el truncado y la validación.
-	\item La llamada es síncrona dentro del procesamiento del evento y puede demorar la respuesta al agente hasta 6 segundos más el envío SMTP. No demora la decisión.
-\end{itemize}
+Quedan documentadas, además, dos decisiones de diseño. La primera es enviar al modelo los datos indicados en la tabla~\ref{tab:tratamiento-datos}, con los nombres crudos de archivo y de proceso en lugar de variables solo agregadas, porque sin ellos la narrativa pierde su utilidad interpretativa; el riesgo que esto introduce queda mitigado por el delimitado, el truncado y la validación. La segunda es que la llamada es síncrona dentro del procesamiento del evento, de modo que puede demorar la respuesta al agente hasta 6 segundos, más el tiempo del envío SMTP, aunque no demora la decisión.
 
 \section{Síntesis}
 \label{sec:sintesis-producto}
-El producto implementa el ciclo completo de detección, decisión y mitigación sobre el \emph{endpoint}, con políticas configurables en tiempo de ejecución, auditoría de cambios, reentrenamiento periódico controlado y tratamiento de usuarios nuevos. De los 31 requerimientos funcionales, los 31 están implementados; RF-21 queda con la limitación de que todavía no se ejecuta una promoción desde el planificador con un modelo genuinamente nuevo (sección~\ref{sec:reentrenamiento-producto}). Las limitaciones principales no están en la cobertura funcional sino en la capacidad de detección del modelo y en la ausencia de autenticación mutua por certificado, y orientan el trabajo futuro (sección~\ref{chap:conclusiones}).
+El producto implementa el ciclo completo de detección, decisión y mitigación sobre el \emph{endpoint}, con políticas configurables en tiempo de ejecución, auditoría de los cambios, reentrenamiento periódico controlado y tratamiento específico de los usuarios nuevos. Los 31 requerimientos funcionales están implementados, aunque en el caso de RF-21 todavía no se ha ejecutado una promoción desde el planificador con un modelo genuinamente nuevo (sección~\ref{sec:reentrenamiento-producto}). Las limitaciones principales no se encuentran en la cobertura funcional, sino en la capacidad de detección del modelo y en la ausencia de autenticación mutua por certificado; ambas orientan el trabajo futuro (sección~\ref{chap:conclusiones}).
