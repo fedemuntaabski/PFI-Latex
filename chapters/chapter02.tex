@@ -165,7 +165,7 @@ Esta sección revisa las soluciones y la investigación existentes sobre detecci
 
 Esta subsección analiza cuatro soluciones comerciales: Microsoft Sentinel UEBA, Splunk UBA, Exabeam y Microsoft Entra ID Protection. Para cada una se describen su objetivo, su funcionamiento, los datos que utiliza, los resultados que reporta y sus limitaciones.
 
-\subsubsection{Microsoft Sentinel UEBA}
+\subsubsection{Microsoft Sentinel UEBA}\label{sec:ea-sentinel}
 Microsoft Sentinel integra funciones de UEBA para enfrentar el desafío de detectar conductas atípicas que sugieran vulneraciones de cuentas, amenazas de origen interno o desplazamientos malintencionados en la infraestructura organizacional. Su objetivo principal es determinar desviaciones en las rutinas de actividad de los usuarios y diversas entidades corporativas.
 
 Su funcionamiento se basa en la construcción de perfiles de comportamiento a partir de información histórica. El sistema analiza variables como la ubicación geográfica desde la que se accede, el dispositivo utilizado, la frecuencia de determinadas acciones y el historial de actividad de cada usuario o entidad. A partir de estos datos, genera líneas base de comportamiento y calcula puntajes de riesgo que permiten identificar actividades inusuales. Una característica diferencial de Sentinel es que no limita el análisis a usuarios individuales, sino que también incluye servidores, dispositivos de red y otros componentes de infraestructura, ampliando así el alcance de la detección.
@@ -176,7 +176,7 @@ Entre los resultados reportados, Microsoft destaca una mejora en la detección t
 
 No obstante, la solución presenta algunas limitaciones. Su modelo de costos se basa en el volumen de datos ingeridos, lo que puede resultar elevado en organizaciones con grandes cantidades de registros. Asimismo, la integración con plataformas externas al ecosistema Microsoft puede requerir esfuerzos adicionales de configuración. Por último, existe una falta de visibilidad en el funcionamiento de sus algoritmos de detección, lo cual limita la capacidad de los administradores para auditar los fundamentos de las alertas o personalizar con precisión la lógica del sistema.
 
-\subsubsection{Splunk UBA}
+\subsubsection{Splunk UBA}\label{sec:ea-splunk}
 El propósito central de Splunk User Behavior Analytics (UBA) es el descubrimiento de amenazas de origen interno, vulneraciones de cuentas y desplazamientos laterales maliciosos en la red corporativa. Esta herramienta busca reconocer conductas dudosas que los sistemas convencionales, regidos por firmas fijas o reglas preestablecidas, suelen omitir.
 
 Para lograrlo, el sistema analiza grandes volúmenes de información provenientes de diferentes fuentes de seguridad y actividad de la infraestructura. A partir de estos datos, construye perfiles de comportamiento y establece relaciones entre eventos ocurridos en distintos sistemas y momentos. Esta capacidad de correlación le permite detectar patrones complejos y asignar niveles de riesgo a las actividades observadas, ayudando a priorizar las alertas más relevantes para los equipos de seguridad.
@@ -187,7 +187,7 @@ Entre los resultados reportados, Splunk UBA destaca por mejorar la identificaci�
 
 Sin embargo, la solución presenta algunas limitaciones. Su puesta en marcha requiere integrar y normalizar múltiples fuentes de datos, lo que demanda conocimientos especializados para su configuración. Finalmente, aunque permite detectar y priorizar riesgos, las acciones de respuesta suelen depender de integraciones externas o configuraciones adicionales, ya que no incorpora de forma nativa mecanismos de respuesta adaptativa basados en el nivel de riesgo detectado.
 
-\subsubsection{Exabeam}
+\subsubsection{Exabeam}\label{sec:ea-exabeam}
 Exabeam es una plataforma de seguridad orientada a la detección y respuesta ante amenazas, especialmente aquellas relacionadas con cuentas comprometidas, actividades anómalas de usuarios y ataques que logran evadir los mecanismos de detección tradicionales. Su objetivo principal es mejorar la capacidad de los equipos de seguridad para identificar incidentes complejos y reducir los tiempos de respuesta frente a posibles compromisos.
 
 Su funcionamiento combina capacidades de gestión de eventos de seguridad (SIEM), análisis de comportamiento de usuarios y entidades (UEBA) y automatización de respuestas (SOAR). A partir de la información recopilada, el sistema construye perfiles de comportamiento, correlaciona eventos provenientes de múltiples fuentes y asigna niveles de riesgo a usuarios, dispositivos y actividades. Esta combinación permite detectar patrones sospechosos que podrían pasar desapercibidas cuando los eventos se analizan de forma aislada.
@@ -239,7 +239,7 @@ De manera complementaria, la revisión sistemática sobre técnicas de detecció
 
 Además de los sistemas UEBA, existen otros enfoques que ajustan la verificación de identidad o el control de acceso según el contexto. Esta subsección describe la autenticación adaptativa, la autenticación continua basada en biometría conductual y el control de acceso adaptativo basado en riesgo.
 
-\subsubsection{Autenticación adaptativa}
+\subsubsection{Autenticación adaptativa}\label{sec:ea-okta}
 Un ejemplo ampliamente utilizado de autenticación adaptativa en entornos empresariales es Okta Adaptive Multi-Factor Authentication (Adaptive MFA), integrada dentro de la plataforma de gestión de identidad de Okta. Esta solución aplica un modelo de autenticación basado en riesgo que analiza distintas señales contextuales cada vez que un usuario intenta iniciar sesión. Entre estas señales se incluyen la ubicación geográfica, la dirección IP, el tipo de dispositivo, el estado de la red y patrones de comportamiento previamente registrados.
 
 A partir de esta información, el sistema estima un nivel de riesgo asociado al intento de acceso y, en función de ese valor, aplica diferentes políticas de seguridad de forma dinámica. Dependiendo del nivel de riesgo detectado, puede solicitar factores adicionales de autenticación, exigir una verificación más estricta o directamente bloquear el acceso al recurso. Esto permite ajustar el nivel de seguridad según el contexto, evitando aplicar las mismas medidas a todos los usuarios sin distinción.
