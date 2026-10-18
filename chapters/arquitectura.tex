@@ -70,7 +70,7 @@ En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como pr
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-\subsection{Despliegue en la nube}
+\subsection{Despliegue en la nube}\label{sec:despliegue-nube}
 La infraestructura en la nube, definida mediante Terraform, ejecuta la API en una instancia de cómputo \texttt{t3.medium}, protegida por un proxy inverso (Caddy). Este se encarga de terminar las conexiones TLS mediante un certificado obtenido a través de ACME, servir el \emph{dashboard} y redirigir a la API las solicitudes que llegan bajo la ruta \texttt{/api} (figura~\ref{fig:despliegue-aws}).
 
 \begin{figure}[H]
@@ -116,9 +116,7 @@ Para el almacenamiento, la API se comunica con Redis mediante RESP y utiliza tra
 
 Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak y Microsoft Entra ID mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
 
-En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API. A su vez, el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}.
-
-Existe una limitación en el despliegue local verificado, donde el canal entre el agente y la API usa HTTP sin TLS. Esto resulta aceptable en \emph{loopback}, y fuera de él el agente exige HTTPS. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
+En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API, y el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}. En el despliegue local verificado, en cambio, el canal entre el agente y la API usa HTTP sin TLS sobre \emph{loopback}, lo que resulta aceptable en ese ámbito. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
