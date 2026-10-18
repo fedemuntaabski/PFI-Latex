@@ -105,12 +105,12 @@ Las 19 pruebas omitidas en la configuración de integración continua dependen d
 El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por cuatro trabajos independientes:
 \begin{itemize}
 	\item \textbf{\emph{Frontend}} (Ubuntu, Node~24): análisis estático y compilación; no tiene umbral de cobertura, porque el \emph{frontend} no tiene pruebas.
-	\item \textbf{API} (Ubuntu, Python~3.11): ejecución de las pruebas de la API sin los artefactos de modelo, que no están versionados, con medición de la cobertura combinada de líneas y ramas del código de la API y de los dos módulos auxiliares que importa. El umbral es del 85\,\% de cobertura combinada (sección~\ref{sec:cobertura-codigo}). El mismo informe se publica además por líneas, solo a título informativo (sin umbral), y cuatro archivos de pruebas del agente que no dependen del sistema operativo se ejecutan allí sin medir cobertura y deben pasar.
-	\item \textbf{Agente en Windows (\texttt{agent-windows}):} ejecución de la suite completa del agente en Windows (Python~3.11), con un umbral del 85\,\% de cobertura de líneas.
-	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato, inicialización y validación de la configuración sin aplicar cambios; sin umbral.
+	\item \textbf{API} (Ubuntu, Python~3.11): pruebas de la API sin los artefactos de modelo, con un umbral del 85\,\% de cobertura combinada de líneas y ramas (sección~\ref{sec:cobertura-codigo}). Allí se ejecutan también cuatro archivos de pruebas del agente que no dependen del sistema operativo.
+	\item \textbf{Agente en Windows (\texttt{agent-windows}):} suite completa del agente, con un umbral del 85\,\% de cobertura de líneas.
+	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato y validación de la configuración, sin aplicar cambios.
 \end{itemize}
 
-Los requisitos de la API incluyen la dependencia de lectura de archivos Parquet que usa el criterio de promoción, y el \emph{pipeline} finaliza con los cuatro trabajos aprobados. La integración continua no ejecuta las pruebas que requieren artefactos de modelo no versionados (19 omitidas y cuatro archivos excluidos), entre ellas la prueba de extremo a extremo PDP$\rightarrow$PEP, ni la prueba de regresión; esas suites se ejecutan localmente.
+El \emph{pipeline} finaliza con los cuatro trabajos aprobados. Las pruebas que requieren los modelos entrenados, entre ellas la de extremo a extremo PDP$\rightarrow$PEP, y la prueba de regresión se ejecutan localmente.
 
 \subsection{Cobertura de código}\label{sec:cobertura-codigo}
 La cobertura se mide con \emph{coverage.py} (mediante \emph{pytest-cov}), con medición de ramas activada, sobre todo el código del producto que se ejecuta en operación:
@@ -143,48 +143,34 @@ Cada componente se mide por separado con su propia suite: la API con los artefac
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-El informe de evidencia (HTML, XML y resumen) se genera con el mismo \emph{script}. En integración continua, el trabajo del agente en Windows exige el 85\,\% de líneas en cada \emph{push}. El trabajo de la API mide la cobertura sin los artefactos de modelo, que no están versionados, por lo que el núcleo de \emph{scoring} no se ejercita allí. Esa medición da 87,03\,\% de líneas y ramas, y el umbral de 85\,\% queda dos puntos por debajo para absorber la diferencia de versión de Python y de sistema operativo respecto de la medición local. Funciona, por lo tanto, como protección contra regresiones y no como evidencia del objetivo, que es la medición local completa. Con el criterio de promoción implementado y probado (RF-21), el módulo de métricas de la promoción de modelos alcanza el 98,8\,\% de líneas.
+En integración continua, la API se mide sin los modelos entrenados, por lo que el núcleo de \emph{scoring} no se ejercita: esa medición da 87,03\,\% de líneas y ramas y funciona como protección contra regresiones, no como evidencia del objetivo.
 
 \textbf{\emph{Frontend}.} El \emph{dashboard} queda fuera del umbral, y se declara así explícitamente. Por una invariante de la arquitectura, el \emph{frontend} no contiene lógica de negocio: no calcula el puntaje, no aplica el decaimiento ni combina modelos. Solo muestra lo que expone la API y edita la configuración operativa, que la API valida. El riesgo funcional del sistema reside en la API y en el agente, que son los componentes medidos. El \emph{frontend} se valida con análisis estático y verificación de tipos en cada \emph{push}, y de forma manual contra la API.
 
 \subsection{Cobertura de los requerimientos}
-La tabla~\ref{tab:cobertura-requerimientos} relaciona los requerimientos de la sección~\ref{chap:requerimientos} con el tipo de evidencia de prueba disponible.
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{9.7cm}}
-	\caption{Evidencia de prueba por requerimiento}
-	\label{tab:cobertura-requerimientos}\\
-	\hline
-	\textbf{Evidencia} & \textbf{Requerimientos} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Evidencia} & \textbf{Requerimientos} \\
-	\hline
-	\endhead
-	Prueba automatizada & RF-01 a RF-07, RF-09 a RF-25, RF-27 a RF-31; RNF-03, RNF-04 y RNF-06 a RNF-08 \\
-	\hline
-	Prueba parcial & RF-26 (el campo que expone la API tiene prueba automatizada; el indicador del \emph{dashboard} se verifica en forma manual); RNF-05 (el \emph{buffer}, el reenvío y el \emph{circuit breaker} tienen prueba automatizada; el descarte por vencimiento y por tope se verifica en el código); RNF-11 (la explicación del \emph{Isolation Forest} tiene prueba automatizada; el LSTM no produce explicación) \\
-	\hline
-	Verificación manual o medición & RF-08 (ejecución real de acciones en el \emph{endpoint}); RNF-01 y RNF-02 (mediciones de la sección~\ref{sec:pruebas-rendimiento}); RNF-09 (verificación de la cadena de \emph{hashes}); RNF-13 (TLS del despliegue; el rechazo de URLs \texttt{http} fuera de \emph{loopback} por el agente tiene prueba automatizada); RNF-10 (corrida real de reentrenamiento); RNF-12 (ejecución en Windows); RNF-14 (ensayos de concurrencia); RNF-15 (evaluación heurística) \\
-	\hline
-\end{longtable}
-
-Los requerimientos con verificación manual o con prueba parcial se encuentran implementados y se verifican con las mediciones y ejecuciones documentadas en las secciones siguientes, que no forman parte de la suite automatizada.
+Los requerimientos funcionales tienen prueba automatizada, salvo RF-08 (ejecución real de las acciones en el equipo) y el indicador de aprendizaje del \emph{dashboard} (RF-26), que se verifican a mano. Los no funcionales que dependen del entorno se verifican con las mediciones y ensayos de las secciones siguientes: RNF-01 y RNF-02 (rendimiento), RNF-09, RNF-10 y RNF-14 (pruebas funcionales), RNF-12 y RNF-13 (despliegue) y RNF-15 (usabilidad).
 
 \section{Pruebas funcionales de extremo a extremo}
 \label{sec:pruebas-e2e}
-Las pruebas automatizadas se ejecutan con Redis simulado y sin base de datos. La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida, además, con una prueba de extremo a extremo automatizada. La prueba reproduce el guion de la demostración en el mismo proceso: 46 eventos de calentamiento, exfiltración de archivos y salida por un país simulado. Usa el código real del agente para construir cada evento, interpretar el veredicto y confirmar la acción, y la API real con los modelos entrenados para decidir. Solo se reemplazan los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) por un registro en memoria. La prueba verifica cuatro puntos. Primero, que cada evento recibe puntaje, nivel y una acción coherente con la política configurada. Segundo, que el nivel escala hasta alto y crítico. Tercero, que en crítico el agente ejecuta la terminación y la denegación (esta última una sola vez). Cuarto, que la confirmación del agente queda registrada y expuesta por la API. Los eventos respetan la ventana temporal que la API exige (no más de 5 minutos en el futuro ni más de 90 días en el pasado), sin desactivarla. La misma secuencia está disponible como ensayo ejecutable antes de la demostración. La prueba requiere los artefactos de modelo, que no están versionados; por eso corre en el entorno local y no en la integración continua, donde se omite.
+La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida con una prueba automatizada que reproduce el guion de la demostración: 46 eventos, de los cuales 9 son de calentamiento, 31 de exfiltración de archivos y 6 desde un país simulado. El agente usa su código real para construir cada evento, interpretar la respuesta y confirmar la acción, y la API decide con los modelos entrenados; como el guion no completa una secuencia de 50 eventos, el puntaje proviene solo de Isolation Forest. Únicamente los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) se reemplazan por un registro en memoria. La prueba verifica que:
+\begin{itemize}
+	\item cada evento recibe puntaje, nivel y una acción coherente con la política configurada;
+	\item el nivel escala hasta alto y luego crítico;
+	\item en crítico, el agente termina los procesos y deniega la carpeta una sola vez;
+	\item la confirmación del agente queda registrada y la API la expone.
+\end{itemize}
+La validación de la ventana temporal de los eventos queda activa durante la prueba, que además comprueba el rechazo de un evento fechado en el futuro.
 
-Para verificar el sistema contra la infraestructura real se realizan las siguientes pruebas funcionales manuales:
+Contra Redis y PostgreSQL reales se realizan, además, las siguientes pruebas funcionales manuales:
 
 \begin{itemize}
-	\item \textbf{Demostración de seis escenas.} Se ejecutan contra Redis y PostgreSQL reales seis escenarios que recorren los casos de uso CU-01 y CU-02: un usuario de bajo riesgo, una exfiltración de archivos con mitigación en el \emph{endpoint}, una aplicación no monitoreada, el catálogo de acciones de mitigación, una conexión de red y la configuración de umbrales con un rechazo por validación. Cada corrida genera un reporte de auditoría automático.
+	\item \textbf{Demostración de seis escenas.} Seis escenarios recorren los casos de uso CU-01 y CU-02: un usuario de bajo riesgo, una exfiltración de archivos con mitigación en el \emph{endpoint}, una aplicación no monitoreada, el catálogo de acciones de mitigación, una conexión de red y la configuración de umbrales con un rechazo por validación. Cada corrida genera un reporte de auditoría automático.
 	\item \textbf{Ensayo de la cadena de decisión.} Un \emph{script} envía una secuencia de eventos de exfiltración y registra la evolución del nivel. El primer evento queda en nivel medio, el nivel alto se alcanza en el evento 15 y el crítico en el evento 44, con la acción correspondiente devuelta al agente en cada caso.
 	\item \textbf{Período de aprendizaje.} Con la API conectada a los servicios reales, se verifica la lectura y modificación del umbral de aprendizaje, el rechazo de valores fuera de rango y la exigencia de autenticación de administrador.
-	\item \textbf{Reentrenamiento y promoción.} Se verifica en vivo el reemplazo del modelo sin reiniciar la API cuando el modelo nuevo iguala al instalado, y el rechazo cuando empeora. Una corrida real disparada por el planificador completa el \emph{pipeline} en aproximadamente 1~h~50~min y no promueve el modelo, porque el error de reconstrucción del LSTM empeora de 0,1155 a 0,1175. El criterio de promoción y el estado de las promociones se describen en la sección~\ref{sec:reentrenamiento-producto}.
+	\item \textbf{Reentrenamiento y promoción.} Se verifica en vivo el reemplazo del modelo sin reiniciar la API y el rechazo de un modelo peor. Una corrida real disparada por el planificador dura cerca de 1~h~50~min y no promueve el modelo, porque el error del LSTM empeora de 0,1155 a 0,1175 (sección~\ref{sec:reentrenamiento-producto}).
 	\item \textbf{Integridad de los eventos crudos.} La verificación de la cadena de \emph{hashes} sobre la tabla de eventos crudos resulta correcta en el 100\,\% de las filas, antes y después de registrar un evento nuevo.
 	\item \textbf{Concurrencia sobre PostgreSQL.} Con hasta 50 escrituras concurrentes no se producen errores, y el disparador que calcula la cadena de \emph{hashes} agrega en promedio 0,042~ms por inserción.
-	\item \textbf{Concurrencia sobre Redis.} Con el Redis gestionado y hasta 15 escrituras simultáneas sobre el estado de un mismo usuario, entre 3 y 4 de cada 20 fallan por conflicto de transacción. Con 20 reintentos y una espera aleatoria entre ellos, se completan sin error 70 de 70 escrituras concurrentes. Este ensayo respalda RNF-14.
+	\item \textbf{Concurrencia sobre Redis.} Con el Redis gestionado, entre 3 y 4 de cada 20 escrituras simultáneas sobre un mismo usuario fallan por conflicto de transacción; con reintentos y una espera aleatoria, se completan 70 de 70 sin error (RNF-14).
 \end{itemize}
 
 Como complemento, el código del agente, de la API y del \emph{frontend} se somete a revisiones estáticas de seguridad y mantenibilidad. La auditoría de dependencias del \emph{frontend} finaliza sin vulnerabilidades reportadas.
@@ -244,10 +230,10 @@ Sobre la instancia se verifica, además, el funcionamiento de extremo a extremo:
 \begin{description}[leftmargin=0pt, itemsep=2pt]
 	\item[Agente real.] Un agente envía eventos por HTTPS con su credencial individual y alcanza el nivel crítico (97,06), con la acción de terminar el proceso y denegar la carpeta, que ejecuta. El nivel alto no se observa, porque el puntaje pasa de 52 a 97 en un solo evento.
 	\item[Control de acceso.] La API rechaza con 403 los eventos con usuario o identificador de agente ajenos y la confirmación de un usuario ajeno. Una clave de agente revocada recibe 401, y el agente abre su \emph{circuit breaker}. El inicio de sesión del administrador entrega un \emph{token} de 43 caracteres, distinto de las claves fijas; el operador recibe 403 en los \emph{endpoints} de administración, y el \emph{token} queda inválido tras cerrar la sesión.
-	\item[Integración IAM.] Con Keycloak en la instancia, la API incorpora el rol y el departamento del usuario a la evaluación.
+	\item[Integración IAM.] Con Keycloak en la instancia, la API incorpora el rol y el departamento del usuario a su estado y a la respuesta del evento, sin que intervengan en el puntaje.
 \end{description}
 
-La suite que trae la release se ejecutó en la propia instancia con los artefactos reales: 372 pruebas aprobadas y 3 con error, porque importan scripts que la release no incluye a propósito, con una cobertura de líneas y ramas del 91,71\,\%. Esta medición confirma que el código desplegado pasa su propia suite con las dependencias de la instancia; no agrega información sobre la calidad de las pruebas.
+El control de acceso, la revocación de la clave y el rearranque tras detener la instancia se verificaron en sesiones previas sobre la misma instancia, entre el 6 y el 15 de octubre. La suite que trae la release se ejecutó en la propia instancia con los artefactos reales: 372 pruebas aprobadas, 3 omitidas y 3 con error, porque importan scripts que la release no incluye a propósito, con una cobertura de líneas y ramas del 91,71\,\%. Esta medición confirma que el código desplegado pasa su propia suite con las dependencias de la instancia; no agrega información sobre la calidad de las pruebas.
 
 \subsection{Consumo de recursos del agente (RNF-02)}
 Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, el consumo de CPU del proceso del agente, normalizado sobre el total de núcleos lógicos, y su memoria residente. El agente se ejecuta en modo de simulación de mitigaciones, de modo que la medición refleja la captura y el envío de eventos sin efectos sobre el equipo. El umbral es un consumo medio de CPU menor o igual al 5\,\% de la máquina y una memoria residente menor o igual a 150~MB. La medición se realiza en un equipo con Windows~11 Pro y 16 núcleos lógicos: se toman 360 muestras sin pérdidas y el agente envía unos 112 eventos, todos respondidos. La tabla~\ref{tab:rnf02} presenta los resultados.
@@ -520,35 +506,7 @@ Al aplicar los límites de las metas de la sección~\ref{sec:metas-modelo} a los
 
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
-La usabilidad del \emph{dashboard} se evalúa mediante una evaluación heurística, una técnica de inspección en la que se revisa la interfaz contra un conjunto de principios reconocidos. Se utilizan las diez heurísticas de usabilidad de Nielsen \parencite{Nielsen1994}: visibilidad del estado del sistema (H1), correspondencia entre el sistema y el mundo real (H2), control y libertad del usuario (H3), consistencia y estándares (H4), prevención de errores (H5), reconocimiento antes que recuerdo (H6), flexibilidad y eficiencia de uso (H7), diseño estético y minimalista (H8), ayuda para reconocer, diagnosticar y recuperarse de errores (H9) y ayuda y documentación (H10).
-
-El equipo revisa las ocho pantallas del \emph{dashboard} contra cada heurística. Los comportamientos que no se observan en las capturas, como la confirmación de borrado y los mensajes de error al guardar la configuración, se verifican en el código. Cada problema se clasifica con la escala de severidad de Nielsen: 0 (no es un problema de usabilidad), 1 (cosmético), 2 (menor), 3 (mayor, conviene corregirlo con prioridad alta) y 4 (catastrófico). Esta evaluación aporta la evidencia del requerimiento RNF-15.
-
-\subsection{Resultados}
-Se identifican 15 problemas: 4 de severidad mayor, 5 menores y 6 cosméticos. No se encuentran problemas catastróficos. Los cuatro mayores y dos de los menores ya están corregidos: textos y tildes, formato de fechas, términos internos del desarrollo, mensajes de error de validación, etiquetas de la explicación del puntaje y descripción de los eventos recientes. Las correcciones se hicieron solo en el \emph{frontend}, sin tocar la API ni la lógica de negocio, y el análisis estático y la compilación terminan sin errores. La tabla~\ref{tab:heuristica} reúne los tres problemas menores que siguen abiertos.
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{4.3cm}}
-	\caption{Problemas de usabilidad de severidad menor que siguen abiertos}
-	\label{tab:heuristica}\\
-	\hline
-	\textbf{Problema} & \textbf{Heurística} & \textbf{Severidad} & \textbf{Tratamiento} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Problema} & \textbf{Heurística} & \textbf{Severidad} & \textbf{Tratamiento} \\
-	\hline
-	\endhead
-	El nivel mostrado no se recalcula cuando cambian los umbrales, de modo que un puntaje puede verse con un nivel que ya no corresponde a los rangos configurados & H1 & 2 & Se mantiene: es el comportamiento especificado en RF-12 (la política nueva rige desde el evento siguiente); se documenta \\
-	\hline
-	La configuración del reentrenamiento no muestra si el modo automático está activo & H1, H3 & 2 & Pendiente \\
-	\hline
-	La auditoría presenta los valores anteriores y nuevos en formato técnico & H2 & 2 & Pendiente; aceptable para el perfil administrador \\
-	\hline
-\end{longtable}
-
-Los problemas cosméticos son: el límite superior del nivel crítico mostrado con decimales; la mezcla de términos en inglés y en español (se corrige el del estado del sistema); los identificadores técnicos de las acciones en las tablas; el reconocimiento de alertas limitado a la sesión del navegador; la ausencia de ayuda integrada; y la visualización de registros de prueba en el historial de reentrenamientos.
-
-Como fortalezas, el \emph{dashboard} representa el nivel de cada usuario con color y etiqueta en todas las vistas, muestra el progreso del período de aprendizaje y la cobertura del puntaje, y describe en palabras la acción asociada a cada nivel. El borrado de un usuario solicita confirmación, y los rangos de umbrales se validan antes de enviarse a la API.
+La usabilidad del \emph{dashboard} (RNF-15) se evalúa con una evaluación heurística: el equipo revisa sus ocho pantallas contra las diez heurísticas de Nielsen \parencite{Nielsen1994} y clasifica cada problema con su escala de severidad, de 0 (no es un problema) a 4 (catastrófico). Se identifican 15 problemas: 4 mayores, 5 menores y 6 cosméticos, ninguno catastrófico. Los cuatro mayores y dos menores se corrigen solo en el \emph{frontend} (textos y tildes, formato de fechas, términos internos del desarrollo, mensajes de error de validación, etiquetas de la explicación del puntaje y descripción de los eventos recientes). Siguen abiertos tres problemas menores: el nivel mostrado no se recalcula al cambiar los umbrales, que es el comportamiento especificado en RF-12; la configuración del reentrenamiento no indica si el modo automático está activo; y la auditoría muestra los valores en formato técnico, aceptable para el perfil administrador.
 
 \section{Decisiones tomadas a partir de los resultados}
 \label{sec:decisiones-pruebas}
@@ -569,8 +527,6 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	El componente de riesgo personal presenta un sesgo en usuarios con historial escaso; se evalúan cinco alternativas de cálculo y ninguna lo corrige sin degradar otros casos. & Mantener el cálculo actual y documentar el sesgo como limitación conocida. \\
 	\hline
-	En una corrida real de reentrenamiento disparada por el planificador, el error del LSTM empeora de 0,1155 a 0,1175. & No promover ese juego de modelos; el ciclo automático de reentrenamiento queda verificado de punta a punta, sin una promoción real (sección~\ref{sec:reentrenamiento-producto}). \\
-	\hline
 	Diferencias de redondeo del orden de $10^{-16}$ hacen fallar la comparación de métricas en casos de empate. & Redondear las métricas a seis decimales antes de comparar. El criterio final de comparación es el de no inferioridad sobre escenarios etiquetados (sección~\ref{sec:reentrenamiento-producto}). \\
 	\hline
 	Un modelo rechazado queda guardado en disco y se carga al reiniciar la API. & Respaldar los modelos instalados antes del reentrenamiento y restaurarlos si el modelo nuevo no se promueve. \\
@@ -586,18 +542,6 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos para el LSTM. & Mantener el puntaje con Isolation Forest para esos usuarios (cobertura parcial) y declararlo como limitación. \\
 	\hline
 	El disparador de la cadena de \emph{hashes} agrega 0,042~ms por inserción y no produce errores con hasta 50 escrituras concurrentes. & Mantener la configuración del grupo de conexiones a la base de datos sin ampliarla. \\
-	\hline
-	No existen etiquetas en el conjunto de datos. & Evaluar el modelo con métricas sin etiquetas, escenarios inyectados y escenarios de etiqueta conocida, que permiten medir \emph{recall} y falsos positivos (sección~\ref{sec:benchmark}). \\
-	\hline
-	La evaluación heurística identifica cuatro problemas de usabilidad de severidad mayor en el \emph{dashboard}. & Corregir los cuatro, junto con dos de severidad menor, modificando solo la interfaz. \\
-	\hline
-	Un agente con una clave válida puede enviar eventos a nombre de cualquier usuario, el agente acepta \texttt{http://} hacia cualquier servidor y usa la clave de administración como respaldo, y el inicio de sesión del panel entrega esa clave al navegador. & Ligar cada clave de agente a su identificador y a sus usuarios (403 si no corresponde, antes de la deduplicación), exigir HTTPS fuera de \emph{loopback}, quitar el respaldo en la clave de administración y reemplazar la clave del panel por un \emph{token} de sesión opaco, con vencimiento de 8 horas y cierre de sesión. Las dos limitaciones asociadas dejan de figurar entre las abiertas (sección~\ref{sec:sintesis-limitaciones}). \\
-	\hline
-	La reversión de la denegación de una carpeta elimina todas las denegaciones del usuario en el árbol, incluidas las que existen antes de la intervención del agente. & Restaurar la ACL previa desde un respaldo tomado antes de denegar (\texttt{icacls /save}), usar la eliminación amplia solo como respaldo registrado en el \emph{log} y en el resultado, y tratar un éxito parcial de \texttt{icacls} como fallo, con código de salida 1. La limitación queda resuelta ejecutando el agente con privilegios de administrador (sección~\ref{sec:sintesis-limitaciones}). \\
-	\hline
-	El modelo de lenguaje de la redacción asistida del correo recibe telemetría controlada por el usuario vigilado, que podía contener instrucciones. & Separar las instrucciones de los datos, delimitar, truncar y limitar la telemetría, validar la salida con un texto predefinido de respaldo y mostrar siempre un bloque fijo con nivel, puntaje, acción y explicación (sección~\ref{sec:prompt-injection}). \\
-	\hline
-	La cobertura de líneas necesaria para sustentar el objetivo del 85\,\% no se alcanza en el agente sin ampliar la suite, y el \emph{pipeline} de integración continua no la mide. & Ampliar la suite sin excluir módulos del producto, medir la cobertura por separado con alcance versionado, exigir el 85\,\% en el agente en Windows y declarar el \emph{frontend} fuera del umbral (sección~\ref{sec:cobertura-codigo}). \\
 	\hline
 	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
 	\hline
