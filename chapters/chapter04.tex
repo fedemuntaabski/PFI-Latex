@@ -386,15 +386,15 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}
-A partir de la conclusión del estado del arte (sección~\ref{sec:conclusion-estado-del-arte}), el argumento central que sostiene esta comparación es el siguiente:
+La matriz de capacidades (tabla~\ref{tab:matriz-capacidades}) permite resumir, para cada alternativa, qué le falta respecto del ciclo de detección, decisión y respuesta que plantea la conclusión del estado del arte (sección~\ref{sec:conclusion-estado-del-arte}):
+\begin{itemize}
+	\item \textbf{Microsoft Sentinel UEBA y Splunk UBA:} detectan anomalías y asignan un \emph{score} dinámico, pero el relevamiento no documenta una respuesta en el \emph{endpoint}; la acción queda en manos de un analista o de integraciones externas. Sentinel, además, no expone el funcionamiento de sus algoritmos.
+	\item \textbf{Exabeam:} automatiza la respuesta, pero mediante una plataforma de orquestación externa (SOAR) y sin un agente propio en el equipo del usuario.
+	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo y actúan en el momento de la autenticación (acceso condicional, MFA o bloqueo), no durante el uso continuo de los recursos.
+	\item \textbf{RADAC académico (ad-RACs):} comparte el paradigma de \emph{score} por solicitud, pero se queda en la política de decisión, sin un punto de aplicación en el \emph{endpoint}.
+\end{itemize}
 
-Las herramientas comerciales relevadas operan bajo un enfoque pasivo o reactivo. La telemetría se centraliza en la nube, se procesa, y ante una anomalía la respuesta se delega a una plataforma externa (SOAR) o requiere intervención manual de un administrador. Eso genera una ventana de exposición temporal explotable por un atacante para moverse lateralmente.
-
-El proyecto cierra ese ciclo de forma autónoma, desplegando un agente local en el endpoint que actúa como \emph{Policy Enforcement Point} (PEP), mientras la lógica de decisión se mantiene en la nube como \emph{Policy Decision Point} (PDP), siguiendo el estándar NIST SP 800-207.
-
-El agente mantiene conexión con el motor de IA e intercepta la respuesta casi en tiempo real. Ante una desviación conductual inusual durante la sesión activa, el sistema pasa de ``monitoreo y alerta'' a ``respuesta adaptativa'', ejecutando restricciones de permisos o aislamiento del proceso directamente en la máquina del usuario, sin intermediarios y sin depender de un \emph{re-login}.
-
-Ninguna de las cuatro soluciones comerciales relevadas hace esto: Sentinel y Splunk UBA se detienen en detección/priorización; Exabeam automatiza respuesta pero vía orquestación externa, no vía agente propio; Entra ID Protection actúa solo en el momento de autenticación, no durante el uso continuo de recursos.
+El proyecto propuesto es la única fila de la matriz que reúne continuidad durante la sesión, \emph{enforcement} automático en el \emph{endpoint} y explicabilidad, esta última en forma parcial. Esa combinación se apoya en la separación entre el agente, que actúa como PEP, y la API, que actúa como PDP (sección~\ref{sec:conclusion-estado-del-arte}).
 
 \section{Contraste con la práctica profesional en seguridad de la información: resultados de las entrevistas}
 \label{sec:entrevistas-profesionales}
