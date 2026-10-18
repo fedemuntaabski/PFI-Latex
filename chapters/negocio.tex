@@ -40,17 +40,17 @@ recomendación de proveedores es el factor de adopción más mencionado (20\,\%)
 (sección~\ref{sec:encuesta-usuarios}). \\
 Relación con los clientes & Alta autogestionada con período de aprendizaje automático;
 soporte por correo; acompañamiento del MSSP en los clientes que llegan por ese canal. \\
-Fuentes de ingresos & Suscripción mensual por equipo monitoreado en dos planes: Business (USD 2 a 5)
-y Enterprise, con reentrenamiento periódico configurable (USD 6 a 10). \\
+Fuentes de ingresos & Suscripción mensual por equipo monitoreado en dos planes: Business (de USD 2 a USD 5)
+y Enterprise, con reentrenamiento periódico configurable (de USD 6 a USD 10). \\
 Recursos clave & Modelo de detección entrenado y su pipeline de reentrenamiento; agente, API y
 panel; equipo de desarrollo; infraestructura de nube. \\
 Actividades clave & Desarrollo y mantenimiento del producto; reentrenamiento y evaluación del
 modelo; soporte; gestión del canal de reventa. \\
 Socios clave & Integradores y MSSP; proveedores de nube (AWS, Upstash, Supabase); proveedores de
 identidad (Keycloak u otros) para la integración IAM. \\
-Estructura de costos & Equipo (costo fijo principal); infraestructura de nube base (fija) y por
-equipo monitoreado (variable); comisiones del canal y del procesador de pagos (variables);
-costo de adquisición de clientes; certificado de firma de código y asesoramiento legal. \\
+Estructura de costos & Equipo (costo fijo principal); infraestructura de nube escalonada según los equipos monitoreados (fija por tramo) y almacenamiento por
+equipo (variable); comisiones del canal y del procesador de pagos (variables);
+costo de adquisición de clientes; contador, mesa de ayuda, certificado de firma de código y asesoramiento legal. \\
 \hline
 \end{longtable}
 {\small Fuente: elaboración propia sobre el esquema del lienzo del modelo de negocio \parencite{Osterwalder2010}.\par}
@@ -60,13 +60,51 @@ El esquema de suscripción por equipo se elige porque el costo variable del prod
 la cantidad de equipos monitoreados (eventos procesados, almacenamiento y cómputo de la API), de
 modo que el ingreso escala con el mismo factor que el costo. Con una mezcla supuesta de 70\,\% de
 equipos en el plan Business a USD 4 y 30\,\% en Enterprise a USD 8, el ingreso promedio es de USD 5,20
-por equipo y de USD 390 por mes para un cliente de 75 equipos. Descontados el costo de nube por
-equipo (USD 0,60), las comisiones de pago e impuestos sobre ventas (6\,\%) y la comisión del canal
-(20\,\% sobre la mitad de las ventas), el margen de contribución es de USD 283 por cliente y por mes.
+por equipo y de USD 390 por mes para un cliente de 75 equipos. Descontados el costo variable de nube por
+equipo (USD 0,10), las comisiones de pago e impuestos sobre ventas (6\,\%) y la comisión del canal
+(20\,\% sobre la mitad de las ventas), el margen de contribución es de USD 320 por cliente y por mes.
+
+El costo variable de nube se estima a partir de los gastos del despliegue y no como un valor por
+equipo fijado de antemano. Con la carga medida en el prototipo (unos 3,7 eventos por minuto por equipo,
+o unos 37.000 eventos al mes en jornadas de 8 horas), cada evento requiere unos 17 comandos a Redis y una
+escritura en PostgreSQL. A esa escala los servicios gestionados conviene contratarlos por plan y no por uso:
+Redis con un plan fijo de USD 20 por mes admite hasta 10.000 comandos por segundo \parencite{Upstash2026Pricing},
+mientras que el cobro por comando (USD 0,20 cada 100.000, unos USD 1,30 por equipo y por mes) solo resulta
+más barato por debajo de 16 equipos en total. PostgreSQL gestionado (plan Pro de USD 25 por mes con 8~GB
+incluidos y USD 0,125 por GB adicional \parencite{Supabase2026Pricing}) crece con el volumen almacenado.
+Por eso la mayor parte del gasto de nube es fija y escalonada (tabla~\ref{tab:costo-nube}), y lo que varía
+con el cliente es sobre todo el almacenamiento de los eventos crudos: con una retención supuesta de 90 días
+y unos 1,5~KB por evento (valor no medido), son unos 170~MB por equipo, o USD 0,02 por equipo y por mes. Se
+adopta USD 0,10, cinco veces ese resultado, para cubrir lo que el prototipo no mide: la concurrencia en la
+nube, el tamaño real del evento y el tráfico de salida.
+
+\begin{table}[h]
+\centering
+\caption{Gasto mensual de nube y servicios de soporte por tramo de equipos monitoreados (USD)}
+\label{tab:costo-nube}
+\begin{tabular}{p{8.2cm}r}
+\hline
+\textbf{Concepto} & \textbf{USD por mes} \\
+\hline
+Dos instancias \texttt{t3.medium} (alta disponibilidad; USD 0,0416 por hora cada una), discos, IPv4 y balanceador & 95 \\
+PostgreSQL gestionado (plan Pro con cómputo pequeño) & 30 \\
+Redis gestionado (plan fijo de 1~GB) & 20 \\
+Monitoreo, dominio y correo & 34 \\
+\textbf{Base, hasta 1.500 equipos} & \textbf{179} \\
+Más de 1.500 equipos (cómputo de PostgreSQL medio) & +45 \\
+Cada 3.000 equipos por encima de los primeros 3.000 (otro par de instancias) & +73 \\
+Cada 5.000 equipos por encima de los primeros 5.000 (otro Redis) & +20 \\
+Más de 6.000 equipos (cómputo de PostgreSQL grande) & +100 \\
+Contador, mesa de ayuda y renovación anual del certificado de firma & 167 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir de la infraestructura del prototipo y de los precios publicados por los proveedores \parencite{Upstash2026Pricing,Supabase2026Pricing}; los tramos de capacidad son estimaciones.\par}
+\end{table}
+\FloatBarrier
 
 Con un costo de adquisición de USD 1.500 y una tasa de abandono del 2\,\% mensual (escenario base),
-el valor de vida de un cliente es de USD 283 / 0,02 = USD 14.150, la relación entre el valor de vida
-y el costo de adquisición es de 9,4 y el costo de adquisición se recupera en 5,3 meses.
+el valor de vida de un cliente es de USD 320 / 0,02 = USD 16.000, la relación entre el valor de vida
+y el costo de adquisición es de 10,7 y el costo de adquisición se recupera en 4,7 meses.
 
 \textbf{Disposición a pagar.} El proyecto no cuenta con una medición directa de la disposición a
 pagar. El precio se fija por debajo del de las soluciones del segmento corporativo, que se
@@ -99,19 +137,22 @@ valor residual al final del horizonte, lo que hace que la evaluación sea conser
 \textbf{Supuesto} & \textbf{Valor y fundamento} \\
 \hline
 \endhead
-Inversión inicial & USD 23.000: horas del equipo valorizadas (1.000 h a USD 15/h, USD 15.000),
+Inversión inicial & USD 23.000: horas del equipo valorizadas (1.000 horas a USD 15 por hora, USD 15.000),
 pasaje del prototipo a producto (instalador, firma de código, endurecimiento; USD 6.000),
 constitución de la sociedad y asesoramiento legal (USD 1.500) y certificado de firma de código
 (USD 500). \\
 Precio y mezcla de planes & USD 5,20 por equipo y por mes (70\,\% Business a USD 4, 30\,\% Enterprise a
 USD 8), dentro de los rangos de la sección de precio. \\
 Tamaño del cliente & 75 equipos, punto medio del segmento de 50 a 100. \\
-Costo variable & Nube: USD 0,60 por equipo y por mes; procesador de pagos 3\,\%; impuesto sobre los
+Costo variable & Nube: USD 0,10 por equipo y por mes (almacenamiento con retención de 90 días más un margen
+por lo no medido; sección de economía unitaria); procesador de pagos 3\,\%; impuesto sobre los
 ingresos brutos 3\,\% (supuesto conservador); comisión del 20\,\% al MSSP sobre la mitad de las
 ventas. \\
 Costo fijo & Equipo y soporte, por mes: USD 3.500 el año 1 (dos integrantes a tiempo parcial),
 USD 6.000 el año 2, USD 9.000 el año 3, USD 11.000 el año 4 y USD 12.000 el año 5;
-infraestructura base de nube: USD 250 por mes todos los años. \\
+infraestructura de nube escalonada según los equipos monitoreados (USD 179 por mes hasta 1.500 equipos, USD 224 hasta 3.000, USD 317 con 6.000
+y USD 583 con 12.000; tabla~\ref{tab:costo-nube}); contador, mesa de ayuda y renovación del certificado de
+firma de código: USD 167 por mes (USD 125 el primer año, porque el certificado ya figura en la inversión inicial). \\
 Impuesto a las ganancias & 25\,\% sobre el resultado positivo de cada año (supuesto simplificado,
 sin quebrantos trasladables). \\
 Tasa de descuento & 25\,\% anual en dólares, construida por acumulación (ver el párrafo
@@ -120,15 +161,17 @@ siguiente), con sensibilidad entre 20\,\% y 35\,\%. \\
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-La tasa de descuento se construye por acumulación. Parte del rendimiento
-del bono del Tesoro de los Estados Unidos a diez años, cercano al 5,3\,\%
-a comienzos de octubre de 2026 según la serie DGS10 de la Reserva Federal de St.~Louis \parencite{FRED2026DGS10}, y le suma el riesgo país de Argentina, que el 2 de octubre de 2026 llegó a 650 puntos básicos, su máximo del año, según el índice de J.\,P.~Morgan \parencite{MDZ2026RiesgoPais}.
-El resultado, cercano al 12\,\%, representa el costo del
-financiamiento en dólares para un emisor argentino. A ese valor se agrega
-una prima por riesgo de emprendimiento de 13 a 14 puntos, que refleja que
-el producto no tiene clientes ni historial comercial. Esa prima es un
-supuesto del equipo y es el componente menos fundamentado de la tasa; por
-eso el valor actual neto se informa también con tasas del 20\,\%, 30\,\% y 35\,\%. La tasa se construye con rendimientos nominales en dólares y se aplica a flujos en dólares constantes; al no descontarse la inflación del dólar, resulta algo mayor que la tasa real equivalente, lo que hace la evaluación más conservadora.
+La tasa de descuento se construye por acumulación. Parte del rendimiento del bono del Tesoro de los
+Estados Unidos a diez años, cercano al 5,3\,\% según la serie DGS10 de la Reserva Federal de
+St.~Louis \parencite{FRED2026DGS10}, y le suma el riesgo país de Argentina, de 650 puntos básicos,
+su máximo del año según el índice de J.\,P.~Morgan \parencite{MDZ2026RiesgoPais}. El resultado,
+cercano al 12\,\%, representa el costo de financiarse en dólares para un emisor argentino. A ese valor
+se agrega una prima por riesgo de emprendimiento de 13 a 14 puntos porcentuales, que refleja que el
+producto todavía no tiene clientes ni historial comercial. Esa prima es un supuesto del equipo y el
+componente menos fundamentado de la tasa; por eso el valor actual neto se informa también con tasas del
+20\,\%, 30\,\% y 35\,\%. Como los rendimientos son nominales en dólares y los flujos están en dólares
+constantes, la tasa resulta algo mayor que la real equivalente, lo que vuelve la evaluación más
+conservadora.
 
 \subsection{Escenarios}
 Los tres escenarios difieren en la velocidad de adopción, la tasa de abandono y el costo de
@@ -171,9 +214,9 @@ Optimista & 22 & 74 & 150 & 236 & 307 \\
 \hline
 \textbf{Escenario} & \textbf{Año 0} & \textbf{Año 1} & \textbf{Año 2} & \textbf{Año 3} & \textbf{Año 4} & \textbf{Año 5} \\
 \hline
-Pesimista & $-$23.000 & $-$50.105 & $-$70.935 & $-$92.966 & $-$71.640 & $-$52.192 \\
-Base & $-$23.000 & $-$42.496 & $-$35.398 & 17.228 & 101.831 & 195.938 \\
-Optimista & $-$23.000 & $-$27.251 & 28.086 & 140.224 & 311.523 & 500.375 \\
+Pesimista & $-$23.000 & $-$49.438 & $-$67.565 & $-$84.122 & $-$57.108 & $-$34.215 \\
+Base & $-$23.000 & $-$40.422 & $-$24.606 & 37.244 & 135.648 & 242.657 \\
+Optimista & $-$23.000 & $-$22.447 & 43.458 & 175.454 & 372.723 & 586.307 \\
 \hline
 \end{tabular}\par
 {\small Fuente: elaboración propia a partir del modelo financiero.\par}
@@ -188,11 +231,11 @@ Optimista & $-$23.000 & $-$27.251 & 28.086 & 140.224 & 311.523 & 500.375 \\
 \label{tab:indicadores-fin}
 \begin{tabular}{p{1.9cm}>{\raggedleft\arraybackslash}p{2.2cm}>{\raggedleft\arraybackslash}p{1.7cm}>{\raggedleft\arraybackslash}p{2.1cm}>{\raggedleft\arraybackslash}p{2.2cm}>{\raggedleft\arraybackslash}p{2.4cm}}
 \hline
-\textbf{Escenario} & \textbf{VAN al 25\,\%\newline (USD)} & \textbf{TIR} & \textbf{Payback simple} & \textbf{Payback descontado} & \textbf{Necesidad máx. de fondos (USD)} \\
+\textbf{Escenario} & \textbf{VAN al 25\,\%\newline (USD)} & \textbf{TIR} & \textbf{Recupero simple} & \textbf{Recupero descontado} & \textbf{Necesidad máx. de fondos (USD)} \\
 \hline
-Pesimista & $-$202.527 & no existe & no recupera & no recupera & 360.837 \\
-Base & 35.084 & 38,8 \% & 3,8 años & 4,5 años & 100.894 \\
-Optimista & 336.532 & 131,8 \% & 2,2 años & 2,4 años & 50.251 \\
+Pesimista & $-$183.466 & no existe & no recupera & no recupera & 315.448 \\
+Base & 83.059 & 56,0 \% & 3,4 años & 3,9 años & 88.028 \\
+Optimista & 421.476 & 154,3 \% & 2,0 años & 2,1 años & 45.447 \\
 \hline
 \end{tabular}\par
 {\small Fuente: elaboración propia a partir del modelo financiero.\par}
@@ -207,19 +250,37 @@ Optimista & 336.532 & 131,8 \% & 2,2 años & 2,4 años & 50.251 \\
 \hline
 \textbf{Escenario} & \textbf{20\,\%} & \textbf{30\,\%} & \textbf{35\,\%} \\
 \hline
-Pesimista & $-$223.337 & $-$184.970 & $-$170.030 \\
-Base & 54.826 & 19.633 & 7.456 \\
-Optimista & 406.266 & 280.320 & 234.598 \\
+Pesimista & $-$201.091 & $-$168.508 & $-$155.708 \\
+Base & 110.716 & 61.148 & 43.650 \\
+Optimista & 505.379 & 353.718 & 298.499 \\
 \hline
 \end{tabular}\par
 {\small Fuente: elaboración propia a partir del modelo financiero.\par}
 \end{table}
 \FloatBarrier
 
-El punto de equilibrio operativo es de 14 clientes activos el primer año y crece hasta 44 en el
-quinto, a medida que aumenta el costo fijo del equipo: con un margen de contribución de USD 283 por
-cliente, cada USD 1.000 de costo fijo mensual adicional exige entre tres y cuatro clientes más. La
-tabla~\ref{tab:equilibrio-fin} calcula el equilibrio de cada año como el costo fijo mensual dividido
+\begin{table}[h]
+\centering
+\caption{Sensibilidad del VAN al 25\,\% al costo variable de nube por equipo (USD)}
+\label{tab:sensibilidad-nube}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Escenario} & \textbf{USD 0,10} & \textbf{USD 0,30} & \textbf{USD 0,60} \\
+\hline
+Pesimista & $-$183.466 & $-$192.538 & $-$206.147 \\
+Base & 83.059 & 61.533 & 29.245 \\
+Optimista & 421.476 & 384.163 & 328.194 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del modelo financiero. USD 0,60 es un valor holgado, usado como contraste.\par}
+\end{table}
+\FloatBarrier
+
+El punto de equilibrio operativo es de 12 clientes activos el primer año y crece hasta 41 en el
+quinto, a medida que aumentan el costo fijo del equipo y la infraestructura escalonada: con un margen de contribución de USD 320 por
+cliente, cada USD 1.000 de costo fijo mensual adicional exige tres o cuatro clientes más. La
+tabla~\ref{tab:equilibrio-fin} calcula el equilibrio de cada año como el costo fijo mensual (con la
+infraestructura que corresponde a los clientes del escenario base) dividido
 por el margen de contribución, redondeado hacia arriba, y lo compara con los clientes activos al
 cierre del año en cada escenario. En negrita figuran los valores que alcanzan o superan el
 equilibrio.
@@ -232,11 +293,11 @@ equilibrio.
 \hline
 \textbf{Año} & \textbf{Costo fijo mensual (USD)} & \textbf{Equilibrio} & \textbf{Pesimista} & \textbf{Base} & \textbf{Optimista} \\
 \hline
-1 & 3.750 & 14 & 5 & 11 & \textbf{22} \\
-2 & 6.250 & 23 & 14 & \textbf{41} & \textbf{74} \\
-3 & 9.250 & 33 & 30 & \textbf{86} & \textbf{150} \\
-4 & 11.250 & 40 & \textbf{41} & \textbf{132} & \textbf{236} \\
-5 & 12.250 & 44 & \textbf{49} & \textbf{168} & \textbf{307} \\
+1 & 3.804 & 12 & 5 & 11 & \textbf{22} \\
+2 & 6.464 & 21 & 14 & \textbf{41} & \textbf{74} \\
+3 & 9.657 & 31 & 30 & \textbf{86} & \textbf{150} \\
+4 & 11.730 & 37 & \textbf{41} & \textbf{132} & \textbf{236} \\
+5 & 12.822 & 41 & \textbf{49} & \textbf{168} & \textbf{307} \\
 \hline
 \end{tabular}\par
 {\small Fuente: elaboración propia a partir del modelo financiero.\par}
@@ -244,64 +305,66 @@ equilibrio.
 \FloatBarrier
 
 \subsection{Interpretación}
-En el escenario base (tabla~\ref{tab:indicadores-fin}), el proyecto genera valor: el VAN al 25\,\% es
-de USD 35.084, la TIR de 38,8\,\% supera la tasa de descuento y la inversión se recupera en 3,8 años
-(4,5 años con flujos descontados). Sin embargo, el resultado es sensible a la tasa
-(tabla~\ref{tab:sensibilidad-fin}): al 35\,\% el VAN se reduce a
-USD 7.456. Además, los dos primeros años tienen flujos negativos, por lo que el proyecto requiere
-financiar hasta USD 100.894 acumulados antes de generar caja. En el escenario optimista el VAN es
-de USD 336.532 y la inversión se recupera en 2,2 años. En el pesimista el proyecto no recupera la
-inversión en el horizonte y acumula una necesidad de fondos de USD 360.837: con una adopción tan
+En el escenario base (tabla~\ref{tab:indicadores-fin}) el proyecto genera valor: el VAN al 25\,\% es
+de USD 83.059, la TIR de 56,0\,\% supera la tasa de descuento y la inversión se recupera en 3,4 años
+(3,9 con flujos descontados). El resultado es sensible a la tasa (tabla~\ref{tab:sensibilidad-fin}),
+pero sigue siendo positivo aun al 35\,\%, con USD 43.650. Los dos primeros años tienen flujos
+negativos, por lo que hay que financiar hasta USD 88.028 acumulados antes de generar caja. En el
+escenario optimista el VAN es de USD 421.476 y la inversión se recupera en 2,0 años. En el pesimista
+no se recupera dentro del horizonte y la necesidad de fondos llega a USD 315.448: con una adopción tan
 lenta, el costo fijo crece más rápido que la base de clientes.
 
-La comparación con la adopción proyectada (tabla~\ref{tab:equilibrio-fin}) muestra en cuánto tiempo
-se llega al equilibrio. En el escenario optimista se alcanza en el octavo mes y el primer año cierra
-con 22 clientes frente a 14. En el base se alcanza en el mes 17, es decir, a mitad del segundo año,
-que cierra con 41 clientes frente a 23. En el pesimista recién se alcanza en el cuarto año (41 frente
-a 40) y en el quinto queda apenas por encima (49 frente a 44). Que los flujos sigan negativos después
-de superar el equilibrio es coherente con el modelo, por dos razones. Primero, el equilibrio es
-operativo: no incluye el costo de adquisición ni el impuesto a las ganancias. Segundo, la tabla compara
-los clientes al cierre del año, mientras que el flujo se calcula con la base de clientes de cada mes.
-En el escenario base, el segundo año tiene en promedio 28 clientes activos y USD 54.000 de costo de
-adquisición, por lo que el flujo todavía es negativo y la necesidad de fondos llega a USD 100.894;
-desde el tercer año, la base supera con holgura el equilibrio y el flujo pasa a ser positivo. En el
-pesimista, aun por encima del equilibrio, los USD 60.000 anuales de adquisición de los años 4 y 5 no
-se cubren, y por eso la inversión no se recupera y la necesidad de fondos acumula USD 360.837. Llegar
-al equilibrio en algo menos de un año y medio, como en el escenario base, es razonable para una
-suscripción que depende de un canal de MSSP que recién empieza a aportar clientes en el segundo año;
-llegar recién en el cuarto año, como en el pesimista, no lo es, y es el caso que la regla de decisión
-del párrafo siguiente busca detectar a tiempo.
+El resultado depende poco del costo variable de nube (tabla~\ref{tab:sensibilidad-nube}): con USD 0,60
+por equipo, seis veces el valor adoptado, el VAN del escenario base baja a USD 29.245 y sigue siendo
+positivo. Lo que sí pesa es el piso fijo: aun con pocos clientes, la infraestructura con alta
+disponibilidad, el contador y la mesa de ayuda suman unos USD 350 por mes antes de pagar al equipo.
+Esta conclusión supone que dos instancias atienden unos 3.000 equipos y que Redis y PostgreSQL se
+contratan por plan. Ninguna de las dos cosas se midió en la nube (sección~\ref{sec:latencia-aws}), por lo que
+medirlas es la primera verificación técnica de este análisis.
 
-La viabilidad depende, por lo tanto, de la velocidad de adopción y del costo de adquirir cada
-cliente, más que del precio o del costo de infraestructura. Esto define qué validar primero: la
-disposición a pagar de las PyMEs y la capacidad de los MSSP de aportar clientes a un costo menor
-que la venta directa. Como regla de decisión, si al cabo del primer año la base de clientes queda
+La tabla~\ref{tab:equilibrio-fin} muestra cuándo se alcanza el equilibrio. En el escenario optimista
+se alcanza en el séptimo mes y el primer año cierra con 22 clientes frente a 12 necesarios. En el base
+se alcanza en el mes 16, a mitad del segundo año, que cierra con 41 clientes frente a 21. En el
+pesimista se alcanza recién hacia el final del tercer año, y de forma sostenida en el cuarto (41 clientes
+frente a 37).
+
+Que los flujos sigan negativos después de superar el equilibrio es coherente con el modelo, por dos
+razones. Primero, el equilibrio es operativo: no incluye el costo de adquisición ni el impuesto a las
+ganancias. Segundo, la tabla compara los clientes al cierre del año, mientras que el flujo se calcula con
+la base de cada mes. En el escenario base, el segundo año tiene en promedio 28 clientes activos y
+USD 54.000 de costo de adquisición, por lo que el flujo todavía es negativo; desde el tercer año la
+base supera con holgura el equilibrio y el flujo se vuelve positivo. En el pesimista, aun por encima
+del equilibrio, los USD 60.000 anuales de adquisición de los años 4 y 5 no se cubren, y por eso la
+inversión no se recupera. Llegar al equilibrio en algo menos de un año y medio, como en el base, es
+razonable para una suscripción que depende de un canal de MSSP que recién aporta clientes desde el
+segundo año; llegar recién al final del tercero, como en el pesimista, no lo es.
+
+La viabilidad depende, por lo tanto, de la velocidad de adopción y del costo de adquirir cada cliente
+más que del precio o del costo variable de infraestructura. Esto define qué validar primero: la
+disposición a pagar de las PyMEs y la capacidad de los MSSP de aportar clientes a un costo menor que
+el de la venta directa. Como regla de decisión, si al cabo del primer año la base de clientes queda
 por debajo del punto de equilibrio y el costo de adquisición observado supera los USD 2.000, se
 replantea el canal o el segmento antes de aumentar el costo fijo.
 
 \section{Identidad de marca}
-La identidad de marca reúne los elementos con los que el producto se presenta ante el mercado. Esta
-sección justifica el nombre elegido, describe el logotipo y define el posicionamiento y el mensaje
-con los que se comunica la propuesta de valor.
+La identidad de marca reúne el nombre, el logotipo y el mensaje con los que el producto se presenta
+ante el mercado.
 
 \subsection{Nombre}
-El producto se denomina \textbf{UMBRAL}. El nombre remite al concepto central del sistema: los
-umbrales de riesgo que separan el comportamiento habitual de un usuario de una desviación que
-requiere respuesta, y el límite que un atacante con credenciales válidas no debería poder cruzar
-después del inicio de sesión. Es una palabra corta, en español y fácil de pronunciar para el
-segmento local, y no describe una tecnología puntual, lo que permite que la marca acompañe la
-evolución del producto.
+El producto se llama \textbf{UMBRAL}. El nombre remite a la idea central del sistema: los umbrales de
+riesgo que separan el comportamiento habitual de un usuario de una desviación que merece respuesta, y
+el límite que alguien con credenciales robadas no debería poder cruzar una vez iniciada la sesión. Es
+una palabra corta, en español y fácil de pronunciar para el mercado local. Además, no describe una
+tecnología puntual, de modo que la marca puede acompañar la evolución del producto.
 
 \subsection{Logotipo}
-La figura~\ref{fig:logo} presenta el logotipo del producto. El isotipo es un escudo, símbolo
-convencional de la protección, que contiene una línea de
-actividad que cruza una línea horizontal: la línea representa la actividad del usuario a lo largo
-de la sesión, la horizontal representa el umbral, y el punto en el pico marca el momento en que el
-sistema interviene. El logotipo acompaña el isotipo con el nombre en mayúsculas y una tipografía
-sin serifa de peso alto, que transmite solidez y se lee bien en tamaños chicos, como el ícono del
-agente en la barra de tareas. La paleta combina un azul oscuro, asociado a la confianza y habitual en
-productos de seguridad, con un ámbar de acento que remite a una señal de advertencia y coincide
-con el tono que el panel usa para el nivel de riesgo medio.
+La figura~\ref{fig:logo} presenta el logotipo. El isotipo es un escudo, símbolo habitual de protección,
+que contiene una línea de actividad que cruza una línea horizontal. La primera representa lo que hace
+el usuario durante la sesión; la segunda, el umbral; y el punto en el pico marca el momento en que el
+sistema interviene. Junto al isotipo, el nombre va en mayúsculas y con una tipografía sin serifa de
+trazo grueso, que se lee bien aun en tamaños chicos, como el ícono del agente en la barra de tareas. La
+paleta combina un azul oscuro, frecuente en productos de seguridad, con un ámbar de acento que evoca
+una señal de advertencia y coincide con el color que el panel usa para el riesgo medio.
 
 \begin{figure}[h]
 \centering
@@ -312,10 +375,11 @@ con el tono que el panel usa para el nivel de riesgo medio.
 \FloatBarrier
 
 \subsection{Posicionamiento y mensaje}
-El eslogan \emph{``confianza continua, después del login''} resume la propuesta de valor frente a
-las soluciones que concentran el control en el inicio de sesión. El posicionamiento busca
-diferenciar al producto en dos ejes que surgen del análisis de mercado: un sistema que actúa y no
-solo alerta, y un precio y una puesta en marcha pensados para PyMEs. La comunicación evita
-presentar el producto como una herramienta de vigilancia de empleados y lo presenta como una
-protección de sus credenciales, en línea con la sensibilidad sobre la privacidad que muestran la
-encuesta y el marco legal.
+El eslogan \emph{``confianza continua, después del login''} resume la propuesta frente a las
+soluciones que concentran el control en el inicio de sesión. El posicionamiento se apoya en dos
+diferencias que surgen del análisis de mercado: un sistema que actúa y no solo alerta, y un precio y
+una puesta en marcha pensados para PyMEs.
+
+En la comunicación, el producto se presenta como una protección de las credenciales de cada persona y
+no como una herramienta para vigilar empleados. Ese enfoque responde a la preocupación por la
+privacidad que muestran la encuesta y el marco legal.
