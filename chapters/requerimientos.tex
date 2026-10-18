@@ -118,7 +118,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\endhead
 	RF-12 & El administrador debe poder modificar desde el \emph{dashboard} los umbrales que delimitan cada nivel de riesgo, con validación de rangos contiguos y sin solapamiento. La dimensión ``rol'' en los umbrales queda fuera del alcance. & Alta & Implementado \\
 	\hline
-	RF-13 & El administrador debe poder definir la cantidad de niveles de riesgo (entre 3 y 6), cuyo orden se deriva de los umbrales configurados. La cantidad de niveles se define mediante la API; el \emph{dashboard} edita los rangos de los niveles existentes. Un motor de reglas libres, sin orden entre niveles, queda fuera del alcance. & Media & Implementado \\
+	RF-13 & El administrador debe poder definir la cantidad de niveles de riesgo, cuyo orden se deriva de los umbrales configurados. La cantidad de niveles se define mediante la API; el \emph{dashboard} edita los rangos de los niveles existentes. Un motor de reglas libres, sin orden entre niveles, queda fuera del alcance. & Media & Implementado \\
 	\hline
 	RF-14 & El administrador debe poder configurar qué acción de mitigación se ejecuta para cada nivel de riesgo, validada contra los niveles vigentes. & Alta & Implementado \\
 	\hline
@@ -339,7 +339,7 @@ Esta épica reúne las historias asociadas a CU-02: el estado de riesgo de los u
 
 \textbf{HU-05: Estado de riesgo de los usuarios.} Como administrador de seguridad, quiero ver en el \emph{dashboard} el estado de riesgo de cada usuario y su historial, para priorizar qué casos revisar. Al ingresar al \emph{dashboard}, cada usuario debe aparecer con su puntaje, nivel y estado de aprendizaje, y al abrir su detalle deben mostrarse sus eventos recientes con la explicación de cada puntaje.
 
-\textbf{HU-06: Configuración de umbrales, niveles y acciones.} Como administrador de seguridad, quiero configurar umbrales, cantidad de niveles y acción por nivel, para adaptar el sistema al contexto de seguridad de la organización. Un cambio de umbrales válido, una vez guardado, debe aplicarse a la evaluación de los eventos siguientes, mientras que un cambio con rangos solapados, con menos de 3 o más de 6 niveles, o con una acción asignada a un nivel inexistente debe rechazarse con un mensaje específico.
+\textbf{HU-06: Configuración de umbrales, niveles y acciones.} Como administrador de seguridad, quiero configurar umbrales, cantidad de niveles y acción por nivel, para adaptar el sistema al contexto de seguridad de la organización. Un cambio de umbrales válido, una vez guardado, debe aplicarse a la evaluación de los eventos siguientes, mientras que un cambio con rangos solapados, con 4 niveles, o con una acción asignada a un nivel inexistente debe rechazarse con un mensaje específico.
 
 \textbf{HU-07: Notificaciones y auditoría.} Como administrador de seguridad, quiero recibir notificaciones por correo en los niveles que elija y consultar la auditoría de cambios, para enterarme de los casos relevantes y saber cuándo, qué y con qué rol o clave se modificó la política. Cuando un usuario alcanza un nivel marcado para notificar, debe enviarse un correo con el puntaje, el nivel y los eventos recientes, con un máximo de uno por usuario dentro del intervalo mínimo (10 minutos por defecto). Todo cambio de política, a su vez, debe quedar registrado con fecha y valores en la vista de auditoría.
 
