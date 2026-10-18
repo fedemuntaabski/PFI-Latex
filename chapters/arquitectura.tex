@@ -118,7 +118,7 @@ Los servicios externos también se consumen mediante canales cifrados. La API se
 
 En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API. A su vez, el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}.
 
-Existe una limitación en el despliegue local verificado, donde el canal entre el agente y la API usa HTTP sin TLS. Esto resulta aceptable en \emph{loopback}, y fuera de él el agente exige HTTPS. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación y queda diseñada como trabajo futuro (sección~\ref{sec:limitaciones-producto}).
+Existe una limitación en el despliegue local verificado, donde el canal entre el agente y la API usa HTTP sin TLS. Esto resulta aceptable en \emph{loopback}, y fuera de él el agente exige HTTPS. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}

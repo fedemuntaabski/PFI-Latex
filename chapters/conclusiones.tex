@@ -142,7 +142,8 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         el Redis gestionado y varios agentes concurrentes.
   \item \textbf{Seguridad}: implementar la autenticación mutua por certificado y la firma de las respuestas del PDP (un segundo sitio del
         proxy en un subdominio, con una autoridad certificadora propia y la huella del certificado
-        asociada a la clave del agente), rechazar la clave de administración en el nivel de los agentes, hacer que el panel vuelva al inicio de sesión cuando el \emph{token} vence, agregar una política de seguridad de contenido al
+        asociada a la clave del agente; la firma solo agrega protección frente a un intermediario que termine TLS,
+        como un proxy de inspección), rechazar la clave de administración en el nivel de los agentes, hacer que el panel vuelva al inicio de sesión cuando el \emph{token} vence, agregar una política de seguridad de contenido al
         \emph{dashboard} e integrar un proveedor de identidad real (sección~\ref{sec:sintesis-limitaciones}).
   \item \textbf{Validación comercial}: medir la disposición a pagar y el costo de adquisición a
         través del canal de MSSP, que son las variables que más influyen en la viabilidad.
