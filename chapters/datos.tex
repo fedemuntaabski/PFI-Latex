@@ -44,7 +44,6 @@ Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento 
 
 \section{Variables y modelos}
 \label{sec:variables-modelos}
-
 \subsection{Isolation Forest}
 Isolation Forest evalúa la actividad de cada usuario por día calendario, tomando como referencia la zona horaria UTC. Para cada par usuario-día, se calculan ocho variables que caracterizan el comportamiento: la cantidad total de eventos, la diversidad de tipos de evento y de países, la cantidad de eventos relacionados con archivos (accesos, creaciones y escrituras) y de eventos de autenticación, la hora promedio de actividad, la proporción de eventos fuera del horario habitual (antes de las 7:00 o después de las 20:00) y la entropía de la distribución de los tipos de evento.
 
@@ -53,36 +52,70 @@ El entrenamiento incluye usuarios válidos y usuarios con baja actividad. En tot
 \subsection{LSTM Autoencoder}
 El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtienen 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
 
+
+
 \subsection{Partición y parámetros}
-\label{sec:particion-entrenamiento}
-La tabla~\ref{tab:entrenamiento} resume la partición de los datos y los parámetros de cada modelo.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{5.5cm}>{\raggedright\arraybackslash}p{5.6cm}}
-	\caption{Partición de los datos y parámetros de entrenamiento}
-	\label{tab:entrenamiento}\\
-	\hline
-	\textbf{Aspecto} & \textbf{Isolation Forest} & \textbf{LSTM Autoencoder} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Aspecto} & \textbf{Isolation Forest} & \textbf{LSTM Autoencoder} \\
-	\hline
-	\endhead
-	Unidad de análisis & Usuario-día & Secuencia de 50 eventos \\
-	\hline
-	Partición & Temporal: entrenamiento hasta el 2 de agosto de 2021 (cuantil 0,8 de las fechas), prueba posterior & Por usuario, con semilla fija: 70\,\% entrenamiento, 15\,\% validación y 15\,\% prueba \\
-	\hline
-	Tamaño & 49\,048 usuario-días de entrenamiento y 12\,236 de prueba & 163, 35 y 36 usuarios; 111\,742, 20\,741 y 37\,254 secuencias \\
-	\hline
-	Parámetros & 200 árboles, contaminación de 0,02 & Codificador LSTM(64) y LSTM(32), decodificador simétrico, \emph{embedding} de dimensión 8; 67\,375 parámetros \\
-	\hline
-	Entrenamiento & -- & Error cuadrático medio, optimizador Adam, lotes de 128, detención temprana en la época 22 (pérdida de validación 0,0805) \\
-	\hline
-	Criterio de anomalía & Puntaje de aislamiento según la contaminación & Error de reconstrucción mayor al percentil 95 del entrenamiento (0,1180) \\
-	\hline
-\end{longtable}
+Los modelos utilizan esquemas de partición diferentes, definidos en función de su unidad de análisis y del objetivo de evaluación. En Isolation Forest, se adopta una división temporal para evaluar su capacidad de generalización a períodos posteriores. En cambio, el LSTM Autoencoder se divide por usuario, de modo que su desempeño pueda evaluarse sobre usuarios que no participaron en el entrenamiento. La Tabla~\ref{tab:configuracion-modelos} resume la configuración y los principales resultados del entrenamiento de ambos modelos.
 
-El puntaje híbrido combina ambos modelos con un peso de 0,5 cada uno y aplica un decaimiento temporal con una vida media de 3 días. Los umbrales por defecto de los niveles son 40, 70 y 90. Los dos modelos se particionan con criterios distintos: la partición temporal evalúa la capacidad de Isolation Forest de generalizar hacia el futuro, mientras que la partición por usuario evalúa la del LSTM sobre usuarios no vistos. Como consecuencia, solo 15 usuarios están en el conjunto de prueba de ambos modelos, lo que limita la evaluación conjunta (sección~\ref{sec:evaluacion-modelo}).
+\begin{table}[htbp]
+    \centering
+    \caption{Configuración y entrenamiento de los modelos de detección de anomalías.}
+    \label{tab:configuracion-modelos}
+    \small
+    \renewcommand{\arraystretch}{1.25}
+	\begin{tabular*}{\textwidth}{
+        @{}
+		p{0.20\textwidth}
+		p{0.36\textwidth}
+		p{0.36\textwidth}
+		@ {\extracolsep{\fill}}
+    }
+		\hline
+        \textbf{Aspecto} &
+        \textbf{Isolation Forest} &
+        \textbf{LSTM Autoencoder} \\
+		\hline
+
+        Unidad de análisis &
+        Par usuario-día. &
+        Secuencia de 50 eventos. \\
+
+        Estrategia de partición &
+        Temporal, con corte el 2 de agosto de 2021, correspondiente al cuantil 0,8 de la distribución de fechas. &
+        Por usuario, con semilla fija para garantizar la reproducibilidad. \\
+
+        Distribución de los datos &
+        Entrenamiento: 49\,048 pares usuario-día.
+        Prueba: 12\,236 pares usuario-día. &
+        Entrenamiento: 70\,\% (163 usuarios; 111\,742 secuencias).
+        Validación: 15\,\% (35 usuarios; 20\,741 secuencias).
+        Prueba: 15\,\% (36 usuarios; 37\,254 secuencias). \\
+
+        Arquitectura y configuración &
+        200 árboles y parámetro de contaminación de 0,02. &
+        Codificador con dos capas LSTM de 64 y 32 unidades, \emph{embedding} de dimensión 8 y decodificador simétrico. Total: 67\,375 parámetros. \\
+
+        Entrenamiento &
+        No requiere optimización iterativa. &
+        Optimizador Adam, lotes de 128 secuencias y detención temprana. \\
+
+        Resultado del entrenamiento &
+        No aplica. &
+        Finalización en la época 22, con una pérdida de validación de 0,0805. \\
+
+        Criterio de detección &
+        Umbral de puntuación determinado por el parámetro de contaminación. &
+        Error de reconstrucción superior al percentil 95 de los errores de entrenamiento (0,1180). \\
+
+		\hline
+	\end{tabular*}
+\end{table}
+
+Una vez obtenidas las puntuaciones de ambos modelos, se calcula un puntaje híbrido que asigna un peso de 0,5 a cada uno. Sobre este puntaje se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados para los distintos niveles de riesgo son 40, 70 y 90.
+
+La diferencia entre los esquemas de partición también tiene implicaciones para la evaluación conjunta. Mientras que la división temporal de Isolation Forest permite analizar su capacidad para generalizar a registros futuros, la partición por usuario del LSTM Autoencoder permite evaluar su desempeño sobre usuarios no vistos durante el entrenamiento. Sin embargo, solo 15 usuarios coinciden en los conjuntos de prueba de ambos modelos, lo que limita la comparación conjunta de sus resultados. Esta restricción se considera en la evaluación presentada en la sección~\ref{sec:evaluacion-modelo}.
+
 
 \section{Adaptación de la telemetría del agente}
 \label{sec:mapeo-agente}
@@ -121,13 +154,9 @@ El agente observa un \emph{endpoint} Windows, mientras que el modelo se entrena 
 
 En esta tabla, las variables generales son la cantidad de eventos, la variedad de tipos, la hora promedio, la proporción fuera de horario y la entropía. El LSTM utiliza para todos los eventos el tipo codificado, la información temporal y los indicadores de cambio.
 
-Esta correspondencia es una decisión de diseño que permite reutilizar un modelo entrenado con datos reales en lugar de uno entrenado con datos sintéticos, y tiene limitaciones que se declaran explícitamente:
-\begin{itemize}
-	\item Ninguno de los tipos utilizados describe de forma nativa un proceso o una conexión de red. Los eventos de aplicación de CLUE-LDS se refieren a aplicaciones de la propia plataforma, y el acceso a un recurso compartido públicamente es una aproximación semántica para una conexión saliente.
-	\item El modelo evalúa el tipo de evento y su distribución temporal, no el nombre del proceso, el archivo o el destino de la conexión. Por eso, no reconoce por sí mismo un proceso inusual ni un destino de red sospechoso: detecta cambios en el volumen, la variedad y el horario de la actividad.
-	\item El 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía en el entrenamiento.
-	\item El indicador de dirección local que envía el agente describe la red del equipo y no la de la conexión. El modelo no lo utiliza.
-\end{itemize}
+Esta correspondencia constituye una decisión de diseño que permite reutilizar un modelo entrenado con datos reales, en lugar de recurrir a uno entrenado con datos sintéticos. Sin embargo, es importante tener en cuenta algunas limitaciones. En primer lugar, ninguno de los tipos de evento utilizados representa de forma nativa la ejecución de un proceso o una conexión de red. Los eventos de aplicación de CLUE-LDS corresponden a aplicaciones de la propia plataforma, mientras que el acceso a un recurso compartido públicamente se utiliza como una aproximación semántica a una conexión saliente.
+
+En consecuencia, el modelo analiza los tipos de evento y su distribución temporal, pero no considera el nombre del proceso, el archivo involucrado ni el destino de la conexión. Por lo tanto, no identifica directamente procesos inusuales o destinos de red sospechosos, sino que detecta variaciones en el volumen, la diversidad y los horarios de la actividad. A estas limitaciones se suma que el 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, lo que reduce considerablemente la variabilidad de la variable de cambio de país durante el entrenamiento. Por último, el indicador de dirección local enviado por el agente describe la red del equipo y no la de la conexión, por lo que no se utiliza como entrada del modelo.
 
 La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo, aunque hoy el criterio de promoción rechaza esos reentrenamientos por el corrimiento del corte temporal (sección~\ref{sec:sintesis-limitaciones}).
 
@@ -137,6 +166,15 @@ El sistema persiste su información en dos almacenes con funciones distintas. Re
 
 \subsection{Modelo relacional}
 La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab:tablas-postgres}. Las figuras~\ref{fig:er-scoring} y~\ref{fig:er-config} muestran su estructura.
+
+\begin{figure}[!ht]
+	\centering
+	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_scoring_eventos.pdf}}
+	\caption{Modelo relacional: puntajes, eventos crudos y alertas de corrimiento}
+	\label{fig:er-scoring}
+	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). En \texttt{historial\_\allowbreak{}scores}, UNIQUE(uid, fecha). \texttt{drift\_\allowbreak{}alerts.lado}: iso \textbar{} lstm. Un disparador completa \texttt{row\_\allowbreak{}hash} y \texttt{prev\_\allowbreak{}hash}.\par}
+	{\small Fuente: elaboración propia.\par}
+\end{figure}
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{9.5cm}}
 	\caption{Tablas del modelo relacional}
@@ -167,15 +205,6 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 
 \begin{figure}[ht]
 	\centering
-	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_scoring_eventos.pdf}}
-	\caption{Modelo relacional: puntajes, eventos crudos y alertas de corrimiento}
-	\label{fig:er-scoring}
-	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). En \texttt{historial\_\allowbreak{}scores}, UNIQUE(uid, fecha). \texttt{drift\_\allowbreak{}alerts.lado}: iso \textbar{} lstm. Un disparador completa \texttt{row\_\allowbreak{}hash} y \texttt{prev\_\allowbreak{}hash}.\par}
-	{\small Fuente: elaboración propia.\par}
-\end{figure}
-
-\begin{figure}[ht]
-	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_config_modelos.pdf}}
 	\caption{Modelo relacional: auditoría, reentrenamientos, métricas y claves de agentes}
 	\label{fig:er-config}
@@ -183,41 +212,17 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-Las tablas no tienen claves foráneas: se relacionan lógicamente a través del identificador de usuario. Esta decisión simplifica la persistencia, que es tolerante a fallas: si la base de datos no está disponible, la evaluación de eventos continúa. Como contrapartida, la integridad referencial queda a cargo de la aplicación, por ejemplo la regla de un único modelo vigente por tipo. Seis de las siete tablas tienen activada la seguridad a nivel de fila, de modo que no pueden leerse desde la API pública de la plataforma de base de datos, y solo la API del sistema accede con sus credenciales. La tabla \texttt{historial\_\allowbreak{}scores} no tiene esta protección activada; su incorporación queda registrada como mejora pendiente.
+Las tablas no utilizan claves foráneas, sino que se relacionan lógicamente mediante el identificador de usuario. Esta decisión simplifica la persistencia y permite que la evaluación de eventos continúe incluso cuando la base de datos no está disponible, lo que aporta tolerancia a fallas. Como contrapartida, la integridad referencial debe garantizarse desde la aplicación, que también se encarga de aplicar reglas como la existencia de un único modelo vigente por tipo. En cuanto a la seguridad, seis de las siete tablas tienen activada la seguridad a nivel de fila (\emph{Row-Level Security}, RLS), lo que impide su lectura a través de la API pública de la plataforma de base de datos. El acceso a estas tablas queda restringido a la API del sistema, que utiliza sus propias credenciales. La tabla \texttt{historial\_scores} constituye una excepción, ya que todavía no cuenta con esta protección; su incorporación se encuentra registrada como una mejora pendiente.
 
-La integridad de los eventos crudos se garantiza con una cadena de \emph{hashes} por usuario. Un disparador de la base de datos calcula, antes de cada inserción, el \emph{hash} SHA-256 de la fila a partir de sus campos y del \emph{hash} de la fila anterior del mismo usuario. Si se modifica o elimina una fila, la cadena deja de verificarse a partir de ese punto.
+Por otra parte, la integridad de los eventos crudos se protege mediante una cadena de \emph{hashes} por usuario. Antes de cada inserción, un disparador de la base de datos calcula el \emph{hash} SHA-256 de la nueva fila a partir de sus campos y del \emph{hash} de la fila anterior del mismo usuario. De este modo, cada registro queda vinculado al precedente, por lo que cualquier modificación o eliminación de una fila rompe la continuidad de la cadena a partir de ese punto y permite detectar alteraciones en los registros.
 
+\FloatBarrier
 \subsection{Modelo no relacional}
-Redis almacena dieciséis tipos de clave, agrupados en la tabla~\ref{tab:claves-redis}. Casi ninguna utiliza la expiración nativa de Redis: cuando una clave debe vencer, la fecha de vencimiento se guarda dentro del valor y se verifica al leerla; la deduplicación es la excepción, porque además de guardar el vencimiento usa la expiración nativa. Esta decisión permite ejecutar las pruebas con un Redis simulado en memoria con el mismo comportamiento. El estado de cada usuario se actualiza con transacciones optimistas, con reintentos ante escrituras concurrentes, lo que sostiene el requerimiento RNF-14.
+Redis almacena dieciséis tipos de clave, que pueden agruparse en ocho funciones según la información que guardan. La función central es el estado de cada usuario, que reúne todo lo necesario para el \emph{scoring}: la continuidad de la secuencia, los acumulados de cada modelo, la línea base personal, el último puntaje con su nivel, acción y explicación, el contexto IAM y la última confirmación del agente. Junto a este estado se conserva una lista acotada con los últimos eventos evaluados de cada usuario. Redis guarda, además, la configuración del sistema: los umbrales, las acciones por nivel, los niveles que generan notificaciones y sus destinatarios, los parámetros de reentrenamiento, el límite de eventos recientes, el umbral de aprendizaje y los proveedores de identidad.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{7.2cm}>{\raggedright\arraybackslash}p{3.5cm}}
-	\caption{Claves de Redis agrupadas por función}
-	\label{tab:claves-redis}\\
-	\hline
-	\textbf{Grupo} & \textbf{Contenido} & \textbf{Vigencia} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Grupo} & \textbf{Contenido} & \textbf{Vigencia} \\
-	\hline
-	\endhead
-	Estado del usuario & Estado de \emph{scoring} completo: continuidad, acumulados de cada modelo, línea base personal, último puntaje, nivel, acción, explicación, contexto IAM y última confirmación del agente & Permanente \\
-	\hline
-	Eventos recientes & Lista acotada de los últimos eventos evaluados de cada usuario & Permanente, con tope configurable \\
-	\hline
-	Intervalo de notificación & Momento hasta el cual no se reenvía un correo para el usuario & 10 minutos \\
-	\hline
-	Deduplicación & Respuesta ya calculada para un evento reenviado & 6 horas \\
-	\hline
-	Claves de agentes & \emph{Hash} de cada clave con el identificador del agente y su estado & Hasta su revocación \\
-	\hline
-	Sesiones del panel & Token de sesión opaco con el rol del usuario y su vencimiento & 8 horas, o hasta el cierre de sesión \\
-	\hline
-	Caché IAM & Rol y departamento del usuario, y \emph{token} de acceso al proveedor & 30 minutos para el rol (1 minuto ante fallas); el \emph{token}, según su vencimiento \\
-	\hline
-	Configuración & Umbrales, acciones por nivel, niveles que notifican, destinatarios, reentrenamiento, límite de eventos recientes, umbral de aprendizaje y proveedores de identidad & Permanente \\
-	\hline
-\end{longtable}
+Estas tres funciones son permanentes, aunque la lista de eventos recientes está limitada por un tope configurable. El resto de las claves tiene una vigencia definida según su función. El intervalo de notificación registra hasta qué momento no se reenvía un correo para un mismo usuario y dura diez minutos. La deduplicación conserva durante seis horas la respuesta ya calculada para un evento, de modo que un reenvío del agente no se evalúe dos veces. Las sesiones del panel se representan con un \emph{token} opaco que incluye el rol del usuario y su vencimiento, y caducan a las ocho horas o al cerrarse la sesión. La caché IAM mantiene el rol y el departamento del usuario durante treinta minutos, plazo que se reduce a un minuto cuando la consulta al proveedor falla, mientras que el \emph{token} de acceso al proveedor se conserva hasta su propio vencimiento. Por último, las claves de los agentes se almacenan como \emph{hash}, junto con el identificador del agente y su estado, y permanecen vigentes hasta su revocación.
+
+La mayoría de estas claves gestiona el vencimiento desde la aplicación: la fecha de expiración se almacena junto con el valor y se verifica al acceder a la clave, en lugar de utilizar el mecanismo de expiración nativo de Redis. La deduplicación constituye una excepción, ya que combina este mecanismo con la expiración nativa. Por otra parte, el estado de cada usuario se actualiza mediante transacciones optimistas, con reintentos ante escrituras concurrentes, en cumplimiento del requerimiento RNF-14.
 
 \section{Síntesis}
 \label{sec:sintesis-datos}
