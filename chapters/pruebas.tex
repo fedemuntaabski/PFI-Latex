@@ -105,7 +105,7 @@ Las 18 pruebas omitidas en la configuración de integración continua dependen d
 El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por cuatro trabajos independientes:
 \begin{itemize}
 	\item \textbf{\emph{Frontend}} (Ubuntu, Node~24): análisis estático y compilación; no tiene umbral de cobertura, porque el \emph{frontend} no tiene pruebas.
-	\item \textbf{API} (Ubuntu, Python~3.11): ejecución de las pruebas de la API sin los artefactos de modelo, que no están versionados, con medición de la cobertura combinada de líneas y ramas del código de la API y de los dos módulos auxiliares que importa. El umbral es del 74\,\% de cobertura combinada y funciona como protección contra regresiones. El mismo informe se publica además por líneas, solo a título informativo (sin umbral), y cuatro archivos de pruebas del agente que no dependen del sistema operativo se ejecutan allí sin medir cobertura y deben pasar.
+	\item \textbf{API} (Ubuntu, Python~3.11): ejecución de las pruebas de la API sin los artefactos de modelo, que no están versionados, con medición de la cobertura combinada de líneas y ramas del código de la API y de los dos módulos auxiliares que importa. El umbral es del 74\,\% de cobertura combinada (sección~\ref{sec:cobertura-codigo}). El mismo informe se publica además por líneas, solo a título informativo (sin umbral), y cuatro archivos de pruebas del agente que no dependen del sistema operativo se ejecutan allí sin medir cobertura y deben pasar.
 	\item \textbf{Agente en Windows (\texttt{agent-windows}):} ejecución de la suite completa del agente en Windows (Python~3.11), con un umbral del 85\,\% de cobertura de líneas.
 	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato, inicialización y validación de la configuración sin aplicar cambios; sin umbral.
 \end{itemize}
@@ -441,7 +441,7 @@ Se calculan el área bajo la curva ROC (ROC-AUC), el PR-AUC, el \emph{recall} y 
 
 Los intervalos de confianza al 95\,\% se obtienen por \emph{bootstrap} con 1\,000 remuestreos sobre víctimas y no sobre días, porque los días de una misma víctima están correlacionados. Para comparar dos variantes se utiliza el mismo remuestreo, lo que da intervalos pareados de la diferencia.
 
-\subsection{Resultados en HOLDOUT}
+\subsection{Resultados en HOLDOUT}\label{sec:resultados-holdout}
 El sistema evaluado es el vigente en producción: los modelos de la versión v1, el riesgo del LSTM calculado como media acumulada de las secuencias cerradas, la combinación en partes iguales, el decaimiento temporal y los umbrales 40/70/90. El conjunto de variables del modelo queda versionado y, con la versión 1, la salida del puntaje es idéntica byte a byte a la anterior: una comparación A/B sobre la repetición de 800 eventos reales produce la misma huella en ambos árboles de código. Como en todo el benchmark, cada día se evalúa cerrado, sin el agregado parcial ni la línea base personal que la producción aplica en cada evento. La tabla~\ref{tab:bench-auc} presenta el ROC-AUC de cada componente y del híbrido en los escenarios sin país.
 
 \begin{table}[h]
