@@ -1,64 +1,36 @@
 \chapter{Conclusiones y trabajo futuro}\label{chap:conclusiones}
 
-Esta sección cierra el documento. Analiza el grado de cumplimiento del objetivo general y de cada
-objetivo específico, resume los resultados principales del proyecto en sus aspectos técnicos,
-económicos y legales, reúne las lecciones aprendidas durante el desarrollo y propone las líneas de
-trabajo futuro, priorizadas según su impacto sobre la principal limitación del sistema.
+Esta sección cierra el documento. Analiza el cumplimiento del objetivo general y de cada objetivo
+específico, resume los resultados principales del proyecto en sus aspectos técnicos, económicos y
+legales, y propone las líneas de trabajo futuro, priorizadas según su impacto sobre la principal
+limitación del sistema.
 
 \section{Cumplimiento de los objetivos}\label{sec:cumplimiento-objetivos}
 El objetivo general se cumple en su alcance funcional: el sistema evalúa cada evento durante toda
 la sesión, mantiene un puntaje de riesgo con continuidad entre sesiones y ejecuta en el equipo una
 respuesta graduada, con la decisión centralizada en la API y la aplicación distribuida en los
-agentes. La tabla~\ref{tab:cumplimiento-objetivos} detalla cada objetivo específico.
+agentes. Ocho de los nueve objetivos específicos se cumplen; el segundo, el modelo híbrido, se cumple
+en forma parcial. La tabla~\ref{tab:cumplimiento-objetivos} detalla la evidencia de cada uno.
 
-\begin{longtable}{p{5.6cm}p{6.2cm}p{2.2cm}}
+\begin{longtable}{p{5.0cm}p{9.0cm}}
 \caption{Cumplimiento de los objetivos específicos}\label{tab:cumplimiento-objetivos}\\
 \hline
-Objetivo & Evidencia & Estado \\
+Objetivo & Evidencia \\
 \hline
 \endfirsthead
 \hline
-Objetivo & Evidencia & Estado \\
+Objetivo & Evidencia \\
 \hline
 \endhead
-1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos implementada (RF-01,
-RNF-08); canal con TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13);
-credencial individual por agente, revocable y ligada a su identidad y a los usuarios que monitorea (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria residente (RNF-02); verificado con un agente real contra la instancia por HTTPS, con credencial individual (sección~\ref{sec:verificacion-despliegue}) & Cumplido \\
-2. Modelo híbrido evaluado contra metas & Modelo entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de
-comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}); con el umbral de 70, la
-detección atribuible es de 0 a 13,3\,\% por escenario frente a un 15,4\,\% de días normales que terminan en nivel
-alto (sección~\ref{sec:validacion-escenarios}); evaluación con escenarios etiquetados en una
-partición reservada, con un ROC-AUC del híbrido entre 0,58 y 0,80 según el escenario (sección~\ref{sec:benchmark}) & Parcial \\
-3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
-(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms, medidos de extremo a extremo desde el cliente, en entorno local con Redis en memoria; con Redis y PostgreSQL gestionados en la nube el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia & Cumplido \\
-4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,
-RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
-unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
-automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
-reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente ejecutado como administrador (sección~\ref{sec:sintesis-limitaciones}) & Cumplido \\
-5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
-RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el LSTM no tiene explicación (RNF-11, parcial) & Cumplido \\
-6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
-corridas reales del reentrenamiento (una automática y dos manuales) producen modelos candidatos
-que la regla de promoción anterior rechaza, por lo que no se promueven (\mbox{RF-21}); el juego de la corrida del 2 de septiembre
-se adopta después como vigente por consistencia, no por promoción; el criterio de promoción de no
-inferioridad está implementado y cubierto por 13 pruebas automatizadas, y se verifica con el script de
-evaluación: el modelo vigente contra sí mismo se promueve y el juego v2 se rechaza por la tasa de falsos
-positivos (\mbox{RF-21}). Limitación: todavía no se ejecuta una promoción desde el planificador con un modelo
-genuinamente nuevo; la migración que habilita el registro de las métricas del criterio está aplicada, pero este todavía no registró ninguna evaluación en la base & Cumplido \\
-7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
-\emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
-corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión,
-sin claves de administración en el navegador; secretos en el almacén de parámetros de la nube; la
-autenticación mutua por certificado queda diseñada como extensión (RF-02, RNF-03, RNF-13); verificado contra la instancia (sección~\ref{sec:verificacion-despliegue}) & Cumplido \\
-8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y
-análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de
-conservación y la supresión completa de los datos de un usuario & Cumplido \\
-9. Pruebas con cobertura $\geq$ 85\,\% & 623 pruebas automatizadas (446 de la API y 177 del agente),
-con una cobertura de líneas del 94,7\,\% en la API y del 89,3\,\% en el agente, medida por separado
-(sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, se declara fuera del
-umbral; prueba automatizada de extremo a extremo del ciclo de decisión y aplicación, y evaluación
-heurística de usabilidad realizada & Cumplido \\
+1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos (RF-01, RNF-08); TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13); credencial individual, revocable y ligada al agente y a sus usuarios (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria (RNF-02); verificado con un agente real contra la instancia por HTTPS (sección~\ref{sec:verificacion-despliegue}) \\
+2. Modelo híbrido evaluado contra metas & \textbf{Parcial.} Entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}). Con el umbral de 70, la detección atribuible es de 0 a 13,3\,\% por escenario frente a un 15,4\,\% de días normales en nivel alto (sección~\ref{sec:validacion-escenarios}); en la partición reservada de escenarios etiquetados, el ROC-AUC del híbrido va de 0,58 a 0,80 según el escenario (sección~\ref{sec:benchmark}) \\
+3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados (RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms de extremo a extremo en entorno local; con Redis y PostgreSQL gestionados en la nube, el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia \\
+4. Respuesta graduada y reversible & Seis acciones configurables por nivel (RF-07, RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo (RNF-06), con pruebas con \texttt{icacls} simulado y una prueba de extremo a extremo del ciclo de decisión y aplicación (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente como administrador (sección~\ref{sec:sintesis-limitaciones}) \\
+5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a RF-17, RNF-07); evaluación heurística con los cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest, pero no el LSTM (RNF-11, parcial) \\
+6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados. Las tres corridas reales de reentrenamiento (una automática y dos manuales) generan candidatos que la regla de promoción anterior rechaza (RF-21). El criterio de no inferioridad está implementado, con 13 pruebas automatizadas: el modelo vigente se promueve contra sí mismo y el juego v2 se rechaza por falsos positivos. Falta ejecutar una promoción desde el planificador con un modelo genuinamente nuevo \\
+7. Credenciales y canal protegidos & TLS con certificado verificado; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión; secretos en el almacén de parámetros de la nube; la autenticación mutua por certificado queda como extensión (RF-02, RNF-03, RNF-13); verificado contra la instancia (sección~\ref{sec:verificacion-despliegue}) \\
+8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de conservación y la supresión completa de los datos de un usuario \\
+9. Pruebas con cobertura $\geq$ 85\,\% & 623 pruebas automatizadas (446 de la API y 177 del agente), con una cobertura de líneas del 94,7\,\% en la API y del 89,3\,\% en el agente (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, queda fuera del umbral; prueba de extremo a extremo del ciclo de decisión y aplicación, y evaluación heurística de usabilidad \\
 \hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -97,23 +69,6 @@ adopción y del costo de adquirir clientes. El marco legal no impide el uso del 
 que la organización que lo adopte informe a sus empleados y formalice la transferencia
 internacional de los datos.
 
-\section{Lecciones aprendidas}
-\begin{itemize}
-  \item Un conjunto de datos público resuelve la falta de datos reales, pero impone su vocabulario
-        y sus limitaciones: traducir la telemetría de un equipo Windows al vocabulario de una
-        plataforma de archivos compartidos hace que algunos eventos no aporten a las variables del
-        modelo, y la falta de etiquetas obliga a construir una evaluación propia.
-  \item Sin etiquetas, la evaluación del modelo necesita metas definidas antes de la primera evaluación y escenarios
-        controlados: en este proyecto las metas se fijaron después de una evaluación exploratoria, lo que le resta fuerza al contraste aunque los resultados no las alcanzaran. Las métricas no supervisadas por sí solas no dicen si el sistema detecta.
-  \item El criterio de promoción del reentrenamiento tiene que medir detección: comparar la tasa
-        de anomalías o el error de reconstrucción favorece a un modelo que no marca nada.
-  \item Las limitaciones de seguridad del propio sistema (credenciales y canal) son parte del
-        producto y no un detalle de despliegue: un sistema de seguridad se evalúa también por
-        cómo se protege a sí mismo.
-  \item Verificar en el destino real (la base de datos, el correo recibido, el equipo donde se
-        ejecuta la acción) evita dar por cumplidas funciones que solo se observan en un registro.
-\end{itemize}
-
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 El trabajo futuro se prioriza según el impacto sobre la principal limitación del sistema:
 \begin{enumerate}
@@ -140,7 +95,7 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
   \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
         evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
         controles contra el servicio real (sección~\ref{sec:prompt-injection}).
-  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09), al descarte del \emph{buffer} local (RNF-05) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
+  \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
         el Redis gestionado y varios agentes concurrentes.
   \item \textbf{Seguridad}: implementar la autenticación mutua por certificado y la firma de las respuestas del PDP (un segundo sitio del
         proxy en un subdominio, con una autoridad certificadora propia y la huella del certificado
