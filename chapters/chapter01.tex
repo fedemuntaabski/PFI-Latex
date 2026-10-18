@@ -21,8 +21,7 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
 \begin{enumerate}
   \item Implementar un agente para equipos Windows que recolecte únicamente metadatos de actividad
         (procesos, archivos y conexiones de red), los envíe a una API central por un canal cifrado
-        con TLS, autenticándose con una credencial individual y revocable por agente, ligada a su
-        identidad y a los usuarios que monitorea, y consuma como máximo el 5\,\% de la CPU y
+        con TLS, autenticándose con una credencial individual por agente, y consuma como máximo el 5\,\% de la CPU y
         150\,MB de memoria residente.
   \item Entrenar un modelo híbrido de detección de anomalías (Isolation Forest y LSTM Autoencoder)
         sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo con escenarios
@@ -45,7 +44,7 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
         inferioridad), y tratar a los usuarios nuevos con un período de aprendizaje.
   \item Proteger las credenciales del sistema y el canal entre sus componentes mediante cifrado en
         tránsito (TLS con certificado verificado), autenticación del agente con una credencial
-        individual ligada a su identidad y a los usuarios que monitorea, y sesiones del panel
+        individual y revocable, ligada a su identidad y a los usuarios que monitorea, y sesiones del panel
         revocables que no expongan claves de administración al navegador. La autenticación mutua a
         nivel TLS (mTLS) queda diseñada como extensión.
   \item Analizar el tratamiento de datos personales que realiza el sistema a la luz de la Ley 25.326
