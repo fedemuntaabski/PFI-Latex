@@ -55,6 +55,7 @@ El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuari
 
 
 \subsection{Partición y parámetros}
+\label{sub:particion-parametros}
 
 Los modelos utilizan esquemas de partición diferentes, definidos en función de su unidad de análisis y del objetivo de evaluación. En Isolation Forest, se adopta una división temporal para evaluar su capacidad de generalización a períodos posteriores. En cambio, el LSTM Autoencoder se divide por usuario, de modo que su desempeño pueda evaluarse sobre usuarios que no participaron en el entrenamiento. La Tabla~\ref{tab:configuracion-modelos} resume la configuración y los principales resultados del entrenamiento de ambos modelos.
 
