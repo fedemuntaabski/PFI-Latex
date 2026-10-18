@@ -60,6 +60,7 @@ La respuesta de la API indica la acción de mitigación. El agente la ejecuta y,
 Las acciones pueden revertirse con un comando del agente que restituye los permisos previos, en forma exacta cuando el agente se ejecuta con privilegios de administrador (sección~\ref{sec:sintesis-limitaciones}), y reanuda los procesos suspendidos. La terminación de procesos no es reversible. El agente dispone además de un modo de simulación, que registra las acciones sin aplicarlas y se utiliza en las pruebas y demostraciones.
 
 \subsection{Motor de \emph{scoring}}
+\label{sec:motor-scoring-producto}
 La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 días en el pasado y 5 minutos en el futuro), descarta reenvíos duplicados durante 6 horas y lo evalúa en los siguientes pasos:
 \begin{enumerate}
 	\item Isolation Forest evalúa el día en curso del usuario a partir de ocho variables agregadas (cantidad y variedad de eventos, países distintos, actividad sobre archivos y de autenticación, hora promedio, proporción fuera de horario y entropía de los tipos de evento).
@@ -71,7 +72,7 @@ La API recibe cada evento, valida su esquema y su ventana temporal (hasta 90 dí
 	\item Se determina la acción según el mapeo nivel\,$\rightarrow$\,acción y se genera una explicación con las tres variables de Isolation Forest que más se apartan de los valores de la población de entrenamiento.
 \end{enumerate}
 
-Cuando un nivel está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes, con un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido. Si hay un proveedor IAM configurado, la API agrega el rol y el departamento del usuario como contexto informativo, con caché de 30 minutos y sin interrumpir la evaluación ante una falla del proveedor.
+Cuando un nivel está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes, con un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido. Si hay un proveedor IAM configurado, la API agrega el rol y el departamento del usuario como contexto informativo, con caché de 30 minutos y sin interrumpir la evaluación ante una falla del proveedor. En sentido inverso, cuando el nivel del usuario cambia, la API informa el nuevo nivel al proveedor IAM y, en nivel crítico, solicita el cierre de sus sesiones; con Keycloak, un nivel alto o crítico exige además un segundo factor (OTP) en el próximo inicio de sesión.
 
 La API también detecta corrimientos significativos de la línea base personal y los registra como alertas de \emph{drift}. El estado vigente de cada usuario y una lista acotada de sus eventos recientes se mantienen en Redis; el historial diario con su explicación y los eventos crudos se persisten en PostgreSQL. Los eventos crudos se encadenan mediante \emph{hashes} por usuario, lo que permite detectar modificaciones posteriores.
 
@@ -247,7 +248,7 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
 	\hline
-	Integración con Keycloak sin validación real & El adaptador está implementado y probado con un proveedor simulado. & Validación pendiente contra un servidor real. \\
+	Integración con Microsoft Entra ID sin validación real & El proveedor está implementado y probado con solicitudes simuladas, sin acceso a un \emph{tenant} real. & Validación pendiente contra un \emph{tenant} real. \\
 	\hline
 	Sin plazo de conservación ni supresión completa de datos & Los eventos crudos y las alertas de corrimiento de un usuario no se suprimen, y suprimir los eventos crudos rompería la verificación de la cadena de \emph{hashes}. & Trabajo futuro: plazo de conservación, procedimiento de supresión que alcance a los eventos crudos y cierre de la cadena por período (sección~\ref{sec:conservacion-datos}). \\
 	\hline

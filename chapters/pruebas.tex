@@ -645,7 +645,7 @@ La decisión principal que surge de estos resultados es mantener el modelo vigen
 	\item Las cifras del LSTM en el benchmark son optimistas, porque la mayoría de las víctimas forma parte de su entrenamiento.
 	\item No se mide la tasa de falsos positivos ante cambios de ubicación legítimos, como viajes o una VPN corporativa: los días negativos del benchmark no tienen país.
 	\item Ninguna cifra del benchmark se transfiere sin más al agente, por la brecha de dominio entre los registros de una plataforma en la nube y la telemetría de un equipo Windows.
-	\item La integración con Keycloak no está validada contra un servidor real.
+	\item La integración con Microsoft Entra ID no está validada contra un \emph{tenant} real; la de Keycloak se verificó contra un servidor real.
 \end{itemize}
 
 \section{Síntesis}

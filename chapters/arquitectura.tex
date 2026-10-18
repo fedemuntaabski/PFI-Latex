@@ -54,7 +54,7 @@ El estado operativo y la configuración del sistema se almacenan en Redis, y el 
 
 Para el despliegue se recurre a Amazon Web Services, que provee la instancia de cómputo de la API, el almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, el almacén de parámetros para los secretos y la administración remota sin SSH. El \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) que corre en la propia instancia. Los recursos de la nube se definen con Terraform, de modo que se crean, modifican y destruyen de forma reproducible y revisable, y GitHub Actions ejecuta en cada cambio el análisis estático, la compilación, las pruebas y la validación de la infraestructura.
 
-Por último, el sistema integra tres servicios opcionales. El envío de correo por SMTP permite notificar al administrador y, si no hay un servidor configurado, la notificación solo se registra. Gemini asiste en la redacción del correo, con un texto predefinido de respaldo para que la notificación no dependa de un servicio externo. Keycloak actúa como proveedor IAM de referencia para el adaptador de identidad y está desactivado por defecto.
+Por último, el sistema integra tres servicios opcionales. El envío de correo por SMTP permite notificar al administrador y, si no hay un servidor configurado, la notificación solo se registra. Gemini asiste en la redacción del correo, con un texto predefinido de respaldo para que la notificación no dependa de un servicio externo. El adaptador de identidad admite proveedores IAM simulados, Keycloak y Microsoft Entra ID; Keycloak actúa como proveedor de referencia, está validado contra un servidor real y, como el resto, está desactivado por defecto, salvo en el despliegue en la nube. Además de leer el rol y el departamento, el adaptador informa al proveedor el nivel de riesgo y, en nivel crítico, solicita el cierre de las sesiones del usuario.
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
@@ -114,7 +114,7 @@ La autenticación se apoya en claves enviadas en encabezados HTTP. Cada agente p
 
 Para el almacenamiento, la API se comunica con Redis mediante RESP y utiliza transacciones optimistas para garantizar que las actualizaciones del estado de cada usuario se realicen de forma atómica ante eventos concurrentes. La conexión con PostgreSQL utiliza el protocolo estándar, un grupo de conexiones y tiempos de espera acotados.
 
-Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
+Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak y Microsoft Entra ID mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
 
 En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API. A su vez, el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}.
 
