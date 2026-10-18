@@ -30,7 +30,7 @@ detección atribuible es de 0 a 13,3\,\% por escenario frente a un 15,4\,\% de d
 alto (sección~\ref{sec:validacion-escenarios}); evaluación con escenarios etiquetados en una
 partición reservada, con un ROC-AUC del híbrido entre 0,58 y 0,80 según el escenario (sección~\ref{sec:benchmark}) & Parcial \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados
-(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms, medidos de extremo a extremo desde el cliente, en entorno local con Redis en memoria & Cumplido \\
+(RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms, medidos de extremo a extremo desde el cliente, en entorno local con Redis en memoria; con Redis y PostgreSQL gestionados en la nube el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia & Cumplido \\
 4. Respuesta graduada y reversible & Catálogo de seis acciones configurables por nivel (RF-07,
 RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
 unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
@@ -42,10 +42,10 @@ RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos;
 corridas reales del reentrenamiento (una automática y dos manuales) producen modelos candidatos
 que la regla de promoción anterior rechaza, por lo que no se promueven (\mbox{RF-21}); el juego de la corrida del 2 de septiembre
 se adopta después como vigente por consistencia, no por promoción; el criterio de promoción de no
-inferioridad está implementado y cubierto por 12 pruebas automatizadas, y se verifica con el script de
+inferioridad está implementado y cubierto por 13 pruebas automatizadas, y se verifica con el script de
 evaluación: el modelo vigente contra sí mismo se promueve y el juego v2 se rechaza por la tasa de falsos
 positivos (\mbox{RF-21}). Limitación: todavía no se ejecuta una promoción desde el planificador con un modelo
-genuinamente nuevo & Cumplido \\
+genuinamente nuevo; la migración que habilita el registro de las métricas del criterio está aplicada, pero este todavía no registró ninguna evaluación en la base & Cumplido \\
 7. Credenciales y canal protegidos & TLS con certificado verificado y rechazo de \texttt{http} fuera de
 \emph{loopback}; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no
 corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión,
@@ -54,8 +54,8 @@ autenticación mutua por certificado queda diseñada como extensión (RF-02, RNF
 8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y
 análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de
 conservación y la supresión completa de los datos de un usuario & Cumplido \\
-9. Pruebas con cobertura $\geq$ 85\,\% & 530 pruebas automatizadas (353 de la API y 177 del agente),
-con una cobertura de líneas del 93,9\,\% en la API y del 89,3\,\% en el agente, medida por separado
+9. Pruebas con cobertura $\geq$ 85\,\% & 623 pruebas automatizadas (446 de la API y 177 del agente),
+con una cobertura de líneas del 94,7\,\% en la API y del 89,3\,\% en el agente, medida por separado
 (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, se declara fuera del
 umbral; prueba automatizada de extremo a extremo del ciclo de decisión y aplicación, y evaluación
 heurística de usabilidad realizada & Cumplido \\
@@ -69,7 +69,7 @@ funcionales, 12 están implementados y 3 en estado parcial (RNF-05, RNF-09 y RNF
 \section{Resultados principales}
 El resultado técnico más relevante es la arquitectura: el sistema cierra el ciclo de detección,
 decisión y respuesta en el equipo, que es el hueco que el estado del arte identifica en las
-soluciones comerciales, y lo hace con un percentil 95 de latencia de 14,9\,ms frente al límite de 500\,ms, con el consumo del agente y la cobertura de las pruebas dentro de sus umbrales (tabla~\ref{tab:cumplimiento-objetivos}).
+soluciones comerciales, y lo hace con un percentil 95 de latencia de cómputo de 14,9\,ms frente al límite de 500\,ms, con el consumo del agente y la cobertura de las pruebas dentro de sus umbrales (tabla~\ref{tab:cumplimiento-objetivos}).
  La separación entre el punto de decisión y el de aplicación permite cambiar
 umbrales y acciones sin modificar los agentes.
 
