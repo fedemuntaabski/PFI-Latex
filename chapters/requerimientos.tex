@@ -203,7 +203,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\textbf{ID} & \textbf{Requerimiento} & \textbf{Prioridad} & \textbf{Estado} \\
 	\hline
 	\endhead
-	RF-28 & La API debe poder consultar a uno o más proveedores IAM externos el rol y el departamento del usuario monitoreado, mediante un adaptador con implementaciones de prueba (\emph{mock}), Keycloak y Microsoft Entra ID, seleccionable por configuración y desactivado por defecto. Con Keycloak y Entra ID, ante cada cambio de nivel de riesgo, la API informa el nuevo nivel al proveedor y, en nivel crítico, le solicita el cierre de las sesiones del usuario; el proveedor simulado es de solo lectura. & Media & Implementado; Keycloak validado contra un servidor real; Entra ID sin validación en vivo \\
+	RF-28 & La API debe poder consultar a un proveedor IAM, Keycloak, el rol y el departamento del usuario monitoreado, mediante un adaptador seleccionable por configuración y desactivado por defecto. Ante cada cambio de nivel de riesgo, la API informa el nuevo nivel a Keycloak y, en nivel crítico, le solicita el cierre de las sesiones del usuario. & Media & Implementado; Keycloak validado contra un servidor real \\
 	\hline
 	RF-29 & La respuesta del proveedor IAM debe almacenarse en caché durante 30 minutos y, ante una falla o indisponibilidad del proveedor, el cálculo del puntaje debe continuar sin ese contexto. & Media & Implementado \\
 	\hline
