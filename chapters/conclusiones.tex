@@ -35,7 +35,7 @@ partición reservada, con un ROC-AUC del híbrido entre 0,58 y 0,80 según el es
 RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo, con pruebas
 unitarias con \texttt{icacls} simulado (RNF-06), y el ciclo de decisión y aplicación tiene una prueba
 automatizada de extremo a extremo (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es
-reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio en una consola elevada, porque \texttt{icacls /restore} requiere privilegios de administrador (\texttt{SeRestorePrivilege}); sin elevación, la reversión cae al respaldo \texttt{/remove:d} y pierde las denegaciones previas, por lo que el agente se ejecuta como administrador & Cumplido \\
+reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente ejecutado como administrador (sección~\ref{sec:sintesis-limitaciones}) & Cumplido \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a
 RF-17, RNF-07); evaluación heurística con cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el LSTM no tiene explicación (RNF-11, parcial) & Cumplido \\
 6. Reentrenamiento aislado y período de aprendizaje & CU-03 y CU-04 implementados; las tres
