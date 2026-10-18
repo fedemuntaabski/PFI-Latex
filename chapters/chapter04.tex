@@ -376,7 +376,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La detección se evalúa con escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). \\
 	\hline
-	Métrica reportada & ROC-AUC del puntaje híbrido en HOLDOUT de 0,58 a 0,80 en los escenarios sin país. Con el umbral del nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados sin país y entre el 91\,\% y el 99\,\% con país, con una tasa de falsos positivos del 4\,\% al 5\,\% (sección~\ref{sec:benchmark}). Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
+	Métrica reportada & ROC-AUC del puntaje híbrido en HOLDOUT de 0,58 a 0,80 en los escenarios sin país; la detección operativa con el umbral del nivel alto se presenta en la sección~\ref{sec:lectura-benchmark}. Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
 	\hline
 	Limitación reportada & Detección baja cuando el ataque no cambia el país; el LSTM queda cerca del azar sin país; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows (secciones~\ref{sec:lectura-benchmark} y~\ref{sec:limitaciones-pruebas}). \\
 	\hline

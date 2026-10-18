@@ -515,7 +515,7 @@ En términos operativos, con una tasa de falsos positivos en nivel alto del 4\,\
 Las cifras del LSTM en HOLDOUT son optimistas, porque 47 de las 57 víctimas forman parte de su entrenamiento, y aun así el componente queda cerca del azar sin país (0,56 a 0,63). Las 10 víctimas restantes tienen tan poca actividad que su historia no llega a cerrar una secuencia de 50 eventos, por lo que no permiten una estimación del LSTM fuera de su entrenamiento.
 
 \subsection{Contraste con las metas}
-Las metas de la sección~\ref{sec:metas-modelo} se mantienen sin cambios. Si se aplican sus mismos límites a los resultados de HOLDOUT, la tasa de falsos positivos en nivel alto (4\,\% a 5\,\%) cumple el límite del 10\,\% de la meta de alertas, mientras que la detección en nivel alto sin país (12\,\% a 30\,\% de los días atacados) no alcanza el 50\,\% de la meta de detección. Con país, la detección de la exfiltración supera ese valor. El contraste es indicativo, porque la meta de detección se expresa en usuarios y el benchmark mide usuario-días.
+Las metas de la sección~\ref{sec:metas-modelo} se mantienen sin cambios. Si se aplican sus mismos límites a los resultados de HOLDOUT (sección~\ref{sec:lectura-benchmark}), la tasa de falsos positivos en nivel alto cumple el límite del 10\,\% de la meta de alertas, mientras que la detección en nivel alto sin país no alcanza el 50\,\% de la meta de detección. Con país, la detección de la exfiltración supera ese valor. El contraste es indicativo, porque la meta de detección se expresa en usuarios y el benchmark mide usuario-días.
 
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
