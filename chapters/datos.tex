@@ -11,7 +11,7 @@ Cada registro corresponde a un evento e incluye su tipo, la marca temporal, el i
 
 El conjunto no incluye etiquetas que indiquen qué eventos corresponden a actividad maliciosa. Esta característica condiciona el entrenamiento, que es no supervisado, y la evaluación del modelo, que se presenta en la sección~\ref{sec:evaluacion-modelo}.
 
-Los modelos vigentes se entrenan exclusivamente con registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos, ni aplicar técnicas de balanceo de clases, dado que el conjunto no cuenta con etiquetas. Los conjuntos de prueba se obtienen mediante particiones de esos mismos datos (sección~\ref{sec:particion-entrenamiento}).
+Los modelos vigentes se entrenan exclusivamente con registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos, ni aplicar técnicas de balanceo de clases, dado que el conjunto no cuenta con etiquetas. Los conjuntos de prueba se obtienen mediante particiones de esos mismos datos (sección~\ref{sub:particion-parametros}).
 
 Los únicos datos creados por el equipo corresponden a escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). Estos escenarios no se utilizan para entrenar los modelos ni para calcular los percentiles de referencia, sino para evaluar la detección mediante las métricas correspondientes. Sin embargo, como no se dispone de ataques reales etiquetados, la capacidad de detección aún no se ha validado frente a incidentes reales (sección~\ref{sec:limitaciones-pruebas}).
 
