@@ -87,7 +87,7 @@ Por su parte, la API funciona con la autenticación estricta habilitada y sin ex
 
 La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y, definidos en Terraform pero sin desplegar, CloudFront y el bucket del \emph{dashboard}. La instancia conserva la misma dirección IP cada vez que se enciende.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/aws_apoyo.pdf}}
 	\caption{Recursos de apoyo de la instancia en la nube}
