@@ -15,7 +15,7 @@
 \section{Alcance del relevamiento}
 \label{sec:alcance-relevamiento}
 
-Esta sección presenta el análisis funcional del sistema, compuesto por tres elementos: un agente local que actúa como Punto de Cumplimiento de Políticas (PEP) y recolecta telemetría de actividad; una API central que funciona como Punto de Decisión de Políticas (PDP) y calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder; y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. La separación entre los puntos de decisión y aplicación de políticas sigue los lineamientos de NIST SP 800-207 \parencite{Rose2020}.
+Esta sección presenta el análisis funcional del sistema, compuesto por tres elementos: un agente local (PEP), una API central (PDP) que calcula un puntaje de riesgo (\emph{score}) dinámico mediante un modelo híbrido Isolation Forest + LSTM Autoencoder, y un \emph{dashboard} para visualizar el estado de los usuarios y administrar las políticas. Las funciones de cada componente se detallan en la sección~\ref{sec:actores} y su arquitectura, en la sección~\ref{sec:arquitectura-logica}.
 
 El análisis se organiza en cuatro casos de uso que abarcan la lógica de negocio del sistema: detección y mitigación (CU-01), ajuste de políticas (CU-02), reentrenamiento periódico del modelo (CU-03) y alta de usuarios nuevos con período de aprendizaje (CU-04). La integración con sistemas de gestión de identidad (IAM) se aborda como un módulo transversal.
 
