@@ -52,15 +52,15 @@ Las seis fases del \emph{pipeline}, desde la exploración hasta el puntaje híbr
 \label{sec:servicios}
 El estado operativo y la configuración del sistema se almacenan en Redis, y el historial, los eventos crudos, la auditoría y las métricas en PostgreSQL. Ambos se contratan como servicios gestionados, Upstash para Redis y Supabase para PostgreSQL, lo que evita administrar instancias propias y los hace accesibles tanto desde el entorno local como desde la nube. Supabase aporta además seguridad a nivel de fila y la extensión criptográfica que utiliza la cadena de \emph{hashes}.
 
-Para el despliegue se recurre a Amazon Web Services, que provee la instancia de cómputo de la API, el almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, el almacén de parámetros para los secretos y la administración remota sin SSH. El \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) que corre en la propia instancia. Los recursos de la nube se definen con Terraform, de modo que se crean, modifican y destruyen de forma reproducible y revisable, y GitHub Actions ejecuta en cada cambio el análisis estático, la compilación, las pruebas y la validación de la infraestructura.
+Para el despliegue se recurre a Amazon Web Services, que provee la instancia de cómputo de la API, el almacenamiento de objetos para el \emph{dashboard} y las versiones publicadas, el almacén de parámetros para los secretos y la administración remota sin SSH. El \emph{dashboard} y la API se publican con HTTPS mediante un proxy inverso (Caddy) que corre en la propia instancia. Los recursos de la nube se definen con Terraform, de modo que se crean, modifican y destruyen de forma reproducible y revisable, y GitHub Actions ejecuta en cada cambio el análisis estático, la compilación, las pruebas y la validación de la infraestructura, sin desplegar.
 
 Por último, el sistema integra tres servicios opcionales. El envío de correo por SMTP permite notificar al administrador y, si no hay un servidor configurado, la notificación solo se registra. Gemini asiste en la redacción del correo, con un texto predefinido de respaldo para que la notificación no dependa de un servicio externo. El adaptador de identidad admite proveedores IAM simulados, Keycloak y Microsoft Entra ID; Keycloak actúa como proveedor de referencia, está validado contra un servidor real y, como el resto, está desactivado por defecto, salvo en el despliegue en la nube. Además de leer el rol y el departamento, el adaptador informa al proveedor el nivel de riesgo y, en nivel crítico, solicita el cierre de las sesiones del usuario.
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
 
-\subsection{Despliegue local}
-En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por loopback y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Todas las pruebas funcionales y demostraciones se realizan sobre esta configuración.
+\subsection{Entorno local de desarrollo}\label{sec:despliegue-local}
+En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por loopback y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Esta configuración se utiliza para el desarrollo, las pruebas automatizadas y la medición del cómputo; la verificación de extremo a extremo con un agente real se realiza sobre el despliegue en la nube (sección~\ref{sec:verificacion-despliegue}).
 
 \begin{figure}[H]
 	\centering
@@ -71,7 +71,7 @@ En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como pr
 \end{figure}
 
 \subsection{Despliegue en la nube}\label{sec:despliegue-nube}
-La infraestructura en la nube, definida mediante Terraform, ejecuta la API en una instancia de cómputo \texttt{t3.medium}, protegida por un proxy inverso (Caddy). Este se encarga de terminar las conexiones TLS mediante un certificado obtenido a través de ACME, servir el \emph{dashboard} y redirigir a la API las solicitudes que llegan bajo la ruta \texttt{/api} (figura~\ref{fig:despliegue-aws}).
+La infraestructura en la nube, definida mediante Terraform, ejecuta la API en una instancia de cómputo \texttt{t3.medium}, protegida por un proxy inverso (Caddy). Este se encarga de terminar las conexiones TLS mediante un certificado obtenido a través de ACME, servir el \emph{dashboard} y redirigir a la API las solicitudes que llegan bajo la ruta \texttt{/api} (figura~\ref{fig:despliegue-aws}). En la misma instancia se ejecuta Keycloak como proveedor IAM, mientras que el agente se comunica con la API desde el equipo que vigila.
 
 \begin{figure}[H]
 	\centering
@@ -85,7 +85,7 @@ La configuración incorpora varias medidas de seguridad. La API escucha únicame
 
 Por su parte, la API funciona con la autenticación estricta habilitada y sin exponer su documentación interactiva. En el \emph{dashboard}, las contraseñas son obligatorias y el inicio de sesión genera un \emph{token} de sesión con vencimiento. De esta manera, las credenciales de administración no se envían ni se almacenan en el navegador.
 
-La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y, definidos en Terraform pero sin desplegar, CloudFront y el bucket del \emph{dashboard}. La instancia conserva la misma dirección IP cada vez que se enciende.
+La figura~\ref{fig:despliegue-aws-apoyo} muestra los recursos de apoyo: el rol de la instancia, los parámetros con los secretos, el administrador de sesiones, el bucket de las versiones de la API y del \emph{dashboard} y el bucket del \emph{dashboard}, creado pero sin uso, junto con CloudFront, definido en Terraform pero sin desplegar. La instancia conserva la misma dirección IP cada vez que se enciende.
 
 \begin{figure}[htbp]
 	\centering
@@ -116,8 +116,8 @@ Para el almacenamiento, la API se comunica con Redis mediante RESP y utiliza tra
 
 Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak y Microsoft Entra ID mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
 
-En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API, y el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}. En el despliegue local verificado, en cambio, el canal entre el agente y la API usa HTTP sin TLS sobre \emph{loopback}, lo que resulta aceptable en ese ámbito. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
+En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API, y el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}. En el entorno local de desarrollo, en cambio, el canal entre el agente y la API usa HTTP sin TLS sobre \emph{loopback}, lo que resulta aceptable en ese ámbito. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
-La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El sistema está verificado en un despliegue local; el despliegue en la nube está diseñado como código, con controles de seguridad explícitos, y aplicado con TLS terminado en la propia instancia, y se verifica de extremo a extremo con un agente real.
+La arquitectura separa la decisión, centralizada en la API, de la aplicación, distribuida en los agentes, siguiendo el modelo de Zero Trust. Las tecnologías se eligen por componente: Python para todo lo que toca al modelo, TypeScript para la interfaz y servicios gestionados para el almacenamiento. El despliegue en la nube está definido como código, con controles de seguridad explícitos y TLS terminado en la propia instancia, y se verifica de extremo a extremo con un agente real; el entorno local se reserva para el desarrollo y las pruebas.
