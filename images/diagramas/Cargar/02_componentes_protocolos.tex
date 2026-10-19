@@ -44,7 +44,7 @@
 \begin{scope}[on background layer]
 \node[marco=cPdp!25, fit=(caddy)(spa)(api)(kc)(art)] (mec2) {};
 \end{scope}
-\node[mtit] at (mec2.north west) {«device» EC2 t3.small · Amazon Linux 2023 · SG: solo 80/443 · admin por SSM (sin SSH)};
+\node[mtit] at (mec2.north west) {«device» EC2 t3.medium · Amazon Linux 2023 · SG: solo 80/443 · admin por SSM (sin SSH)};
 \node[cmp=cOff] (ssm) at (0,-10.4) {\st{service} \textbf{SSM Parameter Store}\\ 11 secretos SecureString};
 \node[cmp=cOff] (s3) at (6.6,-10.4) {\st{service} \textbf{S3 + SSM Run Command}\\ releases de API y frontend};
 \begin{scope}[on background layer]
