@@ -365,6 +365,7 @@ La tabla~\ref{tab:escenarios} presenta los resultados con la política de nivele
 	E4, combinado & 4 & 2 & 2 & 0 \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir de la validación por escenarios inyectados.\par}
 
 En los días sin inyección, el 15,4\,\% de los usuario-días (100 de 650) termina en nivel alto y ninguno en crítico. La proporción es del 14,3\,\% (79 de 553) en los días con cobertura completa de ambos modelos y del 21,6\,\% (21 de 97) en los de cobertura parcial, y se concentra en los usuarios con pocos días de historial. Estas proporciones usan el nivel de cierre del día, que incluye la regla de piso; con el puntaje numérico de cierre y el umbral de 70, el total es del 14,2\,\%. Los 8 días de diferencia tienen cobertura completa: un modelo marca anomalía y la regla de piso eleva el nivel.
 
@@ -651,6 +652,7 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	La validación por escenarios muestra una sensibilidad baja ante ataques cortos. & No recalibrar umbrales ni pesos del modelo con estos 15 usuarios, porque ajustarlos a escenarios diseñados por el propio equipo, sin datos etiquetados, sobreajustaría el resultado. La mejora se plantea como trabajo futuro. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 Además de las decisiones de la tabla, la evaluación con escenarios etiquetados (sección~\ref{sec:benchmark}) permite probar variantes del cálculo del puntaje. Los experimentos se realizan solo sobre DEV, en su mayoría con 27 víctimas, por lo que sus cifras no son comparables con las de HOLDOUT. Ninguna variante se adopta.
 

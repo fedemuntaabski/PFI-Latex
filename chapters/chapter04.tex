@@ -219,6 +219,7 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo Isolation Forest, las 3 variables con mayor \emph{z-score}; LSTM sin XAI propio) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}); las valoraciones del proyecto propuesto son una autoevaluación del equipo.\par}
 
 \textbf{Lectura de la matriz.} Ninguna de las soluciones relevadas reúne, según lo que documenta el estado del arte, una detección orientada a la desviación de cada usuario respecto de su conducta habitual, continuidad durante toda la sesión y \emph{enforcement} automático en el \emph{endpoint}. Las plataformas UEBA comerciales detectan desviaciones de comportamiento pero no actúan en el \emph{endpoint} con un agente propio, y las plataformas EDR/XDR actúan en el \emph{endpoint} pero detectan técnicas o reglas conocidas. Esa combinación es, con la evidencia reunida, el espacio que el proyecto ocupa, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre solo el componente Isolation Forest del \emph{score} híbrido (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
 
