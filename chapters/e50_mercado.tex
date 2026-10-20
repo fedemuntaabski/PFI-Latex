@@ -1,9 +1,9 @@
 \chapter{Análisis de mercado y competitividad}
 \label{chap:mercado}
 
-Esta sección analiza el posicionamiento del producto en el mercado. Presenta el \emph{marketing mix} (producto, precio y plaza), el análisis FODA, las cinco fuerzas de Porter y la matriz BCG.
+Esta sección analiza el posicionamiento del producto en el mercado. Presenta el \emph{marketing mix} (producto, precio y plaza), una estimación del tamaño del mercado objetivo, el análisis FODA, las cinco fuerzas de Porter y la matriz BCG.
 
-\section{Marketing mix: producto, precio y plaza}
+\section{Marketing mix: producto, precio y plaza}\label{sec:marketing-mix}
 
 Esta sección describe el producto, su rango de precios y su plaza, es decir, los canales y la modalidad con que llega al cliente.
 
@@ -38,6 +38,11 @@ La plaza define cómo llega el producto al cliente. Se organiza en tres aspectos
 	\item \textbf{Modalidad de despliegue.} El producto está diseñado para desplegarse en la nube: la API y las bases de datos (Redis en Upstash y PostgreSQL en Supabase) funcionan como servicios gestionados, y del lado del cliente solo se instala el agente en cada equipo Windows. No requiere infraestructura propia del cliente, a diferencia de Splunk UBA, cuya implementación inicial el propio estado del arte describe como compleja. El prototipo se verifica en un entorno local, con almacenamiento en la nube, y en una instancia en la nube con un agente real (sección~\ref{sec:despliegue}).
 	\item \textbf{Alcance geográfico.} Argentina, con foco inicial en las PyMEs del Área Metropolitana de Buenos Aires, donde se concentran los integradores y proveedores de servicios de seguridad gestionados del canal de reventa. La comercialización en otros países de América Latina se plantea como una expansión posterior, sujeta a adecuar el tratamiento de datos a la normativa de cada país.
 \end{itemize}
+
+\section{Tamaño del mercado objetivo}\label{sec:tamano-mercado}
+Según el relevamiento de UCEMA PyMEs elaborado a partir de los registros del Sistema Integrado Previsional Argentino (SIPA), en agosto de 2025 había en Argentina 523.207 empresas empleadoras registradas: el 84\,\% tenía menos de 10 empleados, el 13\,\% eran pequeñas y el 2\,\% empleaba entre 51 y 100 trabajadores; en el último año, la cantidad de empresas medianas creció un 1,7\,\% \parencite{Salerno2025}. Ese 2\,\% equivale a unas 10.500 empresas y es la mejor aproximación disponible al segmento definido en la sección~\ref{sec:marketing-mix}, de organizaciones con 50 a 100 equipos, bajo el supuesto de que la cantidad de equipos es del orden de la cantidad de empleados.
+
+Esa cifra es una cota superior del mercado al que el producto puede dirigirse, no su demanda: no todas esas empresas trabajan con información sensible ni carecen de un área de seguridad propia, y la fuente no desagrega por sector ni por provincia, por lo que no permite acotar el foco inicial en el Área Metropolitana de Buenos Aires. Con esa base, los clientes activos al cierre del quinto año en los escenarios de la sección~\ref{sec:escenarios-fin} representan alrededor del 0,5\,\% del segmento en el escenario pesimista (49 clientes), el 1,6\,\% en el base (168) y el 2,9\,\% en el optimista (307). La viabilidad, por lo tanto, no depende de captar una porción grande del mercado, sino de la velocidad de adopción y del costo de adquisición, como muestra el análisis de sensibilidad (sección~\ref{sec:interpretacion-fin}). Las empresas pequeñas, que representan el 13\,\% del total, unas 68.000, son una posible expansión del segmento, con menos equipos por cliente.
 
 \section{Análisis FODA}
 La matriz FODA cruza las fortalezas y debilidades del producto (factores internos) con las oportunidades y amenazas del mercado relevado en el estado del arte (factores externos). Sigue el esquema de análisis de situación FODA (TOWS en la formulación de su autor) \parencite{Weihrich1982}. La figura~\ref{fig:matriz-foda} resume la matriz.
@@ -113,7 +118,7 @@ Con un único producto, la matriz \parencite{Henderson1970} se usa para posicion
 \FloatBarrier
 
 \begin{itemize}
-	\item \textbf{Eje crecimiento del mercado: alto.} Se ubica en el extremo alto por dos motivos. Primero, un cambio estructural: el trabajo remoto y la migración a servicios en la nube reducen la eficacia de la seguridad perimetral, premisa de la que parte el enfoque Zero Trust \parencite{Rose2020}, y obligan a controlar la actividad posterior al inicio de sesión (sección~\ref{sec:punto-ciego}). Segundo, la literatura sobre UEBA y control de acceso adaptativo relevada en el estado del arte es en su mayoría reciente, lo que indica un campo en desarrollo activo. La valoración es cualitativa: el proyecto no cuenta con datos propios sobre el tamaño ni la tasa de crecimiento del mercado.
+	\item \textbf{Eje crecimiento del mercado: alto.} Se ubica en el extremo alto por dos motivos. Primero, un cambio estructural: el trabajo remoto y la migración a servicios en la nube reducen la eficacia de la seguridad perimetral, premisa de la que parte el enfoque Zero Trust \parencite{Rose2020}, y obligan a controlar la actividad posterior al inicio de sesión (sección~\ref{sec:punto-ciego}). Segundo, la literatura sobre UEBA y control de acceso adaptativo relevada en el estado del arte es en su mayoría reciente, lo que indica un campo en desarrollo activo. La valoración es cualitativa en lo que respecta al mercado de seguridad: el tamaño del segmento se estima en la sección~\ref{sec:tamano-mercado}, pero el proyecto no cuenta con datos sobre la tasa de crecimiento del gasto en soluciones UEBA o Zero Trust en el segmento PyME.
 	\item \textbf{Eje participación relativa de mercado: baja.} La participación relativa se mide contra el líder del segmento. Las tres plataformas UEBA relevadas tienen una posición consolidada: Sentinel se distribuye integrado al ecosistema de Microsoft, Splunk tiene una trayectoria extensa en el mercado de SIEM y Exabeam combina capacidades de SIEM, UEBA y SOAR. El producto, en cambio, no tiene clientes, marca reconocida ni implementaciones previas, por lo que su participación inicial es nula. La participación se construye con tiempo de operación en el mercado y no depende solo de la calidad técnica del producto.
 \end{itemize}
 
