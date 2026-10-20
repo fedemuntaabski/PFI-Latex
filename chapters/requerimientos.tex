@@ -33,7 +33,7 @@ Los actores internos son el agente local (PEP), que recolecta metadatos de activ
 \section{Requerimientos funcionales}
 \label{sec:requerimientos-funcionales}
 
-Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en siete módulos. Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal. Junto a cada identificador se indica la prioridad asignada. Los 31 requerimientos se encuentran implementados; cuando la implementación o su verificación presentan alguna salvedad, esta se indica en la columna de estado o en las notas al pie de cada tabla.
+Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en siete módulos (tablas~\ref{tab:rf-modulo1} a~\ref{tab:rf-modulo7}). Los seis primeros dan soporte directo a uno de los cuatro casos de uso definidos en la sección~\ref{sec:casos-de-uso}; el séptimo, de integración con sistemas IAM, es transversal. Junto a cada identificador se indica la prioridad asignada. Los 31 requerimientos se encuentran implementados; cuando la implementación o su verificación presentan alguna salvedad, esta se indica en la columna de estado o en las notas al pie de cada tabla.
 
 \subsection{Módulo 1: Agente local y recolección de telemetría (CU-01)}
 \begin{tablacompacta}
@@ -53,6 +53,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado (ver nota a) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 \subsection{Módulo 2: Motor de scoring y decisión (CU-01)}
@@ -79,6 +80,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel\,$\rightarrow$\,acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 \subsection{Módulo 3: Respuesta adaptativa y mitigación (CU-01)}
@@ -103,6 +105,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-11 & El agente debe permitir revertir las acciones de mitigación aplicadas (restitución de permisos de carpeta y reanudación de procesos suspendidos). & Media & Implementado; la terminación de procesos no es reversible (ver RNF-06) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 \subsection{Módulo 4: Panel de administración y gestión de políticas (CU-02)}
@@ -133,6 +136,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el identificador del usuario, el puntaje, el nivel, las variables que lo explican y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado (ver nota a) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 \begin{notastabla}
@@ -163,6 +167,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-22 & El sistema debe registrar cada reentrenamiento (fecha, eventos utilizados, variación de métricas y actor) y mostrarlo en el \emph{dashboard}; también admite la carga manual de un reentrenamiento. & Baja & Implementado \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 
@@ -190,6 +195,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-27 & La transición de ``en aprendizaje'' a monitoreo normal debe ser automática al alcanzar el umbral. & Media & Implementado \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 \subsection{Módulo 7: Integración con sistemas IAM (transversal)}
@@ -212,6 +218,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	RF-30 & El contexto obtenido del proveedor IAM debe conservarse como último valor por usuario e incluirse en la respuesta del evento evaluado y mostrarse en el detalle del usuario del \emph{dashboard}, como información para el administrador; no es una variable de entrada del modelo. & Baja & Implementado \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
 
 

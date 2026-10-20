@@ -39,6 +39,7 @@ El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados 
 	Identificados por dirección IP & Usuario anónimo & 145\,891 & -- \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir de CLUE-LDS \parencite{Landauer2022Dataset}.\par}
 
 Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento automatizado no representa la conducta de una persona, por lo que se excluyen del entrenamiento. Los eventos identificados por dirección IP no pueden asociarse a un usuario y también se excluyen. El mismo criterio se aplica en producción: estos casos quedan sin puntaje (RF-03).
 
@@ -113,6 +114,7 @@ Los modelos utilizan esquemas de partición diferentes, definidos en función de
 
 		\hline
 	\end{tabular*}
+{\small Fuente: elaboración propia.\par}
 \end{table}
 
 Una vez obtenidas las puntuaciones de ambos modelos, se calcula un puntaje híbrido que asigna un peso de 0,5 a cada uno. Sobre este puntaje se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados para los distintos niveles de riesgo son 40, 70 y 90.
@@ -154,6 +156,7 @@ El agente observa un \emph{endpoint} Windows, mientras que el modelo se entrena 
 	Detención del agente & \texttt{logout\_\allowbreak{}occured} & Variables generales \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 En esta tabla, las variables generales son la cantidad de eventos, la variedad de tipos, la hora promedio, la proporción fuera de horario y la entropía. El LSTM utiliza para todos los eventos el tipo codificado, la información temporal y los indicadores de cambio.
 

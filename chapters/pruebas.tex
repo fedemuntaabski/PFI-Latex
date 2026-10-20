@@ -44,6 +44,7 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 	Evaluación de usabilidad & Evaluación heurística & Interfaz del \emph{dashboard} contra las diez heurísticas de usabilidad de Nielsen. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 \section{Pruebas automatizadas}
 \label{sec:pruebas-automatizadas}
@@ -72,6 +73,7 @@ El repositorio contiene 623 pruebas automatizadas, 446 de la API y 177 del agent
 	\emph{Frontend} & -- & -- & Sin pruebas unitarias; se valida con análisis estático, verificación de tipos y compilación. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 \subsection{Resultados de la ejecución}
 La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución completa de las pruebas, en un entorno aislado, sin servicios externos configurados y sin ejecución real de mitigaciones.
@@ -98,6 +100,7 @@ La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución comp
 	\emph{Frontend}, compilación & Correcta, con una advertencia por el tamaño del paquete de la biblioteca de gráficos \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 Las 19 pruebas omitidas en la configuración de integración continua dependen de artefactos que no están versionados: 16 requieren los modelos entrenados y 3 verifican la paridad de las variables con la segunda versión del modelo. La cobertura de código se mide y se informa en la sección~\ref{sec:cobertura-codigo}.
 
@@ -210,6 +213,7 @@ Se mide la latencia de extremo a extremo de la evaluación de eventos desde el l
 	Rendimiento secuencial & 59 eventos por segundo \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir de las mediciones del sistema.\par}
 
 El umbral fijado para RNF-01 es un percentil 95 menor o igual a 500~ms y un percentil 99 menor o igual a 1~s. El criterio se justifica porque el \emph{dashboard} consulta el estado cada 2~s y el agente captura actividad con una frecuencia del orden de un segundo: un evento evaluado en menos de medio segundo no se acumula. El umbral se aplica al cómputo de la evaluación medido en entorno aislado, y el resultado lo cumple con amplio margen. La latencia con servicios gestionados en la nube se informa por separado en la sección~\ref{sec:latencia-aws}, sin una meta propia.
 
@@ -255,6 +259,7 @@ Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, e
 	Memoria residente (MB) & 33,02 & 33,24 & 33,25 \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir de las mediciones del sistema.\par}
 
 El agente cumple el umbral con un margen amplio: su consumo medio de CPU es más de cincuenta veces menor que el límite y su memoria residente se mantiene estable durante toda la medición, cerca de un quinto del máximo admitido. La medición refleja el uso normal del equipo; no incluye una ráfaga de eventos de archivo como la del escenario de exfiltración, en la que el percentil 95 y el máximo podrían ser mayores.
 
@@ -290,6 +295,7 @@ Ante la ausencia de etiquetas, el modelo se evalúa con métricas de comportamie
 	Coincidencia de anomalías & Índice de Jaccard 0,111 (6 usuarios marcados por ambos modelos) & Las anomalías que marca cada modelo casi no se superponen. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir de la evaluación del modelo sobre CLUE-LDS.\par}
 
 La correlación se calcula sobre los 234 usuarios con cobertura de ambos modelos, porque los conjuntos de prueba de cada modelo solo comparten 15 usuarios; restringida a esos 15, resulta $r = -0{,}41$ ($p = 0{,}13$, no significativa). La baja coincidencia indica que los modelos no son redundantes, en línea con la decisión de combinarlos. Sin embargo, estas métricas no demuestran que la combinación detecte mejor que cada modelo por separado, y el peso de 0,5 asignado a cada uno carece de respaldo cuantitativo. Además, los conjuntos de prueba se construyen con criterios distintos (partición temporal para Isolation Forest y por usuario para el LSTM), por lo que la comparación entre ambos es limitada.
 
@@ -385,14 +391,14 @@ Varias causas están verificadas. El 99,95\,\% de los eventos del conjunto de da
 \begin{itemize}
 	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable. El escenario de pico corto de la sección~\ref{sec:benchmark-controlado} apunta en el mismo sentido (ROC-AUC de 0,62 para este componente), sin aislar la causa.
 	\item El LSTM evalúa secuencias de 50 eventos, por lo que una inyección corta completa a lo sumo una secuencia y su señal se diluye.
-	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales; en el caso del decaimiento, el benchmark confirma que empeora el ordenamiento en ventanas cortas (sección~\ref{sec:decisiones-pruebas}).
+	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales; en el caso del decaimiento, la evaluación con escenarios etiquetados confirma que empeora el ordenamiento en ventanas cortas (sección~\ref{sec:decisiones-pruebas}).
 \end{itemize}
 
 La alta proporción de alertas en usuarios con pocos días de historial es consistente con el sesgo conocido del componente de riesgo personal en usuarios con historial escaso. Los resultados deben leerse con cautela: se trata de 15 usuarios por escenario, con una sola inyección por caso, escenarios diseñados por el propio equipo y una referencia de normalidad sin verificación. Una diferencia de un usuario equivale a 6,7 puntos porcentuales.
 
 \section{Evaluación con escenarios etiquetados}
 \label{sec:benchmark}
-Esta sección evalúa la detección con un conjunto amplio de usuarios víctimas, escenarios de etiqueta conocida, una partición en dos subconjuntos e intervalos de confianza. Con etiquetas construidas de este modo es posible calcular sobre el sistema en producción las métricas que la ausencia de etiquetas impide obtener sobre los datos originales: el área bajo la curva ROC, la exhaustividad (\emph{recall}) y la tasa de falsos positivos. Una última subsección agrega escenarios controlados adicionales, con matriz de confusión y controles negativos (sección~\ref{sec:benchmark-controlado}).
+Esta sección evalúa la detección con un conjunto amplio de usuarios víctimas, escenarios de etiqueta conocida, una partición en dos subconjuntos e intervalos de confianza. Con etiquetas construidas de este modo es posible calcular sobre el sistema en producción las métricas que la ausencia de etiquetas impide obtener sobre los datos originales: el área bajo la curva ROC, la exhaustividad (\emph{recall}) y la tasa de falsos positivos. Una última subsección agrega escenarios controlados adicionales, con matriz de confusión y controles negativos (sección~\ref{sec:benchmark-controlado}). En adelante, este conjunto de escenarios etiquetados se denomina benchmark de detección. Se denomina víctimas a los usuarios sobre cuyo historial se construye cada escenario, y se las reparte en dos particiones: DEV, que se usa para el desarrollo y la calibración, y HOLDOUT, reservada para la evaluación final (sección~\ref{sec:benchmark-particion}).
 
 \subsection{Escenarios}
 Como CLUE-LDS no incluye ataques, los escenarios se construyen sobre el historial real de cada víctima a partir de un instante T. La tabla~\ref{tab:bench-escenarios} los describe.
@@ -420,7 +426,7 @@ S3 & Uso fuera de horario & Los eventos de cada día se reubican entre las 2 y l
 
 Cada escenario se construye en dos versiones. En la versión sin país, los eventos conservan su ubicación original, desconocida en casi todos los casos, por lo que el escenario mide el comportamiento; en la versión con país, los eventos modificados llevan un país atacante, lo que mide el efecto de la ubicación sobre los modelos. El escenario S1 reproduce la fórmula y los pesos de similitud de la herramienta publicada por los autores del conjunto de datos \parencite{Landauer2022Dataset}, con cuatro diferencias: se toman los extremos de similitud en lugar de pares al azar, el reemplazo es unidireccional, la etiqueta se asigna por usuario-día dentro de la ventana y los usuarios donantes se restringen a los que el LSTM no vio en su entrenamiento.
 
-\subsection{Partición y métricas}
+\subsection{Partición y métricas}\label{sec:benchmark-particion}
 Se toman como víctimas los 123 usuarios con al menos 5 días activos posteriores al corte temporal de Isolation Forest (2 de agosto de 2021), repartidos por estrato de actividad previa en dos particiones: DEV, con 63 víctimas, y HOLDOUT, con 60. Con al menos una ventana válida para los escenarios quedan 62 y 57, respectivamente. La sección presenta los resultados de HOLDOUT, que no interviene en ningún ajuste del sistema. Isolation Forest se entrena con una partición temporal, por lo que sus resultados en HOLDOUT no se solapan con su entrenamiento; el LSTM, en cambio, se entrena con una partición por usuario, y 47 de las 57 víctimas de HOLDOUT forman parte de su entrenamiento.
 
 La unidad de evaluación es el usuario-día. Los positivos son los días modificados por cada escenario, y los negativos, los días limpios posteriores al corte de las mismas víctimas. La prevalencia de positivos se ubica entre 0,08 y 0,09, que es también el área bajo la curva de precisión y exhaustividad (PR-AUC) de una clasificación al azar.
@@ -506,7 +512,7 @@ Las cifras del LSTM en HOLDOUT son optimistas, porque 47 de las 57 víctimas for
 Al aplicar los límites de las metas de la sección~\ref{sec:metas-modelo} a los resultados de HOLDOUT, la tasa de falsos positivos en nivel alto cumple el límite del 10\,\% de la meta de alertas, mientras que la detección en nivel alto sin país no alcanza el 50\,\% de la meta de detección. Con país, la detección de la exfiltración supera ese valor. El contraste es indicativo, porque la meta de detección se expresa en usuarios y el benchmark mide usuario-días.
 
 \subsection{Escenarios controlados adicionales}\label{sec:benchmark-controlado}
-Una evaluación complementaria suma cuatro escenarios de etiqueta conocida y calcula, por modelo, la matriz de confusión con los umbrales de producción. Es exploratoria: usa solo víctimas de DEV, no interviene en ningún ajuste y deja intacto HOLDOUT. La tabla~\ref{tab:bench-controlados} describe los escenarios. Todos conservan el país habitual de la víctima.
+Una evaluación complementaria suma cuatro escenarios de etiqueta conocida y calcula, por modelo, la matriz de confusión con los umbrales de producción. Es exploratoria: usa solo víctimas de DEV, no interviene en ningún ajuste y deja intacto HOLDOUT. La tabla~\ref{tab:bench-controlados} describe los escenarios. Todos conservan el país habitual de la víctima. Cada combinación de una víctima con una ventana de escenario se denomina mundo.
 
 \begin{table}[h]
 \centering

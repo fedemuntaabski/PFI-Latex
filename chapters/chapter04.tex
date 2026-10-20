@@ -29,6 +29,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest + LSTM) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Splunk UBA}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -53,6 +54,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & Splunk UBA no incorpora de forma nativa mecanismos de respuesta adaptativa: se detiene en detectar y priorizar. El proyecto cierra el ciclo completo detección, decisión, acción, sin depender de integraciones externas \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Exabeam}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -77,6 +79,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & El proyecto no depende de orquestar herramientas externas ya integradas para actuar: el propio agente PEP ejecuta la mitigación directamente sobre el proceso/carpeta del endpoint \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Microsoft Entra ID Protection}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -101,6 +104,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & El proyecto evalúa comportamiento durante toda la sesión activa, no solo señales de autenticación, y no depende de estar dentro del ecosistema de un proveedor de identidad específico \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Okta Adaptive MFA}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -125,6 +129,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & Corresponde al ``punto ciego post-\emph{login}'' que el proyecto toma como justificación central: Okta Adaptive MFA no cubre lo que pasa después de que el acceso ya fue concedido \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{RADAC académico (ad-RACs)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -175,6 +180,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & No aplica (fila de referencia). La síntesis de diferenciadores se presenta en la sección~\ref{sec:sintesis-diferenciadores}. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 Las valoraciones del proyecto propuesto en esta tabla y en la matriz de capacidades son una
 autoevaluación del equipo basada en lo implementado y verificado en las secciones de producto y
@@ -378,13 +384,14 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La detección se evalúa con escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). \\
 	\hline
-	Métrica reportada & ROC-AUC del puntaje híbrido en HOLDOUT de 0,58 a 0,80 en los escenarios sin país; la detección operativa con el umbral del nivel alto se presenta en la sección~\ref{sec:lectura-benchmark}. Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
+	Métrica reportada & ROC-AUC del puntaje híbrido en la partición reservada para la evaluación final (HOLDOUT, sección~\ref{sec:benchmark-particion}) de 0,58 a 0,80 en los escenarios sin país; la detección operativa con el umbral del nivel alto se presenta en la sección~\ref{sec:lectura-benchmark}. Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
 	\hline
 	Limitación reportada & Detección baja cuando el ataque no cambia el país; el LSTM queda cerca del azar sin país; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows (secciones~\ref{sec:lectura-benchmark} y~\ref{sec:limitaciones-pruebas}). \\
 	\hline
 	Relación con el diseño del proyecto & Sigue la orientación de la literatura hacia enfoques híbridos \parencite{Artioli2024, Landauer2023Survey} y usa registros reales en lugar de datos sintéticos. La evaluación muestra que, sobre este conjunto de datos, el aporte del componente LSTM es limitado (sección~\ref{sec:lectura-benchmark}) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}
@@ -394,7 +401,7 @@ La matriz de capacidades (tabla~\ref{tab:matriz-capacidades}) permite resumir, p
 	\item \textbf{Exabeam:} automatiza la respuesta, pero mediante una plataforma de orquestación externa (SOAR) y sin un agente propio en el equipo del usuario.
 	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo y actúan en el momento de la autenticación (acceso condicional, MFA o bloqueo), no durante el uso continuo de los recursos.
 	\item \textbf{RADAC académico (ad-RACs):} comparte el paradigma de \emph{score} por solicitud, pero se queda en la política de decisión, sin un punto de aplicación en el \emph{endpoint}.
-	\item 	extbf{Plataformas EDR/XDR para PyMEs (Defender for Business, Wazuh):} tienen agente y actúan en el equipo, pero detectan técnicas o reglas conocidas y no la desviación de un usuario respecto de su propia conducta; el proyecto se plantea como complemento y no como sustituto.
+	\item \textbf{Plataformas EDR/XDR para PyMEs (Defender for Business, Wazuh):} tienen agente y actúan en el equipo, pero detectan técnicas o reglas conocidas y no la desviación de un usuario respecto de su propia conducta; el proyecto se plantea como complemento y no como sustituto.
 \end{itemize}
 
 El proyecto propuesto es la única fila de la matriz que reúne detección por desviación conductual del usuario, continuidad durante la sesión y \emph{enforcement} automático en el \emph{endpoint}, con explicabilidad parcial. Esa combinación se apoya en la separación entre el agente, que actúa como PEP, y la API, que actúa como PDP (sección~\ref{sec:conclusion-estado-del-arte}).
@@ -402,7 +409,7 @@ El proyecto propuesto es la única fila de la matriz que reúne detección por d
 \section{Contraste con la práctica profesional en seguridad de la información: resultados de las entrevistas}
 \label{sec:entrevistas-profesionales}
 
-Como complemento al análisis comparativo frente a herramientas comerciales y trabajos académicos, se realiza un relevamiento cualitativo mediante cuatro entrevistas semiestructuradas y un cuestionario escrito a cinco profesionales vinculados a la seguridad de la información, con el objetivo de contrastar las decisiones de diseño del proyecto con la práctica profesional vigente y de identificar líneas de evolución del sistema.
+Como complemento al análisis comparativo frente a herramientas comerciales y trabajos académicos, se realiza un relevamiento cualitativo con cinco profesionales vinculados a la seguridad de la información, mediante cuatro entrevistas semiestructuradas y un cuestionario escrito, con el objetivo de contrastar las decisiones de diseño del proyecto con la práctica profesional vigente y de identificar líneas de evolución del sistema.
 
 \subsection{Perfil de los especialistas consultados}
 El grupo de entrevistados reúne perfiles con responsabilidad directa sobre seguridad y gestión de accesos en organizaciones reguladas, además de una mirada complementaria desde una función adyacente. Luciana Jacubovich, con más de veinte años de trayectoria en seguridad, lidera un equipo de siete personas en el área de operaciones de seguridad y gestión de accesos de un grupo económico financiero integrado por una aseguradora, un banco y una compañía de leasing. Guillermo Pita se desempeña como director de ciberseguridad en un organismo estatal de alcance nacional, con responsabilidad sobre miles de estaciones de trabajo y cientos de sucursales, y actúa además como perito judicial en causas vinculadas a fraude informático. Alejandro Francisco Peña ocupa un rol de responsable de seguridad en una compañía financiera regulada, con experiencia en centros de operaciones de seguridad (SOC), gestión de identidades y accesos, y prevención de fuga de información. Matías Gabriel Ruiz aporta un perfil de seguridad orientado al monitoreo y la respuesta a incidentes, con experiencia en herramientas de tipo SIEM/XDR y en la gestión de accesos. Finalmente, Pablo Rodolfo Villarino, ingeniero DevOps con catorce años de trayectoria en IBM Argentina, participa en proyectos para el sector bancario y aporta la perspectiva de un rol técnico adyacente al de seguridad, que interactúa de forma cotidiana con los equipos de seguridad de sus clientes. Tres de los cinco entrevistados ejercen funciones de seguridad en entornos financieros o regulados de Argentina, Ruiz ejerce funciones de seguridad sin que la entrevista escrita precise la organización o el sector en que se desempeña, y Villarino ofrece una mirada externa desde una disciplina técnica vecina. Ninguno de los cinco se desempeña en una PyME: sus aportes validan el problema y las decisiones de diseño desde la práctica profesional, pero no la demanda ni la disposición a pagar del segmento al que se orienta el producto, que se tratan en la sección~\ref{chap:negocio}.

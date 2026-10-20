@@ -47,13 +47,14 @@ La respuesta de la API indica la acción de mitigación que corresponde aplicar.
 	\texttt{suspender\_proceso} & Suspende el proceso sin finalizarlo. & Reanuda el proceso. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 La reversión se ejecuta mediante un comando del agente. La restitución de los permisos es exacta cuando el agente se ejecuta con privilegios de administrador (sección~\ref{sec:sintesis-limitaciones}). El agente dispone, además, de un modo de simulación que registra las acciones sin aplicarlas y que se utiliza en las pruebas y las demostraciones.
 
 \subsection{Motor de \emph{scoring}}
 \label{sec:motor-scoring-producto}
 La API recibe cada evento y valida tanto su esquema como su ventana temporal, que admite eventos de hasta 90 días de antigüedad y hasta 5 minutos en el futuro. Para evitar el procesamiento redundante, los eventos duplicados recibidos dentro de un intervalo de 6 horas se descartan. Cada evento válido se evalúa mediante los modelos de detección de anomalías. En primer lugar, Isolation Forest analiza la actividad diaria del usuario a partir de ocho variables agregadas (sección~\ref{sec:if-variables}), mientras que el LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos mediante el error de reconstrucción. Cuando ambos modelos cuentan con cobertura completa, sus puntajes se combinan con la misma ponderación. En cambio, durante la etapa inicial, antes de que el usuario complete su primera secuencia de 50 eventos, se utiliza únicamente el puntaje de Isolation Forest.
-El puntaje obtenido se integra con una línea base personal del usuario, actualizada de manera incremental mediante el algoritmo de Welford \parencite{Welford1962}, cuya influencia aumenta a medida que se acumula historial. Sobre esta base, el sistema calcula el riesgo acumulado, que disminuye con una vida media de 3 días. Este decaimiento se consolida al cierre de cada día y se aplica de forma provisional a los eventos del día en curso, por lo que el puntaje de riesgo correspondiente también tiene carácter provisional.
+El puntaje obtenido se integra con una línea base personal del usuario, actualizada de manera incremental mediante el algoritmo incremental de Welford \parencite*{Welford1962}, cuya influencia aumenta a medida que se acumula historial. Sobre esta base, el sistema calcula el riesgo acumulado, que disminuye con una vida media de 3 días. Este decaimiento se consolida al cierre de cada día y se aplica de forma provisional a los eventos del día en curso, por lo que el puntaje de riesgo correspondiente también tiene carácter provisional.
 Finalmente, el sistema determina el nivel de riesgo según los umbrales vigentes, con una regla de piso que lo eleva a alto cuando cualquiera de los dos modelos detecta una anomalía. A partir del nivel asignado, se selecciona la acción correspondiente mediante el mapeo nivel\,$\rightarrow$\,acción. Además, se genera una explicación basada en hasta tres variables de Isolation Forest que presentan las mayores desviaciones respecto de los valores de la población de entrenamiento, siempre que estas superen al menos una desviación estándar.
 
 Cuando el nivel asignado está configurado para notificar, la API envía un correo al administrador con el puntaje, el nivel y los eventos recientes del usuario, respetando un intervalo mínimo de 10 minutos por usuario. La redacción del correo puede asistirse con un modelo de lenguaje externo; si este no está disponible, se utiliza un texto predefinido (sección~\ref{sec:prompt-injection}).
@@ -76,7 +77,7 @@ La pantalla de configuración concentra la administración de las políticas en 
 \label{sec:reentrenamiento-producto}
 Un planificador integrado en la API verifica si se cumple la periodicidad configurada y si el momento actual se encuentra dentro de la ventana horaria. Cuando ambas condiciones se cumplen, exporta los eventos crudos acumulados, excluidos los de prueba y las reproducciones, junto con el conjunto de datos original, y ejecuta el \emph{pipeline} de entrenamiento en un proceso separado. Antes de reemplazar cualquier archivo, respalda el juego completo de artefactos vigentes (modelos, escaladores, codificación y referencias de percentil), de modo que, ante un rechazo, todos se restauran juntos. La exportación de las referencias de percentil es el último paso del \emph{pipeline}.
 
-Finalizado el entrenamiento, se aplica un criterio de promoción de no inferioridad sobre los escenarios de DEV descritos en la sección~\ref{sec:benchmark}. El modelo candidato y el vigente se puntúan sobre los mismos escenarios, sin que HOLDOUT participe en ningún caso. El candidato se promueve solo si cumple las dos condiciones siguientes:
+Finalizado el entrenamiento, se aplica un criterio de promoción de no inferioridad sobre los escenarios de la partición de desarrollo (DEV) del benchmark de detección descrito en la sección~\ref{sec:benchmark}. El modelo candidato y el vigente se puntúan sobre los mismos escenarios, sin que HOLDOUT participe en ningún caso. El candidato se promueve solo si cumple las dos condiciones siguientes:
 \begin{enumerate}[label=(\alph*)]
 	\item el ROC-AUC medio del híbrido en los cuatro escenarios primarios sin país (S2 con $k$ = 2, 5 y 10, y S3) es al menos el del modelo vigente menos 0,02;
 	\item su tasa de falsos positivos en nivel alto o superior sobre los días limpios de DEV es, como máximo, la del modelo vigente más 0,01.
@@ -119,6 +120,7 @@ La API expone 34 \emph{endpoints}, agrupados en cuatro niveles de acceso que se 
 	Agente & 2 & Envío de eventos y confirmación de acciones. & Clave individual del agente o clave fija de administración. \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 En el nivel de agente, la API rechaza con un código 403 cualquier evento o confirmación de acción que no corresponda a la identidad del agente. Ese nivel todavía acepta la clave de administración, con la cual se omite el control de identidad (sección~\ref{sec:sintesis-limitaciones}). En el \emph{dashboard}, el inicio de sesión rechaza las contraseñas por defecto o de ejemplo, y el \emph{token} vence a las 8 horas o al cerrar la sesión. El rol operador tiene acceso de solo lectura y recibe un 403 en los \emph{endpoints} de administración. Por último, cada cambio de configuración queda registrado en la auditoría con un identificador derivado de la credencial utilizada, que en las sesiones del \emph{dashboard} indica además el rol.
 
@@ -209,7 +211,7 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Datos de entrenamiento de otro dominio & El modelo se entrena con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. Las variables horarias se calculan en UTC, no en la hora local del usuario. & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints} y calcular las variables horarias en hora local. \\
 	\hline
-	Calibración sin datos independientes & El peso de cada modelo, la regla de piso y los umbrales se calibran sin escenarios etiquetados, y la línea base personal tiende a valores altos en usuarios con poco historial, lo que eleva sus alertas. & La recalibración evaluada sobre el benchmark y cinco alternativas para la línea base no mejoran la detección (sección~\ref{sec:decisiones-pruebas}); los umbrales son editables en tiempo de ejecución. \\
+	Calibración sin datos independientes & El peso de cada modelo, la regla de piso y los umbrales se calibran sin escenarios etiquetados, y la línea base personal tiende a valores altos en usuarios con poco historial, lo que eleva sus alertas. & La recalibración evaluada con los escenarios etiquetados (sección~\ref{sec:benchmark}) y cinco alternativas para la línea base no mejoran la detección (sección~\ref{sec:decisiones-pruebas}); los umbrales son editables en tiempo de ejecución. \\
 	\hline
 	\multicolumn{3}{l}{\textit{Agente local}} \\
 	\hline
@@ -246,6 +248,7 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	Conservación y seudonimización & Los eventos crudos y las alertas de corrimiento de un usuario no se suprimen, y la exportación del reentrenamiento copia los eventos del agente sin seudonimizar a un archivo local que no se elimina. & Trabajo futuro: plazo de conservación y supresión compatible con la cadena de \emph{hashes}, y seudonimización del archivo exportado (secciones~\ref{sec:conservacion-datos} y~\ref{sec:datos-entrenamiento}). \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 \section{Síntesis}
 \label{sec:sintesis-producto}
