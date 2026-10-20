@@ -146,7 +146,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Tecnología / IA & CatBoost (ML supervisado) para el \emph{score} de riesgo por solicitud \\
 	\hline
-	Alcance de monitoreo & Modelo de decisión de acceso validado frente a reglas estáticas (sección~\ref{sec:ea-radac}), pero sin agente de \emph{enforcement} local descrito: es una política de decisión, no una implementación de PEP en el endpoint \\
+	Alcance de monitoreo & Modelo de decisión de acceso validado frente a un sistema existente de referencia (sección~\ref{sec:ea-radac}), pero sin agente de \emph{enforcement} local descrito: es una política de decisión, no una implementación de PEP en el endpoint \\
 	\hline
 	Diferenciador del proyecto propuesto & El proyecto es, en la práctica, una implementación \emph{end-to-end} de este mismo paradigma RADAC, pero cerrando el circuito con un PEP real en el endpoint: no se queda en el nivel de política de decisión \\
 	\hline
@@ -196,11 +196,11 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
 	\hline
 	\endhead
-	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & N/D & $\times$ \\
+	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\times$ \\
 	\hline
 	Splunk UBA & \checkmark & \checkmark & N/D & $\times$ & N/D \\
 	\hline
-	Exabeam & \checkmark & \checkmark & N/D & \checkmark (vía SOAR) & $\times$ \\
+	Exabeam & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\times$ \\
 	\hline
 	Microsoft Entra ID Protection & \checkmark & \checkmark & $\times$ & $\bigtriangleup$ (solo acceso condicional/MFA) & $\times$ \\
 	\hline
@@ -208,11 +208,13 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 	\hline
 	RADAC académico (ad-RACs) & \checkmark & \checkmark & \checkmark (por solicitud) & $\bigtriangleup$ (política de acceso, sin PEP físico) & N/D \\
 	\hline
+	EDR/XDR para PyMEs (Defender for Business, Wazuh) & $\bigtriangleup$ (técnicas y reglas conocidas; sin línea base por usuario) & $\bigtriangleup$ (por alerta o equipo, no por usuario) & \checkmark & \checkmark & \checkmark (técnica o regla que disparó la alerta) \\
+	\hline
 	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo Isolation Forest, las 3 variables con mayor \emph{z-score}; LSTM sin XAI propio) \\
 	\hline
 \end{longtable}
 
-\textbf{Lectura de la matriz.} Ninguna de las cuatro soluciones comerciales relevadas tiene, según lo que el propio estado del arte documenta, la combinación de continuidad durante toda la sesión, \emph{enforcement} automático en el endpoint y algún grado de explicabilidad al mismo tiempo. Esa combinación es, con la evidencia ya reunida, el espacio que el proyecto ocupa y que ningún competidor relevado cubre por completo, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre solo el componente Isolation Forest del \emph{score} híbrido (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
+\textbf{Lectura de la matriz.} Ninguna de las soluciones relevadas reúne, según lo que documenta el estado del arte, detección basada en la desviación de cada usuario respecto de su propia conducta, continuidad durante toda la sesión y \emph{enforcement} automático en el \emph{endpoint}. Las plataformas UEBA comerciales detectan desviaciones de comportamiento pero no actúan en el \emph{endpoint} con un agente propio, y las plataformas EDR/XDR actúan en el \emph{endpoint} pero detectan técnicas o reglas conocidas. Esa combinación es, con la evidencia reunida, el espacio que el proyecto ocupa, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre solo el componente Isolation Forest del \emph{score} híbrido (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
@@ -232,9 +234,9 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Fuente académica & \textcite{Aliyu2024} (ad-RACs) \\
 	\hline
-	Dataset / validación & Comparación vs. reglas estáticas/ACL \\
+	Dataset / validación & Comparación frente a un sistema existente (MAN-SVMDT) \\
 	\hline
-	Métrica reportada & \emph{Recall} 100\%, Precisión 95\%, F1 98\% \\
+	Métrica reportada & \emph{Recall} 100\%, precisión 95\%, F1 98\% (referencia: \emph{recall} 98\%, precisión 97\%, F1 96\%) \\
 	\hline
 	Limitación reportada & No se reporta limitación explícita en el resumen relevado \\
 	\hline
@@ -256,9 +258,9 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Fuente académica & \textcite{VillarrealVasquez2021} \\
 	\hline
-	Dataset / validación & CMU-CERT r4.2 \\
+	Dataset / validación & 38,9 millones de eventos de un EDR comercial (30 equipos) y un ataque de \emph{Red Team} \\
 	\hline
-	Métrica reportada & Detección 93\%, falsos positivos 4.1\% \\
+	Métrica reportada & Tasa de verdaderos positivos 97,29\%, tasa de falsos positivos 0,38\% \\
 	\hline
 	Limitación reportada & \emph{Cold-start}: depende de historial suficiente por usuario, baja el rendimiento en usuarios nuevos \\
 	\hline
@@ -328,13 +330,13 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Fuente académica & \textcite{Hariri2019} \\
 	\hline
-	Dataset / validación & Logs NGINX / tráfico e-commerce \\
+	Dataset / validación & Datos sintéticos bidimensionales y conjuntos de referencia de detección de anomalías \\
 	\hline
-	Métrica reportada & Precisión 87\% / \emph{Accuracy} 93\%, F1 92\% \\
+	Métrica reportada & Mejora del área bajo las curvas ROC y de precisión-exhaustividad respecto de Isolation Forest estándar \\
 	\hline
-	Limitación reportada & Falsas alertas ante usuarios con comportamiento legítimo muy variable \\
+	Limitación reportada & Isolation Forest estándar introduce artefactos en el puntaje por usar cortes paralelos a los ejes; el rendimiento depende de la representación de los datos \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto mitiga esta limitación reportada combinando Isolation Forest (agregado diario) con LSTM (secuencia) + regla de piso + decaimiento temporal, en vez de depender de Isolation Forest solo \\
+	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre ocho variables diarias estandarizadas y lo combina con LSTM, regla de piso y decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
 	\hline
 \end{longtable}
 
@@ -392,9 +394,10 @@ La matriz de capacidades (tabla~\ref{tab:matriz-capacidades}) permite resumir, p
 	\item \textbf{Exabeam:} automatiza la respuesta, pero mediante una plataforma de orquestación externa (SOAR) y sin un agente propio en el equipo del usuario.
 	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo y actúan en el momento de la autenticación (acceso condicional, MFA o bloqueo), no durante el uso continuo de los recursos.
 	\item \textbf{RADAC académico (ad-RACs):} comparte el paradigma de \emph{score} por solicitud, pero se queda en la política de decisión, sin un punto de aplicación en el \emph{endpoint}.
+	\item 	extbf{Plataformas EDR/XDR para PyMEs (Defender for Business, Wazuh):} tienen agente y actúan en el equipo, pero detectan técnicas o reglas conocidas y no la desviación de un usuario respecto de su propia conducta; el proyecto se plantea como complemento y no como sustituto.
 \end{itemize}
 
-El proyecto propuesto es la única fila de la matriz que reúne continuidad durante la sesión, \emph{enforcement} automático en el \emph{endpoint} y explicabilidad, esta última en forma parcial. Esa combinación se apoya en la separación entre el agente, que actúa como PEP, y la API, que actúa como PDP (sección~\ref{sec:conclusion-estado-del-arte}).
+El proyecto propuesto es la única fila de la matriz que reúne detección por desviación conductual del usuario, continuidad durante la sesión y \emph{enforcement} automático en el \emph{endpoint}, con explicabilidad parcial. Esa combinación se apoya en la separación entre el agente, que actúa como PEP, y la API, que actúa como PDP (sección~\ref{sec:conclusion-estado-del-arte}).
 
 \section{Contraste con la práctica profesional en seguridad de la información: resultados de las entrevistas}
 \label{sec:entrevistas-profesionales}
@@ -434,7 +437,7 @@ conveniencia: los participantes no se seleccionan al azar de una población defi
 personas que el equipo puede alcanzar y que deciden responder. Por lo tanto, los porcentajes que
 siguen describen a los participantes y no pueden generalizarse a la población de empleados de
 empresas argentinas; se utilizan como indicio del problema y como insumo de diseño, no como
-estimación estadística. La muestra tampoco se estratifica por tamaño de empresa ni por sector.
+estimación estadística. La muestra tampoco se estratifica por tamaño de empresa ni por sector. Además, los participantes son usuarios de equipos corporativos y no necesariamente quienes deciden la compra de herramientas de seguridad, por lo que sus respuestas informan sobre la percepción del problema y no sobre la demanda del segmento PyME. Por estos motivos, en el resto de la sección los porcentajes se refieren siempre a los participantes.
 
 Se obtienen 240 respuestas, de las cuales 55 personas (23\%) indican no utilizar una computadora provista por su empresa y, por lógica condicional, no responden el resto de las preguntas. Por lo tanto, la base efectiva de análisis comprende 185 respuestas (77\%), correspondientes a participantes que trabajan sobre infraestructura corporativa, público objetivo del sistema propuesto. Dentro de este grupo, el 51\% (niveles 4 y 5 combinados) accede habitualmente a datos o sistemas de criticidad media-alta o alta (figuras~\ref{fig:encuesta-1} y~\ref{fig:encuesta-2}, Anexo B).
 
@@ -444,7 +447,7 @@ Uno de los resultados más relevantes de la encuesta es que, para una parte impo
 
 Asimismo, el 63\% afirma que no existen controles adicionales de identidad después del inicio de sesión o desconoce si los hay (figura~\ref{fig:encuesta-5}, Anexo B). En relación con las computadoras desatendidas, el 46\% deja la sesión abierta o no realiza ninguna acción al alejarse, mientras que el 54\% bloquea la pantalla de forma manual o automática (figura~\ref{fig:encuesta-6}, Anexo B).
 
-Esta situación también se refleja en la percepción del riesgo: el 75\% considera que, ante el robo de credenciales, no habría forma de detectar la actividad maliciosa una vez que el atacante ingresara, o desconoce si dicha capacidad existe. Solo uno de cada cuatro (25\%) confía en que los controles actuales serían suficientes (figura~\ref{fig:encuesta-7}, Anexo B). Estos resultados respaldan la necesidad de complementar la autenticación inicial con mecanismos de verificación continua y detección de comportamiento anómalo, como los propuestos por el enfoque Zero Trust y el modelo UEBA.
+Esta situación también se refleja en la percepción del riesgo: el 75\% considera que, ante el robo de credenciales, no habría forma de detectar la actividad maliciosa una vez que el atacante ingresara, o desconoce si dicha capacidad existe. Solo uno de cada cuatro (25\%) confía en que los controles actuales serían suficientes (figura~\ref{fig:encuesta-7}, Anexo B). Entre los participantes, estos resultados son consistentes con la necesidad de complementar la autenticación inicial con mecanismos de verificación continua y detección de comportamiento anómalo, como los propuestos por el enfoque Zero Trust y el modelo UEBA.
 
 \subsection{Confianza y percepción de protección post-login}
 
@@ -458,11 +461,11 @@ Solo el 20\% de los encuestados afirma conocer y seguir activamente la política
 
 Una situación similar se observa respecto de la detección de comportamientos inusuales: apenas el 22\% confirma que su empresa dispone de un mecanismo activo para detectar accesos anómalos a información, mientras que el 78\% restante no está seguro o considera que no existe (figura~\ref{fig:encuesta-11}, Anexo B). Esto evidencia no solo posibles limitaciones en los controles existentes, sino también un déficit de comunicación y visibilidad que debería ser considerado en la adopción de nuevas herramientas de seguridad.
 
-\subsection{La respuesta preferida es la menos disruptiva, no la más agresiva}
+\subsection{La respuesta percibida como menos disruptiva no es la más restrictiva}
 
 La importancia asignada a que las herramientas actúen preventivamente mediante bloqueos, en lugar de limitarse a generar alertas, se inclina hacia los niveles altos: el 48\% la ubica en los niveles 4-5 (25\% en el máximo), el 21\% en el nivel intermedio y el 31\% en los niveles 1-2, sin que exista un consenso amplio (figura~\ref{fig:encuesta-12}, Anexo B).
 
-Sin embargo, ante un escenario de riesgo moderado, el 37\% considera que una notificación push para confirmar la identidad sería la respuesta menos disruptiva, seguida por el bloqueo temporal de la aplicación (32\%) y la reautenticación biométrica (30\%) (figura~\ref{fig:encuesta-13}, Anexo B). La diferencia entre las tres opciones es acotada, pero la preferencia por la confirmación push es consistente con el esquema de respuesta graduada implementado en el sistema, con niveles de riesgo bajo, medio, alto y crítico que desencadenan acciones diferenciadas. La distribución de las respuestas sugiere que la respuesta debería ajustarse al nivel de riesgo en lugar de aplicar siempre la máxima restricción.
+Sin embargo, ante un escenario de riesgo moderado, el 37\% considera que una notificación push para confirmar la identidad sería la respuesta menos disruptiva, seguida por el bloqueo temporal de la aplicación (32\%) y la reautenticación biométrica (30\%) (figura~\ref{fig:encuesta-13}, Anexo B). La diferencia entre las tres opciones es acotada. El resultado es consistente con un esquema de respuesta graduada como el del sistema: cada uno de los cuatro niveles de riesgo (bajo, medio, alto y crítico) puede asociarse a una acción distinta del catálogo, y esa asociación no está fijada por el sistema, sino que la define el administrador desde el panel (RF-14). La configuración por defecto reserva las acciones restrictivas para el nivel crítico (RF-07). La confirmación por notificación push no forma parte del catálogo actual de acciones; el resultado orienta su evolución. La distribución de las respuestas sugiere que la respuesta debería ajustarse al nivel de riesgo en lugar de aplicar siempre la máxima restricción.
 
 \subsection{Las funcionalidades priorizadas coinciden con lo implementado}
 
@@ -470,11 +473,11 @@ Al consultar las funcionalidades prioritarias de un sistema de monitoreo de comp
 
 La ausencia de una funcionalidad claramente dominante sugiere que los participantes valoran un sistema integral. Esto coincide con el alcance funcional del agente implementado, que incorpora recolección de procesos y de accesos al sistema de archivos, detección de horarios inusuales, denegación de acceso a carpetas, historial de puntajes y notificación al administrador. En este sentido, las funcionalidades definidas para el sistema encuentran respaldo en las prioridades expresadas por los participantes.
 
-\subsection{Factores de adopción: la privacidad como requisito previo}
+\subsection{Factores de adopción: sin un factor dominante}
 
-En cuanto a los factores que podrían determinar la adopción del sistema, la garantía de privacidad y legalidad es la opción menos seleccionada (13\%), por debajo de la recomendación de proveedores (21\%), la facilidad de integración (18\%), la reacción de los empleados (18\%), la eficacia demostrada (17\%) y el costo (14\%) (figura~\ref{fig:encuesta-15}, Anexo B). Los porcentajes se distribuyen sin un factor claramente dominante. Esto no implica que la privacidad sea poco relevante, sino que podría funcionar como un requisito previo, mientras que otros factores tienen mayor peso en la decisión final. Dado que la reacción de los empleados figura entre los factores más mencionados, resulta relevante comunicar qué información se recolecta y con qué finalidad; en este sentido, la explicación que acompaña a cada evento (sección~\ref{sec:pantalla-porque}) constituye un elemento relevante para la adopción del sistema. El tratamiento de los datos personales que realiza el sistema y su encuadre en la Ley 25.326 se analizan en la sección~\ref{sec:tratamiento-datos}.
+En cuanto a los factores que podrían determinar la adopción del sistema, la garantía de privacidad y legalidad es la opción menos seleccionada (13\%), por debajo de la recomendación de proveedores (21\%), la facilidad de integración (18\%), la reacción de los empleados (18\%), la eficacia demostrada (17\%) y el costo (14\%) (figura~\ref{fig:encuesta-15}, Anexo B). Los porcentajes se distribuyen sin un factor claramente dominante. Esto no implica que la privacidad sea poco relevante, aunque una lectura posible, que estos datos no permiten verificar, es que funcione como un requisito previo. Dado que la reacción de los empleados figura entre los factores más mencionados, resulta relevante comunicar qué información se recolecta y con qué finalidad; en este sentido, la explicación que acompaña a cada evento (sección~\ref{sec:pantalla-porque}) constituye un elemento relevante para la adopción del sistema. El tratamiento de los datos personales que realiza el sistema y su encuadre en la Ley 25.326 se analizan en la sección~\ref{sec:tratamiento-datos}.
 
-\subsection{Un mercado con inclinación favorable, pero no ganado de antemano}
+\subsection{Inclinación favorable entre los participantes, sin consenso}
 
 La percepción sobre la probabilidad de adopción del sistema por parte de la propia empresa se inclina levemente hacia el lado favorable: el 43\% la considera probable (niveles 4-5), el 23\% se ubica en el punto medio y el 34\% la considera improbable (niveles 1-2) (figura~\ref{fig:encuesta-16}, Anexo B).
 
@@ -488,6 +491,6 @@ Este resultado aporta un indicio, entre los participantes, del problema que moti
 
 \subsection{Síntesis}
 
-En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida por los participantes principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los participantes, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante dado el peso que los participantes asignan a la reacción de los empleados.
+En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida por los participantes principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades implementadas coinciden con las prioridades expresadas por los participantes, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante dado el peso que los participantes asignan a la reacción de los empleados. Estas coincidencias describen a los 185 participantes de una muestra por conveniencia y no permiten estimar proporciones en la población de empleados de empresas argentinas ni en el segmento PyME.
 
 Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen, para los participantes, mayor peso que la garantía de privacidad como criterio de decisión, y una parte significativa (34\%) considera improbable que su empresa adopte un sistema de este tipo, además del 23\% que se ubica en una posición intermedia. Por lo tanto, las respuestas sugieren una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.

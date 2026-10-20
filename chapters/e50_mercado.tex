@@ -17,6 +17,7 @@ Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), 
 	\item Frente a Exabeam, que según el propio estado del arte ``no incorpora de forma nativa un agente ligero y configurable para la recolección directa de datos desde los equipos finales'', el proyecto lo tiene como pieza central de la arquitectura: no depende de que la infraestructura ya tenga \emph{logs} centralizados, sino que recolecta la actividad directamente en el \emph{endpoint} del usuario.
 	\item Frente a Splunk UBA, del que el estado del arte señala que ``las acciones de respuesta suelen depender de integraciones externas o configuraciones adicionales, ya que no incorpora de forma nativa mecanismos de respuesta adaptativa basados en el nivel de riesgo detectado'' (sección~\ref{sec:ea-splunk}), el agente PEP ejecuta la acción (suspensión o terminación de procesos, denegación del acceso a carpetas) directamente en el \emph{endpoint}, sin \emph{re-login} y sin un componente externo que haya que integrar y configurar aparte.
 	\item Frente a Microsoft Sentinel, que el estado del arte describe con ``falta de visibilidad en el funcionamiento de sus algoritmos de detección'', el sistema puede exponer la razón concreta de cada alerta en una notificación que informa las variables de Isolation Forest que más contribuyen a cada alerta, redactada en forma opcional por un modelo de lenguaje, en vez de una caja negra que solo informa ``riesgo alto''.
+	\item Frente a las plataformas EDR/XDR orientadas a PyMEs, como Microsoft Defender for Business o Wazuh, que detectan técnicas maliciosas o reglas conocidas (sección~\ref{sec:ea-edr}), el producto evalúa si un usuario con credenciales válidas se aparta de su conducta habitual, mantiene un puntaje de riesgo con continuidad entre sesiones y gradúa la respuesta según ese puntaje. Se posiciona como complemento de un EDR, no como su reemplazo.
 \end{itemize}
 
 \subsection{Precio}
@@ -81,19 +82,20 @@ Las oportunidades son factores externos del mercado que el producto puede aprove
 \subsection{Amenazas}
 Las amenazas son factores externos que pueden dificultar la adopción del producto:
 \begin{itemize}
-	\item Sentinel se percibe como incluido para quien ya contrata Microsoft 365 con Defender: un sustituto sin costo adicional.
+	\item Las herramientas del ecosistema Microsoft que la PyME ya contrata (Defender for Business en Microsoft 365 Business Premium, beneficios de Sentinel en las licencias E5) pueden percibirse como un sustituto sin costo adicional.
 	\item Exabeam y Splunk UBA, al integrar SIEM+UEBA+SOAR, pueden ofrecerse como solución ``todo en uno'' frente a un producto que hoy resuelve una sola capa.
 	\item Ritmo de innovación muy alto en IA aplicada a seguridad: riesgo de quedar desactualizado sin inversión continua.
 	\item Requisitos regulatorios/de \emph{compliance} que una solución nueva sin certificaciones podría no cumplir en una primera etapa.
+	\item Plataformas EDR/XDR accesibles para PyMEs (Defender for Business, Wazuh) que pueden percibirse como suficientes, aunque no cubran la desviación conductual de usuarios con credenciales válidas.
 \end{itemize}
 
 \section{Cruz de Porter: 5 fuerzas}
 El análisis sigue el modelo de las cinco fuerzas competitivas \parencite{Porter1979}, aplicado al segmento elegido.
 
 \begin{enumerate}
-	\item \textbf{Rivalidad entre competidores existentes, alta en el segmento \emph{enterprise}, baja en el segmento elegido.} Sentinel, Splunk UBA y Exabeam compiten entre sí por el cliente grande; ninguno de los tres está diseñado ni tarifado para el segmento PyME, por lo que en ese segmento la rivalidad directa es baja.
+	\item \textbf{Rivalidad entre competidores existentes, alta en el segmento \emph{enterprise}, media en el segmento elegido.} Sentinel, Splunk UBA y Exabeam compiten entre sí por el cliente grande y no están diseñados ni tarifados para PyMEs. En ese segmento, en cambio, las plataformas EDR/XDR (Microsoft Defender for Business, Wazuh) compiten por el mismo presupuesto de seguridad, aunque detectan otro tipo de amenaza (sección~\ref{sec:ea-edr}).
 	\item \textbf{Amenaza de nuevos competidores, media.} La barrera técnica (modelos de comportamiento confiables) es real, pero la infraestructura \emph{cloud} abarata el costo de entrada. El crecimiento del mercado Zero Trust también atrae nuevos entrantes.
-	\item \textbf{Amenaza de productos sustitutos, alta.} El sustituto más directo no es otro UEBA, sino mantener la situación actual y continuar con Sentinel, ya incluido en una suscripción de Microsoft 365 existente, aunque tenga las limitaciones de costo por volumen y opacidad que señala el propio estado del arte.
+	\item \textbf{Amenaza de productos sustitutos, alta.} El sustituto más directo no es otro UEBA, sino mantener la situación actual y continuar con las herramientas del ecosistema Microsoft que la organización ya contrata (Sentinel ofrece un beneficio de ingesta de datos a las licencias Microsoft 365 E5, y Defender for Business viene incluido en Microsoft 365 Business Premium), aunque tengan las limitaciones de costo por volumen y opacidad que señala el propio estado del arte, o con una plataforma EDR/XDR como las descritas en la sección~ef{sec:ea-edr}.
 	\item \textbf{Poder de negociación de los compradores, alto en \emph{enterprise}, más bajo en PyME.} Las grandes organizaciones tienen alternativas consolidadas (Sentinel, Splunk, Exabeam) y capacidad de negociar. El comprador PyME hoy no tiene una alternativa dedicada a su tamaño entre estas tres, lo que da más previsibilidad al posicionamiento propuesto.
 	\item \textbf{Poder de negociación de los proveedores, medio.} Dependencia de servicios \emph{cloud} gestionados (AWS, Redis, Postgres, API de Gemini) reemplazables sin bloquear el producto. El \emph{dataset} de entrenamiento (CLUE-LDS) es público, con licencia CC BY 4.0, y no depende de un proveedor comercial de datos.
 \end{enumerate}
