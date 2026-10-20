@@ -43,14 +43,14 @@
 \begin{scope}[on background layer]
 \node[marco=cOff!40, fit=(ssm)(s3)] (maws) {};
 \end{scope}
-\node[mtit] at (maws.north west) {«cloud» Servicios de AWS de apoyo};
+\node[mtit, anchor=north west, yshift=-1.5pt] at (maws.south west) {«cloud» Servicios de AWS de apoyo};
 
 % ===================== SERVICIOS GESTIONADOS
-\node[cmp=cDato] (redis) at (17.0,4.0) {\st{database} \textbf{Redis}\\Upstash};
-\node[cmp=cDato] (pg) at (17.0,1.8) {\st{database} \textbf{PostgreSQL}\\Supabase};
-\node[cmp=cExt] (smtp) at (17.0,-0.4) {\st{service} \textbf{Gmail SMTP}};
-\node[cmp=cExt] (gemini) at (17.0,-2.4) {\st{service} \textbf{Google Gemini}};
-\node[cmp=cExt] (entra) at (17.0,-4.4) {\st{service} \textbf{Microsoft Entra ID}};
+\node[cmp=cDato] (redis) at (18.6,4.0) {\st{database} \textbf{Redis}\\Upstash};
+\node[cmp=cDato] (pg) at (18.6,1.8) {\st{database} \textbf{PostgreSQL}\\Supabase};
+\node[cmp=cExt] (smtp) at (18.6,-0.4) {\st{service} \textbf{Gmail SMTP}};
+\node[cmp=cExt] (gemini) at (18.6,-2.4) {\st{service} \textbf{Google Gemini}};
+\node[cmp=cExt] (entra) at (18.6,-4.4) {\st{service} \textbf{Microsoft Entra ID}};
 \begin{scope}[on background layer]
 \node[marco=cExt!35, fit=(redis)(pg)(smtp)(gemini)(entra)] (msaas) {};
 \end{scope}
