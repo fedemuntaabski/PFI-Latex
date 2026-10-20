@@ -1,4 +1,6 @@
 \chapter{Diagramas UML}\label{chap:uml}
+
+Esta sección presenta los diagramas que describen el funcionamiento interno del sistema: el recorrido de un evento entre los componentes (figura~\ref{fig:diagrama-flujo}), los componentes y los protocolos con que se comunican (figura~\ref{fig:diagrama-componentes}), las clases del agente (figura~\ref{fig:diagrama-clases-agente}) y de la API (figuras~\ref{fig:diagrama-clases-api} a~\ref{fig:diagrama-clases-api-schemas}), y un diagrama de objetos construido con una instancia real (figura~\ref{fig:diagrama-objetos}).
 % Permite dos diagramas por página flotante; se restaura al final del capítulo.
 \begingroup
 \renewcommand{\topfraction}{0.9}
@@ -32,6 +34,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 \clearpage
 \section{Diagrama de clases --- agente PEP}
 
+La figura~\ref{fig:diagrama-clases-agente} presenta las clases del agente. La configuración (\texttt{AgentConfig}) reúne las carpetas vigiladas, los marcadores de procesos y aplicaciones, los parámetros del sondeo y del \emph{buffer} local y la dirección de la API. Cuatro colectores (archivos, procesos, aplicaciones sensibles y red) generan señales comparando dos consultas sucesivas del sistema operativo; el \texttt{Debouncer} descarta las repetidas y limita su frecuencia, y \texttt{EventFactory} las convierte en eventos con el formato del contrato de la API. \texttt{ScoringClient} envía cada evento, conserva los no enviados en el \emph{buffer} local y abre el \emph{circuit breaker} ante rechazos de autenticación, mientras que \texttt{Enforcer} aplica la acción indicada por la API y conserva el respaldo necesario para revertirla.
+
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/uml/03_clases_agente_pep.pdf}}
@@ -43,6 +47,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 \clearpage
 \section{Diagramas de clases --- API PDP}
 
+La API se documenta en seis diagramas. La figura~\ref{fig:diagrama-clases-api} presenta la vista de paquetes: el estado de cada usuario en Redis (A), el cálculo del puntaje híbrido (B), los servicios de IAM, autenticación, deduplicación y notificaciones (C), las rutas HTTP con la configuración, el historial y el reentrenamiento (D) y los contratos de datos (E), con las dependencias entre ellos.
+
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.5\textheight, center}{\includegraphics{images/diagramas/uml/04_clases_api_paquetes.pdf}}
@@ -50,6 +56,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 	\label{fig:diagrama-clases-api}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
+
+La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API mantiene por usuario en Redis (\texttt{User\-Scoring\-State}), compuesto por la continuidad de la secuencia de eventos, el acumulado diario de Isolation Forest, el \emph{buffer} del LSTM, el ancla del puntaje híbrido y la línea base personal, cuyas estadísticas se actualizan en forma incremental con el algoritmo de Welford.
 
 \begin{figure}[htbp]
 	\centering
@@ -59,6 +67,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
+La figura~\ref{fig:diagrama-clases-api-scoring} presenta las clases que calculan el puntaje: los servicios de Isolation Forest y del LSTM Autoencoder, la combinación híbrida con el decaimiento temporal y la regla de piso, la cobertura del puntaje, la explicación de las variables y los artefactos del modelo que se cargan al iniciar la API y se reemplazan sin reiniciarla.
+
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.7\textheight, center}{\includegraphics{images/diagramas/uml/04b_clases_api_scoring.pdf}}
@@ -66,6 +76,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 	\label{fig:diagrama-clases-api-scoring}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
+
+La figura~\ref{fig:diagrama-clases-api-iam} presenta la integración con los proveedores de identidad, mediante un adaptador con implementaciones para el proveedor simulado, Keycloak y Microsoft Entra ID, junto con las clases de autenticación: las sesiones del panel y las claves individuales de los agentes.
 
 \begin{figure}[htbp]
 	\centering
@@ -75,6 +87,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
+La figura~\ref{fig:diagrama-clases-api-persistencia} presenta las rutas HTTP de la API y las clases de las que dependen: la persistencia del historial y de los eventos crudos en PostgreSQL, el almacén de la configuración en Redis y el planificador del reentrenamiento con su criterio de promoción.
+
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.7\textheight, center}{\includegraphics{images/diagramas/uml/04d_clases_api_persistencia_config.pdf}}
@@ -82,6 +96,8 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 	\label{fig:diagrama-clases-api-persistencia}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
+
+La figura~\ref{fig:diagrama-clases-api-schemas} presenta los esquemas de datos que validan las solicitudes y respuestas HTTP, entre ellos el evento que envía el agente, la respuesta con el puntaje, el nivel y la acción, y la confirmación de la acción ejecutada.
 
 \begin{figure}[htbp]
 	\centering
@@ -98,7 +114,7 @@ La figura~\ref{fig:diagrama-objetos} presenta un diagrama de objetos construido 
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.62\textheight, center}{\includegraphics{images/diagramas/uml/05_objetos_evento.pdf}}
-	\caption{Diagrama de objetos con una instancia real (uid \texttt{demo-pfi}).}
+	\caption{Diagrama de objetos con una instancia real (uid \texttt{DESKTOP-DEMO-usuario1}).}
 	\label{fig:diagrama-objetos}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}

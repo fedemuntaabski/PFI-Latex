@@ -152,8 +152,7 @@ USD 6.000 el año 2, USD 9.000 el año 3, USD 11.000 el año 4 y USD 12.000 el a
 infraestructura de nube escalonada según los equipos monitoreados (USD 179 por mes hasta 1.500 equipos, USD 224 hasta 3.000, USD 317 con 6.000
 y USD 583 con 12.000; tabla~\ref{tab:costo-nube}); contador, mesa de ayuda y renovación del certificado de
 firma de código: USD 167 por mes (USD 125 el primer año, porque el certificado ya figura en la inversión inicial). \\
-Impuesto a las ganancias & 25\,\% sobre el resultado positivo de cada año (supuesto simplificado,
-sin quebrantos trasladables). \\
+Impuesto a las ganancias & 25\,\% sobre el resultado positivo de cada año (supuesto simplificado: la alícuota societaria vigente es escalonada, por lo que en los años de mayor resultado el impuesto sería mayor; no se consideran quebrantos trasladables). \\
 Tasa de descuento & 25\,\% anual en dólares, construida por acumulación (ver el párrafo
 siguiente), con sensibilidad entre 20\,\% y 35\,\%. \\
 \hline
@@ -171,6 +170,8 @@ componente menos fundamentado de la tasa; por eso el valor actual neto se inform
 20\,\%, 30\,\% y 35\,\%. Como los rendimientos son nominales en dólares y los flujos están en dólares
 constantes, la tasa resulta algo mayor que la real equivalente, lo que vuelve la evaluación más
 conservadora.
+
+El costo de adquisición, la tasa de abandono y la velocidad de incorporación de clientes son supuestos del equipo, sin una fuente externa ni datos propios que los respalden. Por eso los tres escenarios los varían en conjunto, y la validación comercial (sección~\ref{sec:trabajo-futuro}) apunta primero a medirlos.
 
 \subsection{Escenarios}
 Los tres escenarios difieren en la velocidad de adopción, la tasa de abandono y el costo de
@@ -318,7 +319,7 @@ por equipo, seis veces el valor adoptado, el VAN del escenario base baja a USD 2
 positivo. Lo que sí pesa es el piso fijo: aun con pocos clientes, la infraestructura con alta
 disponibilidad, el contador y la mesa de ayuda suman unos USD 350 por mes antes de pagar al equipo.
 Esta conclusión supone que dos instancias atienden unos 3.000 equipos y que Redis y PostgreSQL se
-contratan por plan. Ninguna de las dos cosas se midió en la nube (sección~\ref{sec:latencia-aws}), por lo que
+contratan por plan. Ninguna de las dos cosas se mide en la nube (sección~\ref{sec:latencia-aws}), por lo que
 medirlas es la primera verificación técnica de este análisis.
 
 La tabla~\ref{tab:equilibrio-fin} muestra cuándo se alcanza el equilibrio. En el escenario optimista
@@ -346,6 +347,8 @@ por debajo del punto de equilibrio y el costo de adquisición observado supera l
 replantea el canal o el segmento antes de aumentar el costo fijo.
 
 \section{Identidad de marca}
+
+La identidad de marca se compone del nombre del producto, su logotipo y el mensaje con que se posiciona frente al segmento elegido.
 \subsection{Nombre}
 El producto se llama \textbf{UMBRAL}, por los umbrales de riesgo que separan el comportamiento habitual de un usuario de una desviación que merece respuesta. Es una palabra corta, en español, y no describe una tecnología puntual, así que el nombre puede acompañar la evolución del producto.
 

@@ -10,7 +10,7 @@ Esta sección describe el producto, su rango de precios y su plaza, es decir, lo
 \subsection{Producto}
 Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), compuesto por un agente liviano local (PEP) que recolecta actividad del usuario, una API central (PDP) que calcula un \emph{score} de riesgo dinámico con un modelo híbrido (Isolation Forest + LSTM Autoencoder) con decaimiento temporal, y un \emph{dashboard} donde el administrador define umbrales y acciones.
 
-\noindent\textbf{Diferencial del producto.} El análisis de mercado compara el producto con las tres plataformas UEBA relevadas (Sentinel, Splunk UBA y Exabeam). Microsoft Entra ID Protection queda fuera de esta comparación porque es una solución de protección de identidad, complementaria más que sustituta, cuya respuesta se limita al acceso condicional en la autenticación (sección~\ref{sec:estado-arte-entra}); del mismo modo, Okta se trató aparte en la sección~\ref{sec:comparacion-general}. Las tres plataformas UEBA detectan y alertan, pero dejan la respuesta en manos de un analista o de una plataforma SOAR externa; el diferencial del producto es que la API que detecta la anomalía decide la respuesta y el agente la ejecuta en el \emph{endpoint}, en segundos, sin depender de un analista (sección~\ref{sec:conclusion-estado-del-arte}).
+\noindent\textbf{Diferencial del producto.} El análisis de mercado compara el producto con las tres plataformas UEBA relevadas (Sentinel, Splunk UBA y Exabeam). Microsoft Entra ID Protection queda fuera de esta comparación porque es una solución de protección de identidad, complementaria más que sustituta, cuya respuesta se limita al acceso condicional en la autenticación (sección~\ref{sec:estado-arte-entra}); del mismo modo, Okta se trata aparte en la sección~\ref{sec:comparacion-general}. Las tres plataformas UEBA detectan y alertan, pero dejan la respuesta en manos de un analista o de una plataforma SOAR externa; el diferencial del producto es que la API que detecta la anomalía decide la respuesta y el agente la ejecuta en el \emph{endpoint}, en segundos, sin depender de un analista (sección~\ref{sec:conclusion-estado-del-arte}).
 
 
 \begin{itemize}
@@ -25,7 +25,7 @@ Rango sugerido de suscripción mensual por \emph{endpoint} monitoreado, delibera
 
 \begin{itemize}
 	\item \textbf{Business} (detección + respuesta automática configurable): USD 2 a 5 por \emph{endpoint}/mes. Para una PyME de referencia con 50-100 equipos, esto representa un gasto total de aproximadamente USD 100 a 500 por mes, un monto accesible para el presupuesto de una PyME.
-	\item \textbf{Enterprise} (incluye reentrenamiento periódico configurable): USD 6 a 10 por \emph{endpoint}/mes. Sobre la misma base de 50-100 equipos, esto representa un gasto total de entre USD 300 y 1.000 por mes.
+	\item \textbf{Enterprise} (incluye reentrenamiento periódico configurable): USD 6 a 10 por \emph{endpoint}/mes. La promoción automática de modelos desde el planificador está pendiente de validación (sección~\ref{sec:reentrenamiento-producto}), por lo que este plan supone completarla antes de su comercialización. Sobre la misma base de 50-100 equipos, esto representa un gasto total de entre USD 300 y 1.000 por mes.
 \end{itemize}
 
 La viabilidad económico-financiera de este esquema de precios se evalúa en la sección~\ref{sec:viabilidad-fin}.

@@ -44,6 +44,8 @@ Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento 
 
 \section{Variables y modelos}
 \label{sec:variables-modelos}
+
+Cada uno de los dos modelos trabaja con una unidad de análisis y un conjunto de variables propios: Isolation Forest evalúa la actividad agregada por día y el LSTM Autoencoder, secuencias de eventos. Esta subsección describe ambos y presenta la partición de los datos y los parámetros de entrenamiento.
 \subsection{Isolation Forest}\label{sec:if-variables}
 Isolation Forest evalúa la actividad de cada usuario por día calendario, tomando como referencia la zona horaria UTC. Para cada par usuario-día, se calculan ocho variables que caracterizan el comportamiento: la cantidad total de eventos, la diversidad de tipos de evento y de países, la cantidad de eventos relacionados con archivos (accesos, creaciones y escrituras) y de eventos de autenticación, la hora promedio de actividad, la proporción de eventos fuera del horario habitual (antes de las 7:00 o después de las 20:00) y la entropía de la distribución de los tipos de evento.
 

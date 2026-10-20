@@ -1,11 +1,15 @@
 \chapter{Producto implementado}
 \label{chap:producto}
+
+Esta sección describe el producto tal como se encuentra implementado: sus funcionalidades, el estado del despliegue, el tratamiento de los datos personales con su encuadre legal y las limitaciones conocidas.
 \section{Visión general}
 \label{sec:vision-producto}
 El producto se compone de tres piezas de software, el agente local, la API de \emph{scoring} y el \emph{dashboard}, y de un proceso de reentrenamiento periódico del modelo. La sección~\ref{chap:arquitectura} describe cómo se organizan estos componentes, el flujo de información entre ellos (sección~\ref{sec:arquitectura-logica}) y las tecnologías con que se construyen, junto con la justificación de su elección (sección~\ref{sec:frameworks}). Esta sección, en cambio, se centra en el producto en su estado actual: las funcionalidades que ofrece cada componente, el estado del despliegue, el tratamiento de los datos personales y las limitaciones conocidas. El estado de cada requerimiento funcional y no funcional figura en las tablas de la sección~\ref{chap:requerimientos}.
 
 \section{Funcionalidades}
 \label{sec:funcionalidades}
+
+Esta subsección describe las funcionalidades de cada componente: el agente local, el motor de scoring, la redacción asistida del correo de notificación, el dashboard, el reentrenamiento periódico, el tratamiento de los usuarios nuevos y el control de acceso a la API.
 \subsection{Agente local}
 El agente es un proceso de Python que se ejecuta de forma nativa en cada equipo Windows, sin controladores del sistema operativo. Consulta periódicamente el estado del sistema y genera eventos a partir de la comparación entre dos consultas sucesivas. Utiliza cuatro fuentes:
 \begin{description}[leftmargin=0pt, itemsep=2pt]
@@ -199,7 +203,7 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Sensibilidad baja ante ataques de corta duración & Los escenarios inyectados rara vez alcanzan el nivel alto y ninguno el crítico (sección~\ref{sec:validacion-escenarios}). La evaluación con escenarios etiquetados lo confirma (sección~\ref{sec:lectura-benchmark}). & Trabajo futuro: variables con granularidad menor al día y evaluación con datos etiquetados del dominio del agente. \\
 	\hline
-	El país actúa como interruptor & En ambos modelos, la ubicación, y no el comportamiento, decide la detección operativa de los ataques con país y el nivel crítico de la demostración (sección~\ref{sec:benchmark}). & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
+	El país actúa como interruptor & En ambos modelos, la ubicación, y no el comportamiento, decide la detección operativa de los ataques con país y el nivel crítico del escenario de extremo a extremo (sección~\ref{sec:benchmark}). & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
 	\hline
 	Aporte limitado del LSTM & No aprovecha el orden de los eventos: permutar los 50 eventos de una secuencia no cambia el ordenamiento (Spearman 0,989), y el cambio de país explica cerca del 72\,\% del error de reconstrucción en el período de test. Además, un puntaje impulsado por el LSTM no identifica qué lo causó, y al cerrarse la primera secuencia de un usuario el puntaje pasa de golpe de depender solo de Isolation Forest a combinar ambos modelos. & Trabajo futuro: rediseñar el LSTM o reemplazarlo por un modelo explicable, con una transición gradual entre ambos cálculos. \\
 	\hline
@@ -215,11 +219,15 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	Defectos menores del agente & Una falla al suspender un proceso puede informarse como éxito; con el \emph{circuit breaker} abierto, los eventos nuevos siguen intentando enviarse y, con el \emph{buffer} lleno, se descartan los más recientes; el agente conserva un mapeo nivel\,$\rightarrow$\,acción de respaldo que la API actual nunca activa. & Corrección prevista en el agente. \\
 	\hline
+	Alcance de la observación & El agente solo observa los equipos donde está instalado. El uso de credenciales robadas desde un equipo sin agente no genera telemetría, y solo se cubre en forma parcial mediante la integración IAM (segundo factor y cierre de sesiones en Keycloak). & Inherente al enfoque basado en el \emph{endpoint}; trabajo futuro: incorporar los eventos de autenticación del proveedor IAM como fuente adicional. \\
+	\hline
 	\multicolumn{3}{l}{\textit{Reentrenamiento}} \\
 	\hline
 	Partición del candidato con datos del agente & Al sumar datos del agente, el \emph{pipeline} recalcula el corte temporal y el criterio rechaza por precaución todo candidato; el LSTM, además, separa entrenamiento y prueba por sorteo de usuarios, que los usuarios nuevos alteran sin que el criterio lo detecte. Por eso todavía no se ha ejecutado una promoción desde el planificador con un modelo genuinamente nuevo (RF-21, sección~\ref{sec:reentrenamiento-producto}). & Trabajo futuro: partición por origen del dato, con todos los datos del agente en entrenamiento y el conjunto de datos posterior al corte como prueba, y verificación de que ninguna víctima de los escenarios participe del entrenamiento. \\
 	\hline
 	Reentrenamiento fallido registrado como en curso & Si un paso del \emph{pipeline} falla, el intento queda como ``\emph{pipeline} en curso''; si termina por una excepción, no se registra y se reintenta a los 5 minutos, sin un tiempo máximo de ejecución. En todos los casos se restaura el modelo vigente. & Corrección prevista en el planificador. \\
+	\hline
+	Eventos incorporados sin revisión & El reentrenamiento incorpora los eventos recibidos sin una revisión previa, por lo que un atacante podría introducir actividad maliciosa en forma gradual (\emph{drift} inducido, sección~\ref{sec:estrategias-drift}). El criterio de no inferioridad protege contra regresiones de detección, pero no contra esa contaminación. & Trabajo futuro: excluir del reentrenamiento los eventos de usuarios con alertas en nivel alto o crítico y revisar la nueva línea base antes de promoverla. \\
 	\hline
 	\multicolumn{3}{l}{\textit{Autenticación y comunicaciones}} \\
 	\hline

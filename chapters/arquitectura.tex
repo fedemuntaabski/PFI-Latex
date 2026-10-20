@@ -1,6 +1,8 @@
 \chapter{Arquitectura y tecnologías}
 \label{chap:arquitectura}
 
+Esta sección describe la arquitectura lógica del sistema, los lenguajes, frameworks, librerías y servicios elegidos para cada componente junto con la justificación de cada elección, la arquitectura de despliegue en el entorno local y en la nube, y los protocolos de comunicación entre los componentes.
+
 \section{Arquitectura lógica}
 \label{sec:arquitectura-logica}
 La arquitectura sigue la separación entre el punto de decisión de políticas (PDP) y el punto de aplicación de políticas (PEP) propuesta por NIST SP~800-207 \parencite{Rose2020}. El agente local actúa como PEP: observa la actividad, la informa y aplica la decisión, pero no evalúa el riesgo. La API central actúa como PDP: concentra el modelo, la política vigente y el estado de cada usuario, y decide la acción. Esta separación permite cambiar el modelo o la política sin modificar los agentes instalados.
@@ -27,6 +29,8 @@ Se descartó un \emph{backend} en Node.js porque igualmente habría requerido un
 
 \section{Frameworks y librerías}
 \label{sec:frameworks}
+
+Esta subsección justifica los frameworks y librerías de cada uno de los cuatro componentes de software: la API de scoring, el agente, el dashboard y el pipeline de entrenamiento.
 
 \subsection{API de \emph{scoring}}
 La API se desarrolla con FastAPI y se ejecuta sobre Uvicorn. Este \emph{framework} ofrece soporte para operaciones asincrónicas, valida automáticamente los datos de entrada y salida, y genera la documentación OpenAPI a partir del código. Estas características resultan especialmente útiles para una API que cuenta con 34 \emph{endpoints}, ya que permiten mantener sus interfaces documentadas y reducir la necesidad de incorporar extensiones adicionales, como ocurriría con Flask. Por su parte, los contratos de datos compartidos entre el agente, la API y el \emph{dashboard} se definen mediante Pydantic~2, que permite validar la estructura y los tipos de los datos recibidos y rechazar los eventos mal formados sin necesidad de implementar manualmente esas validaciones.
@@ -58,6 +62,8 @@ Por último, el sistema integra tres servicios opcionales. El envío de correo p
 
 \section{Arquitectura de despliegue}
 \label{sec:despliegue}
+
+El sistema se ejecuta en dos configuraciones: un entorno local, que se usa para el desarrollo y las pruebas automatizadas, y un despliegue en la nube, que constituye la configuración de referencia. Esta subsección describe ambas, la decisión sobre el uso de contenedores y la viabilidad técnica de la solución.
 
 \subsection{Entorno local de desarrollo}\label{sec:despliegue-local}
 En el entorno local, el agente, la API y el \emph{dashboard} se ejecutan como procesos nativos en un equipo Windows y se conectan a Redis y PostgreSQL gestionados (figura~\ref{fig:despliegue-local}). El agente se comunica con la API por loopback y el \emph{dashboard} la consulta desde el servidor de desarrollo. Opcionalmente, la API consulta un proveedor IAM simulado o Keycloak. Esta configuración se utiliza para el desarrollo, las pruebas automatizadas y la medición del cómputo; la verificación de extremo a extremo con un agente real se realiza sobre el despliegue en la nube (sección~\ref{sec:verificacion-despliegue}).
@@ -116,7 +122,7 @@ Para el almacenamiento, la API se comunica con Redis mediante RESP y utiliza tra
 
 Los servicios externos también se consumen mediante canales cifrados. La API se conecta por HTTPS con Gemini y el proveedor de identidad IAM, y se autentica ante Keycloak y Microsoft Entra ID mediante OAuth~2.0 con credenciales de cliente. El \emph{token} obtenido se mantiene en caché hasta su vencimiento. Las notificaciones, por su parte, se envían mediante SMTP con STARTTLS.
 
-En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API, y el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}. En el entorno local de desarrollo, en cambio, el canal entre el agente y la API usa HTTP sin TLS sobre \emph{loopback}, lo que resulta aceptable en ese ámbito. Tampoco hay autenticación mutua por certificado entre ambos componentes, ya que el agente se autentica con su clave individual. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
+En la infraestructura de nube, el proxy inverso de la instancia termina las conexiones TLS tanto para el \emph{dashboard} como para la API, y el agente solo acepta URLs HTTPS cuando el destino no corresponde a una dirección de \emph{loopback}. En el entorno local de desarrollo, en cambio, el canal entre el agente y la API usa HTTP sin TLS sobre \emph{loopback}, lo que resulta aceptable en ese ámbito. La autenticación entre el agente y la API es mutua a nivel de aplicación: el agente verifica el certificado del servidor mediante TLS y rechaza cualquier destino sin HTTPS fuera de \emph{loopback}, y la API autentica al agente con su credencial individual, almacenada como \emph{hash}, revocable y ligada a su identificador y a los usuarios que puede reportar. Lo que no se implementa es la autenticación mutua a nivel de transporte con certificados de cliente (mTLS), que agregaría protección en el caso de que la credencial del agente fuera robada del propio equipo. Se declara como limitación (sección~\ref{sec:limitaciones-producto}) y queda diseñada como trabajo futuro (sección~\ref{sec:trabajo-futuro}).
 
 \section{Síntesis}
 \label{sec:sintesis-arquitectura}
