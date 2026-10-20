@@ -37,7 +37,7 @@ La estrategia combina pruebas automatizadas, que se ejecutan en cada cambio del 
 	\hline
 	Pruebas de rendimiento & Scripts de medición con requests y psutil & Latencia de evaluación de eventos (RNF-01) y consumo de recursos del agente (RNF-02). \\
 	\hline
-	Evaluación del modelo & Métricas sin etiquetas, escenarios inyectados y escenarios etiquetados & Comportamiento del modelo híbrido sobre el conjunto de datos y sensibilidad ante escenarios de ataque simulados; detección y falsos positivos sobre escenarios de etiqueta conocida en una partición reservada (sección~\ref{sec:benchmark}). \\
+	Evaluación del modelo & Métricas sin etiquetas, escenarios inyectados y escenarios etiquetados & Comportamiento del modelo híbrido sobre el conjunto de datos y sensibilidad ante escenarios de ataque simulados; detección y falsos positivos sobre escenarios de etiqueta conocida en una partición reservada (sección~\ref{sec:benchmark}); matriz de confusión y controles negativos sobre escenarios adicionales (sección~\ref{sec:benchmark-controlado}). \\
 	\hline
 	Evaluación de usabilidad & Evaluación heurística & Interfaz del \emph{dashboard} contra las diez heurísticas de usabilidad de Nielsen. \\
 	\hline
@@ -375,7 +375,7 @@ El sistema detecta pocos de los escenarios inyectados y ninguno alcanza el nivel
 
 Varias causas están verificadas. El 99,95\,\% de los eventos del conjunto de datos tiene el país registrado como desconocido, por lo que la variable de cambio de país casi no varía durante el entrenamiento. Esto explica que el escenario E3 no se detecte y que, cuando esa variable cambia, domine el error de reconstrucción del LSTM. Además, el LSTM no aprovecha el orden de los eventos: permutar los 50 eventos de una secuencia no cambia el ordenamiento. Su riesgo correlaciona $-0{,}68$ con el logaritmo del volumen de actividad del usuario, de modo que tiende a marcar a los usuarios poco activos. Las demás causas son inferidas y no se aíslan experimentalmente:
 \begin{itemize}
-	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable.
+	\item Isolation Forest trabaja con variables agregadas por día, en las que una ráfaga de 30 a 60 eventos no resulta atípica para un usuario con un historial variable. El escenario de pico corto de la sección~\ref{sec:benchmark-controlado} apunta en el mismo sentido (ROC-AUC de 0,62 para este componente), sin aislar la causa.
 	\item El LSTM evalúa secuencias de 50 eventos, por lo que una inyección corta completa a lo sumo una secuencia y su señal se diluye.
 	\item La combinación con la línea base personal y el decaimiento temporal amortiguan los cambios puntuales; en el caso del decaimiento, el benchmark confirma que empeora el ordenamiento en ventanas cortas (sección~\ref{sec:decisiones-pruebas}).
 \end{itemize}
@@ -384,7 +384,7 @@ La alta proporción de alertas en usuarios con pocos días de historial es consi
 
 \section{Evaluación con escenarios etiquetados}
 \label{sec:benchmark}
-Esta sección evalúa la detección con un conjunto amplio de usuarios víctimas, escenarios de etiqueta conocida, una partición en dos subconjuntos e intervalos de confianza. Con etiquetas construidas de este modo es posible calcular sobre el sistema en producción las métricas que la ausencia de etiquetas impide obtener sobre los datos originales: el área bajo la curva ROC, la exhaustividad (\emph{recall}) y la tasa de falsos positivos.
+Esta sección evalúa la detección con un conjunto amplio de usuarios víctimas, escenarios de etiqueta conocida, una partición en dos subconjuntos e intervalos de confianza. Con etiquetas construidas de este modo es posible calcular sobre el sistema en producción las métricas que la ausencia de etiquetas impide obtener sobre los datos originales: el área bajo la curva ROC, la exhaustividad (\emph{recall}) y la tasa de falsos positivos. Una última subsección agrega escenarios controlados adicionales, con matriz de confusión y controles negativos (sección~\ref{sec:benchmark-controlado}).
 
 \subsection{Escenarios}
 Como CLUE-LDS no incluye ataques, los escenarios se construyen sobre el historial real de cada víctima a partir de un instante T. La tabla~\ref{tab:bench-escenarios} los describe.
@@ -497,6 +497,104 @@ Las cifras del LSTM en HOLDOUT son optimistas, porque 47 de las 57 víctimas for
 \subsection{Contraste con las metas}
 Al aplicar los límites de las metas de la sección~\ref{sec:metas-modelo} a los resultados de HOLDOUT, la tasa de falsos positivos en nivel alto cumple el límite del 10\,\% de la meta de alertas, mientras que la detección en nivel alto sin país no alcanza el 50\,\% de la meta de detección. Con país, la detección de la exfiltración supera ese valor. El contraste es indicativo, porque la meta de detección se expresa en usuarios y el benchmark mide usuario-días.
 
+\subsection{Escenarios controlados adicionales}\label{sec:benchmark-controlado}
+Una evaluación complementaria suma cuatro escenarios de etiqueta conocida y calcula, por modelo, la matriz de confusión con los umbrales de producción. Es exploratoria: usa solo víctimas de DEV, no interviene en ningún ajuste y deja intacto HOLDOUT. La tabla~\ref{tab:bench-controlados} describe los escenarios. Todos conservan el país habitual de la víctima.
+
+\begin{table}[h]
+\centering
+\caption{Escenarios controlados adicionales}
+\label{tab:bench-controlados}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}p{7.6cm}>{\raggedright\arraybackslash}p{1.6cm}}
+\hline
+Escenario & Etiqueta & Construcción & Mundos \\
+\hline
+S4, secuencia inusual & 1 & Los tipos de evento se permutan dentro de cada día; horas, conteos y país no cambian. & 138 \\
+S5, pico corto & 1 & En cada día activo, una ráfaga de 5 veces los eventos de archivo habituales en 5 minutos o menos, con tipos del perfil propio. & 167 \\
+S6, control de identidad & 0 & Ventana original sin modificar. & 167 \\
+S7, control benigno & 0 & Ventana corrida una hora, con 10\,\% de eventos duplicados con una separación de 1 a 30~s. & 167 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+Se omiten 29 mundos de S4 porque ningún día de esas ventanas tenía tipos distintos que permutar. Los modelos se cargan desde los artefactos existentes, sin entrenamiento ni reentrenamiento; el SHA-256 de los nueve artefactos es idéntico antes y después del puntaje. Los datos son posteriores al corte temporal de Isolation Forest. La cifra principal excluye a las víctimas que forman parte del entrenamiento del LSTM (32 víctimas, 26 en S4), porque incluirlas favorece a ese componente. La unidad es el usuario-día, salvo para el LSTM por secuencia, que se evalúa por bloque de 50 eventos y no es comparable con las demás. Los negativos son los días originales de las mismas víctimas, y los controles S6 y S7 se informan aparte para no contar dos veces los mismos días.
+
+\textbf{Reglas de alerta.} Esta evaluación usa la regla de alerta de producción de cada modelo: \texttt{predict == -1} para Isolation Forest, un riesgo mayor que 95 para el LSTM y el nivel alto o crítico para el híbrido. Son reglas distintas de las de la tabla~\ref{tab:bench-fpr} (riesgo de 70 para cada componente), por lo que las cifras de ambas tablas no se comparan entre sí. Por ejemplo, la tasa de falsos positivos de Isolation Forest es 0,6\,\% con la regla de producción, frente a 0,23 a 0,31 con riesgo de 70.
+
+La tabla~\ref{tab:bench-confusion} presenta la matriz de confusión sobre S4 y S5 reunidos y por separado. El híbrido es el sistema con decaimiento temporal, el mismo de las secciones anteriores. El LSTM por bloque se presenta aparte en la tabla~\ref{tab:bench-confusion-chunk}, porque su unidad es distinta.
+
+\begin{table}[h]
+\centering
+\caption{Matriz de confusión por escenario con los umbrales de producción (usuario-día; DEV, sin víctimas del entrenamiento del LSTM)}
+\label{tab:bench-confusion}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrrrrl}
+\hline
+Modelo & Escenario & TP & FP & TN & FN & Precisión & \emph{Recall} & F1 & Especificidad & ROC-AUC [IC 95\,\%] \\
+\hline
+Isolation Forest & S4 y S5 & 15 & 21 & 3\,572 & 639 & 0,417 & 0,023 & 0,043 & 0,994 & 0,56 [0,50--0,61] \\
+ & S4 & 1 & 21 & 3\,452 & 305 & 0,045 & 0,003 & 0,006 & 0,994 & 0,49 [0,43--0,55] \\
+ & S5 & 14 & 21 & 3\,572 & 334 & 0,400 & 0,040 & 0,073 & 0,994 & 0,62 [0,56--0,69] \\
+\hline
+LSTM (día) & S4 y S5 & 1 & 0 & 3\,593 & 653 & 1,000 & 0,002 & 0,003 & 1,000 & 0,54 [0,47--0,60] \\
+ & S4 & 0 & 0 & 3\,473 & 306 & n/d & 0,000 & 0,000 & 1,000 & 0,53 [0,45--0,60] \\
+ & S5 & 1 & 0 & 3\,593 & 347 & 1,000 & 0,003 & 0,006 & 1,000 & 0,55 [0,47--0,62] \\
+\hline
+Híbrido & S4 y S5 & 46 & 121 & 3\,472 & 608 & 0,275 & 0,070 & 0,112 & 0,966 & 0,56 [0,51--0,63] \\
+ & S4 & 2 & 36 & 3\,437 & 304 & 0,053 & 0,007 & 0,012 & 0,990 & 0,51 [0,46--0,58] \\
+ & S5 & 44 & 121 & 3\,472 & 304 & 0,267 & 0,126 & 0,172 & 0,966 & 0,62 [0,56--0,69] \\
+\hline
+\end{tabular}}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección. n/d: sin predicciones positivas.\par}
+\end{table}
+\FloatBarrier
+
+\begin{table}[h]
+\centering
+\caption{Matriz de confusión del LSTM por bloque de 50 eventos (exploratoria; su umbral no decide nada en producción)}
+\label{tab:bench-confusion-chunk}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrl}
+\hline
+Escenario & TP & FP & TN & FN & Precisión & \emph{Recall} & F1 & Especificidad & ROC-AUC [IC 95\,\%] \\
+\hline
+S4 y S5 & 74 & 319 & 12\,288 & 1\,659 & 0,188 & 0,043 & 0,070 & 0,975 & 0,68 [0,57--0,77] \\
+S4 & 29 & 308 & 12\,238 & 806 & 0,086 & 0,035 & 0,049 & 0,975 & 0,62 [0,51--0,76] \\
+S5 & 45 & 319 & 12\,288 & 853 & 0,124 & 0,050 & 0,071 & 0,975 & 0,73 [0,60--0,81] \\
+\hline
+\end{tabular}}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+Los puntajes son percentiles de ranking, no probabilidades calibradas. Los intervalos son \emph{bootstrap} sobre víctimas. El PR-AUC de los tres modelos por usuario-día va de 0,19 a 0,21 en conjunto y la exactitud balanceada de 0,50 a 0,53, es decir, cerca del azar. La precisión del LSTM por día (1 de 1) no es una medida útil, porque se apoya en un único acierto. La tabla~\ref{tab:bench-controles} presenta los controles negativos, donde solo hay falsos positivos y verdaderos negativos.
+
+\begin{table}[h]
+\centering
+\caption{Controles negativos S6 y S7: falsos positivos y verdaderos negativos (FP / TN)}
+\label{tab:bench-controles}
+\begin{tabular}{lrrrr}
+\hline
+Modelo & S6 & Especificidad S6 & S7 & Especificidad S7 \\
+\hline
+Isolation Forest & 1 / 347 & 0,997 & 2 / 356 & 0,994 \\
+LSTM (día) & 0 / 348 & 1,000 & 0 / 358 & 1,000 \\
+Híbrido & 22 / 326 & 0,937 & 19 / 339 & 0,947 \\
+\hline
+\end{tabular}\par
+{\small Fuente: elaboración propia a partir del benchmark de detección.\par}
+\end{table}
+\FloatBarrier
+
+\textbf{Lectura.} Con los umbrales de producción, la detección es baja en ambos escenarios y para todos los modelos: el \emph{recall} global es de 0,07 en el híbrido, 0,02 en Isolation Forest y casi nulo en el LSTM por día. Son escenarios difíciles para el sistema vigente, y no se ajustan los umbrales sobre estos mismos casos. En S4, Isolation Forest no puede ver el cambio por construcción (ROC-AUC de 0,49 [0,43--0,55], al nivel del azar) y el LSTM por día tampoco lo detecta; por bloques el ROC-AUC sube a 0,62 [0,51--0,76], con un \emph{recall} de 0,035. En S4 los intervalos de los tres modelos por usuario-día incluyen 0,5, por lo que no hay evidencia de detección por encima del azar. Esto concuerda con la limitación ya verificada de que el LSTM casi no usa el orden de los eventos (sección~\ref{sec:interpretacion}). En S5 la detección es débil: el híbrido alcanza un \emph{recall} de 0,13, un F1 de 0,17 y un ROC-AUC de 0,62 [0,56--0,69]; por bloques, el LSTM llega a 0,73 [0,60--0,81]. La causa no se investigó; queda por verificar si Isolation Forest, que evalúa el agregado diario, diluye una ráfaga de minutos en el total del día.
+
+Sin el decaimiento, el híbrido detecta algo más (\emph{recall} de 0,10) a costa de más falsos positivos (4,2\,\% en lugar de 3,4\,\% de los días originales, especificidad de 0,958). En los controles, el híbrido con decaimiento marca el 6,3\,\% de S6 y el 5,3\,\% de S7, por encima del 3,4\,\% de los días originales de las mismas víctimas.
+
+\textbf{Diferencia en S6.} S6 reproduce los días originales sin modificarlos, por lo que sus puntajes deberían coincidir con los de esos días. Una auditoría lo confirma: las 685 filas de S6 coinciden con los días originales por usuario y fecha, sin duplicados, huérfanos ni diferencias en eventos, puntajes, niveles ni anomalías (lo verifica una prueba automatizada), de modo que no hay un error del \emph{pipeline}. La diferencia de falsos positivos con el resto de los días se explica por la población comparada y por la concentración en pocos usuarios: 16 de los 26 falsos positivos del híbrido sin decaimiento en S6 provienen de 2 de las 32 víctimas. Sin ellas, S6 da 3,1\,\% y los días originales 2,3\,\%.
+
+\textbf{Reproducibilidad y verificación.} Una segunda corrida da puntajes y errores por bloque idénticos bit a bit, y los nueve artefactos conservan su SHA-256 antes y después del puntaje. Con la misma semilla (42) y 300 réplicas de \emph{bootstrap}, el archivo de resultados con las matrices sale idéntico byte a byte (SHA-256 \texttt{7858a253\ldots}). El puntaje fuera de línea de Isolation Forest coincide con el de la fase de entrenamiento en los 61\,284 días cruzados, y el del LSTM, con el de su fase, en los 36 usuarios comparados (diferencia relativa nula). Los intervalos de confianza son anchos por tener solo 32 víctimas. Una suite de 18 pruebas, aprobadas todas, verifica el cálculo de las métricas, el determinismo, la construcción de los escenarios y que el código no invoca ningún entrenamiento.
+
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
 La usabilidad del \emph{dashboard} (RNF-15) se evalúa con una evaluación heurística: el equipo revisa sus ocho pantallas contra las diez heurísticas de Nielsen \parencite{Nielsen1994} y clasifica cada problema con su escala de severidad, de 0 (no es un problema) a 4 (catastrófico). Se identifican 15 problemas: 4 mayores, 5 menores y 6 cosméticos, ninguno catastrófico. Los cuatro mayores y dos menores se corrigen solo en el \emph{frontend} (textos y tildes, formato de fechas, términos internos del desarrollo, mensajes de error de validación, etiquetas de la explicación del puntaje y descripción de los eventos recientes). Siguen abiertos tres problemas menores: el nivel mostrado no se recalcula al cambiar los umbrales, que es el comportamiento especificado en RF-12; la configuración del reentrenamiento no indica si el modo automático está activo; y la auditoría muestra los valores en formato técnico, aceptable para el perfil administrador.
@@ -565,10 +663,11 @@ La decisión principal que surge de estos resultados es mantener el modelo actua
 	\item El benchmark tiene pocas víctimas (62 en DEV y 57 en HOLDOUT), con intervalos de $\pm$0,05 a 0,10 de ROC-AUC, por lo que las diferencias pequeñas entre variantes no son significativas, y sus cifras del LSTM son optimistas, porque la mayoría de las víctimas forma parte de su entrenamiento.
 	\item No se mide la tasa de falsos positivos ante cambios de ubicación legítimos, como viajes o una VPN corporativa, y ninguna cifra del benchmark se transfiere sin más al agente por la brecha de dominio entre una plataforma en la nube y la telemetría de un equipo Windows.
 	\item La integración con Microsoft Entra ID se prueba solo con respuestas simuladas, sin un \emph{tenant} real; la de Keycloak se verificó contra un servidor real.
+	\item Los escenarios controlados adicionales (sección~\ref{sec:benchmark-controlado}) son solo de DEV y exploratorios, y S7 usa un corrimiento fijo de una hora hacia adelante. No representan una IP ni un recurso inusual: los modelos solo leen la hora, el tipo de evento y el país, y los datos no traen IP. Las ventanas S6 y S7 se agrupan por víctima (dos víctimas aportan el 62\,\% de los falsos positivos de S6), y la evaluación del LSTM por bloque no tiene una versión por usuario-día, porque falta definir a qué día se asigna cada bloque.
 \end{itemize}
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
 Las 623 pruebas automatizadas (446 de la API y 177 del agente) se ejecutan sin fallas, con una cobertura de líneas del 94,7\,\% en la API y del 89,3\,\% en el agente, y la integración continua verifica la API, el agente en Windows, el \emph{frontend} y la infraestructura en cada cambio. Las pruebas funcionales de extremo a extremo confirman el ciclo de detección, decisión y mitigación contra la infraestructura real. La latencia del cómputo de evaluación y el consumo de recursos del agente cumplen holgadamente los umbrales de RNF-01 y RNF-02; extremo a extremo en la nube, el percentil 95 es de 3,1~s, dominado por unos 20 viajes de 124~ms a Redis y PostgreSQL. 
 
-La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios inyectados revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (sección~\ref{chap:conclusiones}).
+La evaluación del modelo muestra dos componentes complementarios, pero la validación por escenarios inyectados revela una sensibilidad baja ante ataques de corta duración, y la evaluación con escenarios etiquetados lo confirma: sin país, el nivel alto detecta entre el 12\,\% y el 30\,\% de los días atacados, y la detección más alta proviene de la ubicación. Los escenarios controlados adicionales de secuencia inusual y de pico corto lo refuerzan: con los umbrales de producción, el \emph{recall} del híbrido es de 0,07 en conjunto (0,13 en el pico corto) con una especificidad de 0,97. Esta es la principal limitación técnica del sistema, y sus causas orientan el trabajo futuro: variables con granularidad menor al día, una regla explícita de ubicación y el rediseño del LSTM (sección~\ref{chap:conclusiones}).
