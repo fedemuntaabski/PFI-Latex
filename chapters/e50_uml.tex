@@ -9,7 +9,7 @@ Esta sección presenta los diagramas que describen el funcionamiento interno del
 \renewcommand{\floatpagefraction}{0.75}
 
 \section{Diagrama de flujo de información}
-La figura~\ref{fig:diagrama-flujo} presenta el recorrido de un evento: el agente lo arma a partir de las señales del equipo y lo envía por HTTPS con la credencial del agente; la API valida el esquema, autoriza al agente, deduplica, puntúa y asigna un nivel y una acción, y devuelve el veredicto que el agente aplica en el equipo.
+La figura~\ref{fig:diagrama-flujo} presenta el recorrido de un evento: el agente lo arma a partir de las señales del equipo y lo envía por HTTPS con la credencial del agente; la API valida el esquema, autoriza al agente, deduplica, puntúa y asigna un nivel y una acción, y devuelve el veredicto que el agente aplica en el equipo. Una versión ampliada se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -21,7 +21,7 @@ La figura~\ref{fig:diagrama-flujo} presenta el recorrido de un evento: el agente
 
 \clearpage
 \section{Diagrama de componentes}
-La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y los protocolos con que se comunican.
+La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y los protocolos con que se comunican. Una versión ampliada se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -34,7 +34,7 @@ La figura~\ref{fig:diagrama-componentes} presenta los componentes del sistema y 
 \clearpage
 \section{Diagrama de clases --- agente PEP}
 
-La figura~\ref{fig:diagrama-clases-agente} presenta las clases del agente. La configuración (\texttt{AgentConfig}) reúne las carpetas vigiladas, los marcadores de procesos y aplicaciones, los parámetros del sondeo y del \emph{buffer} local y la dirección de la API. Cuatro colectores (archivos, procesos, aplicaciones sensibles y red) generan señales comparando dos consultas sucesivas del sistema operativo; el \texttt{Debouncer} descarta las repetidas y limita su frecuencia, y \texttt{EventFactory} las convierte en eventos con el formato del contrato de la API. \texttt{ScoringClient} envía cada evento, conserva los no enviados en el \emph{buffer} local y abre el \emph{circuit breaker} ante rechazos de autenticación, mientras que \texttt{Enforcer} aplica la acción indicada por la API y conserva el respaldo necesario para revertirla.
+La figura~\ref{fig:diagrama-clases-agente} presenta las clases del agente. La configuración (\texttt{AgentConfig}) reúne las carpetas vigiladas, los marcadores de procesos y aplicaciones, los parámetros del sondeo y del \emph{buffer} local y la dirección de la API. Cuatro colectores (archivos, procesos, aplicaciones sensibles y red) generan señales comparando dos consultas sucesivas del sistema operativo; el \texttt{Debouncer} descarta las repetidas y limita su frecuencia, y \texttt{EventFactory} las convierte en eventos con el formato del contrato de la API. \texttt{ScoringClient} envía cada evento, conserva los no enviados en el \emph{buffer} local y abre el \emph{circuit breaker} ante rechazos de autenticación, mientras que \texttt{Enforcer} aplica la acción indicada por la API y conserva el respaldo necesario para revertirla. Una versión ampliada se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -57,7 +57,7 @@ La API se documenta en seis diagramas. La figura~\ref{fig:diagrama-clases-api} p
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API mantiene por usuario en Redis (\texttt{User\-Scoring\-State}), compuesto por la continuidad de la secuencia de eventos, el acumulado diario de Isolation Forest, el \emph{buffer} del LSTM, el ancla del puntaje híbrido y la línea base personal, cuyas estadísticas se actualizan en forma incremental con el algoritmo de Welford.
+La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API mantiene por usuario en Redis (\texttt{User\-Scoring\-State}), compuesto por la continuidad de la secuencia de eventos, el acumulado diario de Isolation Forest, el \emph{buffer} del LSTM, el ancla del puntaje híbrido y la línea base personal, cuyas estadísticas se actualizan en forma incremental con el algoritmo de Welford. Una versión ampliada se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
