@@ -29,7 +29,7 @@ Objetivo & Evidencia \\
 6. Reentrenamiento aislado y período de aprendizaje & \textbf{Parcial.} CU-03 y CU-04 implementados. Las tres corridas reales de reentrenamiento (una automática y dos manuales) generan candidatos que la regla de promoción anterior rechaza (RF-21). El criterio de no inferioridad está implementado, con 13 pruebas automatizadas: el modelo vigente se promueve contra sí mismo y el juego v2 se rechaza por falsos positivos. Falta ejecutar una promoción desde el planificador con un modelo genuinamente nuevo \\
 7. Credenciales y canal protegidos & TLS con certificado verificado; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión; secretos en el almacén de parámetros de la nube; la autenticación mutua por certificado queda como extensión (RF-02, RNF-03, RNF-13); verificado contra la instancia (sección~\ref{sec:verificacion-despliegue}) \\
 8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de conservación y la supresión completa de los datos de un usuario \\
-9. Pruebas con cobertura $\geq$ 85\,\% & 659 pruebas automatizadas (476 de la API y 183 del agente), con una cobertura de líneas del 94,8\,\% en la API y del 90,2\,\% en el agente (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, queda fuera del umbral; prueba de extremo a extremo del ciclo de decisión y aplicación, y evaluación heurística de usabilidad \\
+9. Pruebas con cobertura $\geq$ 85\,\% & 667 pruebas automatizadas (477 de la API y 190 del agente), con una cobertura de líneas del 94,8\,\% en la API y del 91,8\,\% en el agente (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, queda fuera del umbral; prueba de extremo a extremo del ciclo de decisión y aplicación, y evaluación heurística de usabilidad \\
 \hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -89,7 +89,6 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
         escenarios con los que este evalúa al candidato.
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}), y la seudonimización de la telemetría usada en el reentrenamiento.
-  \item \textbf{Correcciones del planificador}: registrar como fallido también el intento de reentrenamiento que termina por una excepción después de un \emph{pipeline} exitoso, que hoy queda como ``\emph{pipeline} en curso''.
   \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
         evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
         controles contra el servicio real (sección~\ref{sec:prompt-injection}).

@@ -21,7 +21,7 @@ El agente es un proceso de Python que se ejecuta de forma nativa en cada equipo 
 
 Cada evento contiene únicamente metadatos: el nombre del archivo o del proceso, la dirección y el puerto remotos, la marca temporal y el identificador del par equipo-usuario. El agente no captura el contenido de los archivos, las pantallas ni las pulsaciones de teclado.
 
-Los eventos se envían a la API autenticados con una clave propia de cada agente. Si la API no está disponible, el agente los conserva en un \emph{buffer} local, con una vigencia de 3 horas y un tope de 20\,000 eventos, y los reenvía, del más antiguo al más reciente, cuando se restablece la conexión. Las fallas transitorias del servidor se reintentan hasta dos veces, con una espera creciente entre intentos. Los rechazos de autenticación, en cambio, se tratan de otro modo: tras tres rechazos consecutivos se abre un \emph{circuit breaker} que espacia el reenvío del \emph{buffer} a un intento cada 5 minutos hasta que la API vuelva a aceptar la credencial.
+Los eventos se envían a la API autenticados con una clave propia de cada agente. Si la API no está disponible, el agente los conserva en un \emph{buffer} local, con una vigencia de 3 horas y un tope de 20\,000 eventos, y los reenvía, del más antiguo al más reciente, cuando se restablece la conexión. Las fallas transitorias del servidor se reintentan hasta dos veces, con una espera creciente entre intentos. Los rechazos de autenticación, en cambio, se tratan de otro modo: tras tres rechazos consecutivos se abre un \emph{circuit breaker} que espacia el reenvío del \emph{buffer} a un intento cada 5 minutos hasta que la API vuelva a aceptar la credencial. Mientras el \emph{circuit breaker} está abierto, los eventos nuevos, incluido el cierre de sesión, se conservan en el \emph{buffer} y se descartan si superan la vigencia de 3 horas.
 
 La respuesta de la API indica la acción de mitigación que corresponde aplicar. El agente la ejecuta y, cuando la acción modifica el equipo, informa el resultado a la API. Una acción desconocida no se ejecuta. La tabla~\ref{tab:acciones-agente} resume las acciones disponibles y su reversibilidad.
 
@@ -218,8 +218,6 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	Captura por sondeo & Las operaciones que ocurren y se deshacen entre dos consultas pueden perderse, y las lecturas de archivos no generan eventos. & Inherente al diseño sin controladores del sistema operativo. \\
 	\hline
 	Alcance de las mitigaciones & Un proceso terminado no puede restaurarse, y la acción se reintenta mientras el nivel se mantiene. Sin privilegios de administrador (\texttt{SeRestorePrivilege}), la reversión de la denegación de carpeta recurre a \texttt{icacls /remove:d} y pierde las denegaciones que el usuario ya tenía. & La terminación se reserva para el nivel crítico (RF-07) y el agente se ejecuta como administrador. \\
-	\hline
-	Defectos menores del agente & El agente conserva un mapeo nivel\,$\rightarrow$\,acción de respaldo que la API actual nunca activa. & Corrección prevista en el agente. \\
 	\hline
 	Alcance de la observación & El agente solo observa los equipos donde está instalado. El uso de credenciales robadas desde un equipo sin agente no genera telemetría, y solo se cubre en forma parcial mediante la integración IAM (segundo factor y cierre de sesiones en Keycloak). & Inherente al enfoque basado en el \emph{endpoint}; trabajo futuro: incorporar los eventos de autenticación del proveedor IAM como fuente adicional. \\
 	\hline
