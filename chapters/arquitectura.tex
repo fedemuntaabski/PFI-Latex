@@ -19,13 +19,15 @@ El flujo principal comienza en el agente, que captura un evento y lo envía a la
 
 \section{Lenguajes de programación}
 \label{sec:lenguajes}
+Los conceptos técnicos en los que se apoyan estas elecciones se presentan en la sección~\ref{sec:fundamentos-tecnicos}.
+
 El lenguaje principal del sistema es Python, que se utiliza en la API, el agente, el \emph{pipeline} de entrenamiento y los \emph{scripts} de validación. La elección responde en primer lugar al ecosistema de aprendizaje automático empleado, basado en scikit-learn y TensorFlow, y en segundo lugar a que usarlo también en la API permite reutilizar el código de cálculo del puntaje validado durante el entrenamiento, sin reimplementarlo en otro lenguaje. Esto reduce el riesgo de diferencias entre lo que se valida y lo que se ejecuta en producción. El desarrollo se realiza con Python~3.12, mientras que la integración continua y el servidor utilizan Python~3.11.
 
 El \emph{dashboard} se desarrolla en TypeScript, un lenguaje que incorpora tipado estático para detectar errores de tipos durante el desarrollo. Esto resulta especialmente útil porque desde la interfaz se modifican parámetros que afectan el comportamiento del agente, como los umbrales de riesgo y las acciones asociadas a cada nivel. Además, se utiliza Zod, una biblioteca de validación que permite comprobar en tiempo de ejecución que los datos recibidos desde la API tengan la estructura y los tipos esperados. Así, ambas herramientas permiten detectar errores tanto durante el desarrollo como al procesar las respuestas del sistema.
 
 Para automatizar las tareas específicas de cada entorno, se utilizan distintos lenguajes y herramientas. PowerShell, integrado en Windows, permite configurar el inicio automático del agente y publicar en la nube las nuevas versiones de la API desde el equipo de desarrollo. Por su parte, la infraestructura en la nube se define mediante HCL, el lenguaje utilizado por Terraform para describir y gestionar los recursos. Esta configuración se complementa con \emph{scripts} en Bash, que ejecutan las tareas necesarias para preparar el servidor durante su primer arranque.
 
-Se descartó un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implica más configuración y código para el alcance del proyecto.
+Se descarta un \emph{backend} en Node.js porque igualmente habría requerido un servicio en Python para los modelos, y Java con Spring Boot porque implica más configuración y código para el alcance del proyecto.
 
 \section{Frameworks y librerías}
 \label{sec:frameworks}

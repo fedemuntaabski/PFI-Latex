@@ -67,10 +67,10 @@ El costo variable de nube se estima a partir de los gastos del despliegue y no c
 equipo fijado de antemano. Con la carga medida en el prototipo (unos 3,7 eventos por minuto por equipo,
 o unos 37.000 eventos al mes en jornadas de 8 horas), cada evento requiere unos 17 comandos a Redis y una
 escritura en PostgreSQL. A esa escala los servicios gestionados conviene contratarlos por plan y no por uso:
-Redis con un plan fijo de USD 20 por mes admite hasta 10.000 comandos por segundo \parencite{Upstash2026Pricing},
+Redis con un plan fijo de USD 20 por mes admite hasta 10.000 comandos por segundo,
 mientras que el cobro por comando (USD 0,20 cada 100.000, unos USD 1,30 por equipo y por mes) solo resulta
 más barato por debajo de 16 equipos en total. PostgreSQL gestionado (plan Pro de USD 25 por mes con 8~GB
-incluidos y USD 0,125 por GB adicional \parencite{Supabase2026Pricing}) crece con el volumen almacenado.
+incluidos y USD 0,125 por GB adicional) crece con el volumen almacenado. Los precios corresponden a los publicados por los proveedores en octubre de 2026.
 Por eso la mayor parte del gasto de nube es fija y escalonada (tabla~\ref{tab:costo-nube}), y lo que varía
 con el cliente es sobre todo el almacenamiento de los eventos crudos: con una retención supuesta de 90 días
 y unos 1,5~KB por evento (valor no medido), son unos 170~MB por equipo, o USD 0,02 por equipo y por mes. Se
@@ -97,7 +97,7 @@ Más de 6.000 equipos (cómputo de PostgreSQL grande) & +100 \\
 Contador, mesa de ayuda y renovación anual del certificado de firma & 167 \\
 \hline
 \end{tabular}\par
-{\small Fuente: elaboración propia a partir de la infraestructura del prototipo y de los precios publicados por los proveedores \parencite{Upstash2026Pricing,Supabase2026Pricing}; los tramos de capacidad son estimaciones.\par}
+{\small Fuente: elaboración propia a partir de la infraestructura del prototipo y de los precios publicados por los proveedores en octubre de 2026; los tramos de capacidad son estimaciones.\par}
 \end{table}
 \FloatBarrier
 
