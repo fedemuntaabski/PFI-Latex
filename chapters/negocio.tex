@@ -121,7 +121,8 @@ descuento.
 
 \subsection{Supuestos}
 El análisis se realiza sobre el flujo de fondos anual, en dólares estadounidenses constantes para
-aislarlo de la inflación local, con un horizonte de cinco años. El horizonte se justifica porque
+aislarlo de la inflación local, con un horizonte de cinco años. Los precios y los flujos se expresan sin IVA, que en una venta entre
+empresas se traslada al cliente y no afecta el resultado. El horizonte se justifica porque
 el ingreso es recurrente y el costo de adquirir cada cliente se recupera a lo largo de varios meses:
 en tres años los escenarios todavía reflejan sobre todo la etapa de adquisición. No se considera
 valor residual al final del horizonte, lo que hace que la evaluación sea conservadora. La tabla~\ref{tab:supuestos-fin} resume los supuestos.
@@ -136,7 +137,8 @@ valor residual al final del horizonte, lo que hace que la evaluación sea conser
 \textbf{Supuesto} & \textbf{Valor y fundamento} \\
 \hline
 \endhead
-Inversión inicial & USD 23.000: horas del equipo valorizadas (1.000 horas a USD 15 por hora, USD 15.000),
+Inversión inicial & USD 23.000: horas adicionales del equipo valorizadas (1.000 horas a USD 15 por hora, USD 15.000; el desarrollo
+del prototipo realizado en el proyecto se considera un costo hundido y no se incluye),
 pasaje del prototipo a producto (instalador, firma de código, endurecimiento; USD 6.000),
 constitución de la sociedad y asesoramiento legal (USD 1.500) y certificado de firma de código
 (USD 500). \\
@@ -346,8 +348,8 @@ Los supuestos que más pesan son el costo de adquisición y el abandono (tabla~\
 La tabla~\ref{tab:equilibrio-fin} muestra cuándo se alcanza el equilibrio. En el escenario optimista
 se alcanza en el séptimo mes y el primer año cierra con 22 clientes frente a 12 necesarios. En el base
 se alcanza en el mes 16, a mitad del segundo año, que cierra con 41 clientes frente a 21. En el
-pesimista se alcanza recién hacia el final del tercer año, y de forma sostenida en el cuarto (41 clientes
-frente a 37).
+pesimista el tercer año cierra apenas por debajo (30 clientes frente a 31) y el equilibrio se alcanza
+recién a mediados del cuarto año, que cierra con 41 clientes frente a 37.
 
 Que los flujos sigan negativos después de superar el equilibrio es coherente con el modelo, por dos
 razones. Primero, el equilibrio es operativo: no incluye el costo de adquisición ni el impuesto a las
@@ -358,7 +360,7 @@ base supera con holgura el equilibrio y el flujo se vuelve positivo. En el pesim
 del equilibrio, los USD 60.000 anuales de adquisición de los años 4 y 5 no se cubren, y por eso la
 inversión no se recupera. Llegar al equilibrio en algo menos de un año y medio, como en el base, es
 razonable para una suscripción que depende de un canal de MSSP que recién aporta clientes desde el
-segundo año; llegar recién al final del tercero, como en el pesimista, no lo es.
+segundo año; llegar recién a mediados del cuarto, como en el pesimista, no lo es.
 
 La viabilidad depende, por lo tanto, de la velocidad de adopción y del costo de adquirir cada cliente
 más que del precio o del costo variable de infraestructura. Esto define qué validar primero: la
