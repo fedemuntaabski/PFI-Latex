@@ -117,6 +117,8 @@ Los modelos utilizan esquemas de partición diferentes, definidos en función de
 {\small Fuente: elaboración propia.\par}
 \end{table}
 
+El umbral del LSTM de la tabla describe el comportamiento del modelo sobre los conjuntos de entrenamiento y prueba (sección~\ref{sec:metricas-no-supervisadas}). En producción, el LSTM marca una anomalía cuando el error medio de reconstrucción del usuario, expresado como percentil respecto de la distribución de referencia del entrenamiento, supera el percentil 95 (sección~\ref{sec:benchmark-controlado}).
+
 Una vez obtenidas las puntuaciones de ambos modelos, se calcula un puntaje híbrido que asigna un peso de 0,5 a cada uno. Sobre este puntaje se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados para los distintos niveles de riesgo son 40, 70 y 90.
 
 La diferencia entre los esquemas de partición también tiene implicaciones para la evaluación conjunta. Mientras que la división temporal de Isolation Forest permite analizar su capacidad para generalizar a registros futuros, la partición por usuario del LSTM Autoencoder permite evaluar su desempeño sobre usuarios no vistos durante el entrenamiento. Sin embargo, solo 15 usuarios coinciden en los conjuntos de prueba de ambos modelos, lo que limita la comparación conjunta de sus resultados. Esta restricción se considera en la evaluación presentada en la sección~\ref{sec:evaluacion-modelo}.
