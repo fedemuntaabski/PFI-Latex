@@ -1,0 +1,62 @@
+% Vista de diseño: estado del usuario en Redis (clases clave, 3 miembros como máximo).
+% Compilar: pdflatex 04av_clases_api_estado_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% ===================== módulo y Redis
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{rs}{0.4,0}{module}{redis\_state}{\vacio}{%
+ + load\_state()\\
+ + save\_state()\\
+ + update\_state()}
+\node[clase, rectangle split parts=1, fill=white, text width=3.2cm, anchor=north] (redis) at (0.4,-4.4)
+  {\makebox[\linewidth][c]{\textit{«externa»}}\\\textbf{\normalsize Redis}};
+
+% ===================== estado del usuario
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{uss}{7.4,0}{dataclass}{UserScoringState}{%
+ + total\_events\\
+ + last\_risk\_score\_hibrido}{%
+ + en\_aprendizaje()}
+
+% ===================== partes (columna izquierda y derecha)
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{cont}{0.4,-8.0}{dataclass}{ContinuityState}{%
+ + last\_time\\
+ + last\_country\\
+ + last\_type}{\vacio}
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{lstm}{0.4,-11.4}{dataclass}{LstmState}{%
+ + buffer\\
+ + chunks\_completed\\
+ + error\_sum}{\vacio}
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{iso}{0.4,-14.8}{dataclass}{IsoDayState}{%
+ + date\\
+ + n\_events\\
+ + distinct\_types}{\vacio}
+\umlclase[clase=5.6cm, fill=cPdp, anchor=north]{anchor}{11.8,-8.0}{dataclass}{HybridAnchorState}{%
+ + date\\
+ + score}{\vacio}
+\umlclase[clase=5.6cm, fill=cPdp, anchor=north]{pbs}{11.8,-11.0}{dataclass}{PersonalBaselineState}{%
+ + iso\\
+ + lstm\\
+ + anchor\_iso}{\vacio}
+\umlclase[clase=5.6cm, fill=cPdp, anchor=north]{welford}{11.8,-15.0}{dataclass}{WelfordStat}{%
+ + n\\
+ + mean\\
+ + m2}{\vacio}
+
+% ===================== RELACIONES
+\draw[usa] (rs.east |- uss.west) -- node[rotulo,above]{«usa»} (uss.west);
+\draw[usa] (rs.south) -- node[rotulo,right]{«usa»} (redis.north);
+% composición de UserScoringState (bus central)
+\draw[draw=cBorde, thick] (5.4,0 |- uss.south) -- (5.4,0 |- iso.east);
+\node[draw=cBorde, fill=cBorde, diamond, inner sep=1.8pt, anchor=north] at (5.4,0 |- uss.south) {};
+\foreach \n in {cont,lstm,iso}
+  \draw[draw=cBorde, thick, -{Stealth[length=5pt]}] (5.4,0 |- \n.east) -- node[rotulo,above,pos=0.5]{1} (\n.east);
+\foreach \n in {anchor,pbs}
+  \draw[draw=cBorde, thick, -{Stealth[length=5pt]}] (5.4,0 |- \n.west) -- node[rotulo,above,pos=0.5]{1} (\n.west);
+\draw[compone] (pbs.south) -- node[rotulo,right]{0..*} (welford.north);
+\end{tikzpicture}
+\end{document}

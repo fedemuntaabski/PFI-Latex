@@ -1,0 +1,55 @@
+% Vista de diseño: proveedores de identidad y autenticación (clases clave, 3 miembros como máximo).
+% Compilar: pdflatex 04cv_clases_api_iam_auth_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% ===================== FILA 1: servicio y adaptador
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{iamsvc}{0,0}{module}{iam\_service}{\vacio}{%
+ + resolver\_rol\_departamento()\\
+ + sincronizar\_riesgo\_iam()}
+\umlclase[clase=5.2cm, fill=white, anchor=north]{iamp}{7.2,0}{Protocol}{IAMProvider}{\vacio}{%
+ + resolve()\\
+ + aplicar\_riesgo()}
+
+% ===================== FILA 2: implementaciones (dos columnas)
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{mock}{0,-5.4}{}{MockIAMProvider}{\vacio}{%
+ + resolve()\\
+ + aplicar\_riesgo()}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{kc}{0,-8.8}{}{KeycloakIAMProvider}{\vacio}{%
+ + resolve()\\
+ + aplicar\_riesgo()}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{entra}{14.4,-5.4}{}{EntraIAMProvider}{\vacio}{%
+ + resolve()\\
+ + aplicar\_riesgo()}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{chain}{14.4,-8.8}{}{ChainIAMProvider}{%
+ + providers}{%
+ + resolve()}
+
+% ===================== FILA 3: construcción de proveedores y autenticación
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{iamprov}{14.4,-12.8}{module}{iam\_providers}{\vacio}{%
+ + PROVEEDORES}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{auth}{0,-12.8}{module}{auth}{\vacio}{%
+ + crear\_sesion()\\
+ + require\_agent\_key()\\
+ + authenticate()}
+
+% ===================== RELACIONES
+\draw[usa] (iamsvc.east |- iamp.west) -- node[rotulo,above]{«usa»} (iamp.west);
+% realización (las cuatro implementaciones se unen en un solo triángulo)
+\draw[draw=cBorde, thick, dashed] (7.2,0 |- mock.east) -- (mock.east);
+\draw[draw=cBorde, thick, dashed] (7.2,0 |- kc.east) -- (kc.east);
+\draw[draw=cBorde, thick, dashed] (entra.west) -- (7.2,0 |- entra.west);
+\draw[draw=cBorde, thick, dashed] (chain.west) -- (7.2,0 |- chain.west);
+\draw[draw=cBorde, thick, dashed] (7.2,0 |- kc.east) -- (7.2,0 |- mock.east);
+\draw[realiza] (7.2,0 |- mock.east) -- (iamp.south);
+% agregación del compuesto
+\draw[agrega] (chain.east) -- ++(0.8,0) |- node[rotulo,pos=0.75,above]{1..*} ([yshift=-0.4cm]iamp.east);
+% construcción
+\draw[usa] (iamprov.north) -- node[rotulo,right]{«crea»} (iamprov.north |- chain.south);
+\end{tikzpicture}
+\end{document}

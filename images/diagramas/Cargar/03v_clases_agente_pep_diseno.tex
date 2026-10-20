@@ -1,0 +1,63 @@
+% Vista de diseño del diagrama de clases del agente (PEP): clases clave, 3 miembros como máximo.
+% Compilar: pdflatex 03v_clases_agente_pep_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% columnas a 5.6 cm, filas a 4.6 cm
+% ===================== FILA 1: configuración, orquestación, cliente HTTP, buffer local
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{cfg}{0,0}{dataclass}{AgentConfig}{%
+ + api\_url\\
+ + watch\_dirs\\
+ + poll\_interval\_sec}{\vacio}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{main}{5.8,0}{module}{main}{\vacio}{%
+ + run()\\
+ + handle\_signal()}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{client}{11.6,0}{dataclass}{ScoringClient}{%
+ + breaker\_open}{%
+ + post\_event()\\
+ + confirmar\_accion()}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{buf}{17.4,0}{module}{event\_buffer}{\vacio}{%
+ + append\_event()\\
+ + flush\_pending()}
+
+% ===================== FILA 2: creados por main
+\node[clase, rectangle split parts=2, fill=cPep, text width=4.4cm, anchor=north,
+  rectangle split part align={center,left}] (col) at (0,-4.8)
+  {\makebox[\linewidth][c]{\textit{«colectores»}}\nodepart{two}\begin{tabular}{@{}l@{}}FileSystemCollector\\ProcessCollector\\AppAccessCollector\\NetworkCollector\end{tabular}};
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{deb}{5.8,-4.8}{}{Debouncer}{\vacio}{+ allow()}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{factory}{11.6,-4.8}{}{EventFactory}{\vacio}{+ build()}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{enf}{17.4,-4.8}{}{Enforcer}{\vacio}{%
+ + apply()\\
+ + revert()}
+
+% ===================== FILA 3: señal y política
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{signal}{5.8,-10.4}{dataclass}{Signal}{%
+ + event\_type\\
+ + params\\
+ + dedup\_key}{\vacio}
+\umlclase[clase=4.4cm, fill=cPep, anchor=north]{pol}{17.4,-10.4}{dataclass}{EnforcementPolicy}{%
+ + process\_markers\\
+ + protected\_path}{\vacio}
+
+% ===================== RELACIONES
+\draw[usa] (main.west) -- node[rotulo,above]{«usa»} (cfg.east |- main.west);
+\draw[usa] (main.east) -- node[rotulo,above]{«crea»} (client.west |- main.east);
+\draw[usa] (buf.west |- client.east) -- node[rotulo,above]{«usa»} (client.east);
+% main «crea» colectores, Debouncer, EventFactory y Enforcer (bus)
+\draw[draw=cBorde, dashed] (main.south) -- ++(0,-0.4) coordinate (bus);
+\draw[draw=cBorde, dashed] (col.north |- bus) -- (enf.north |- bus);
+\foreach \n in {col,deb,factory,enf} \draw[usa] (\n.north |- bus) -- (\n.north);
+\node[rotulo, anchor=south west] at ([xshift=0.2cm]bus) {«crea»};
+% composición
+\draw[compone] (enf.south) -- node[rotulo,right]{1} (pol.north);
+% señales
+\draw[usa] (col.south) -- ++(0,-0.9) |- node[rotulo,pos=0.75,above]{«crea»} (signal.west);
+\draw[usa] (deb.south) -- node[rotulo,right]{allow()} (signal.north);
+\draw[usa] (factory.south) -- ++(0,-0.9) |- node[rotulo,pos=0.75,above]{build()} (signal.east);
+\end{tikzpicture}
+\end{document}

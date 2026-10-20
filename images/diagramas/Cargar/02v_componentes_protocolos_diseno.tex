@@ -1,0 +1,86 @@
+% Vista de diseño del diagrama de componentes: nodos principales y solo el protocolo en cada enlace.
+% Compilar: pdflatex 02v_componentes_protocolos_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  cmp/.style={draw=cBorde, fill=#1, rounded corners=1pt, align=center, font=\footnotesize,
+     text width=3.4cm, inner sep=4pt, minimum height=1.2cm},
+  cmp/.default=white,
+  actor/.style={draw=cBorde, fill=white, rounded corners=6pt, align=center, font=\footnotesize, text width=3.4cm, inner sep=4pt},
+  marco/.style={draw=cBorde, thick, rounded corners=4pt, inner sep=4mm, fill=#1},
+  mtit/.style={font=\bfseries\footnotesize, anchor=south west, inner sep=1pt, yshift=1.5pt, align=left},
+  pr/.style={font=\footnotesize, fill=white, inner sep=1pt, align=center},
+  enl/.style={-{Stealth[length=6pt]}, draw=cBorde, thick},
+  enld/.style={-{Stealth[length=6pt]}, draw=cBorde, thick, dashed},
+}
+\newcommand{\st}[1]{{\footnotesize\textit{«#1»}}\\}
+\begin{document}
+\begin{tikzpicture}
+
+% ===================== ACTOR
+\node[actor] (analista) at (0,3.6) {\textbf{Analista SOC}\\navegador web};
+
+% ===================== ENDPOINT WINDOWS
+\node[cmp=cPep] (agente) at (0,0) {\st{component} \textbf{Agente PEP}};
+\begin{scope}[on background layer]
+\node[marco=cPep!40, fit=(agente)] (mhost) {};
+\end{scope}
+\node[mtit] at (mhost.north west) {«device» Endpoint Windows};
+
+% ===================== AWS: EC2
+\node[cmp=white] (caddy) at (7.5,0) {\st{component} \textbf{Caddy}\\proxy inverso};
+\node[cmp=cUi] (spa) at (7.5,3.4) {\st{artifact} \textbf{Dashboard}\\sitio estático};
+\node[cmp=cPdp] (api) at (4.7,-3.8) {\st{component} \textbf{API de scoring}\\PDP};
+\node[cmp=cExt] (kc) at (10.3,-3.8) {\st{component} \textbf{Keycloak}\\proveedor de identidad};
+\begin{scope}[on background layer]
+\node[marco=cPdp!25, fit=(spa)(caddy)(api)(kc)] (mec2) {};
+\end{scope}
+\node[mtit] at (mec2.north west) {«device» Instancia EC2};
+
+% ===================== AWS: servicios de apoyo
+\node[cmp=cOff] (ssm) at (6.6,-8.4) {\st{service} \textbf{SSM Parameter Store}};
+\node[cmp=cOff] (s3) at (10.4,-8.4) {\st{service} \textbf{S3}\\releases};
+\begin{scope}[on background layer]
+\node[marco=cOff!40, fit=(ssm)(s3)] (maws) {};
+\end{scope}
+\node[mtit] at (maws.north west) {«cloud» Servicios de AWS de apoyo};
+
+% ===================== SERVICIOS GESTIONADOS
+\node[cmp=cDato] (redis) at (17.0,4.0) {\st{database} \textbf{Redis}\\Upstash};
+\node[cmp=cDato] (pg) at (17.0,1.8) {\st{database} \textbf{PostgreSQL}\\Supabase};
+\node[cmp=cExt] (smtp) at (17.0,-0.4) {\st{service} \textbf{Gmail SMTP}};
+\node[cmp=cExt] (gemini) at (17.0,-2.4) {\st{service} \textbf{Google Gemini}};
+\node[cmp=cExt] (entra) at (17.0,-4.4) {\st{service} \textbf{Microsoft Entra ID}};
+\begin{scope}[on background layer]
+\node[marco=cExt!35, fit=(redis)(pg)(smtp)(gemini)(entra)] (msaas) {};
+\end{scope}
+\node[mtit] at (msaas.north west) {«cloud» Servicios gestionados};
+
+% ===================== ESTACIÓN DE DESARROLLO
+\node[cmp=cOff] (pipe) at (0,-8.4) {\st{component} \textbf{Pipeline ML offline}};
+\begin{scope}[on background layer]
+\node[marco=cOff!25, fit=(pipe)] (mloc) {};
+\end{scope}
+\node[mtit] at (mloc.north west) {«device» Estación de desarrollo};
+
+% ===================== ENLACES
+\draw[enl] (analista.east) -| node[pr, pos=0.25, above] {HTTPS} ([yshift=3mm]caddy.west);
+
+\draw[enl] (agente.east) -- node[pr] {HTTPS} ([yshift=-3mm]caddy.west |- agente.east);
+\draw[enl] (caddy.north) -- (spa.south);
+\draw[enl] (caddy.south) -- ++(0,-1.0) -| node[pr, pos=0.25, above] {HTTP} (api.north);
+\draw[enl] (caddy.south) -- ++(0,-1.0) -| (kc.north);
+\draw[enl] (api.east) -- node[pr] {OAuth2} (kc.west);
+% la API usa los servicios gestionados (bus a la derecha de EC2)
+\draw[draw=cBorde, thick] (api.south) -- ++(0,-0.2) coordinate (b0) -| (12.9,4.0);
+\newcommand{\ramal}[2]{\draw[enl] (12.9,0 |- #1.west) -- node[pr, above, fill=none, pos=0.5] {#2} (#1.west);}
+\ramal{redis}{RESP/TLS}
+\ramal{pg}{PostgreSQL/TLS}
+\ramal{smtp}{SMTP STARTTLS}
+\ramal{gemini}{HTTPS}
+\ramal{entra}{OAuth2}
+\draw[enld] (ssm.north) -- node[pr, right] {HTTPS} (ssm.north |- mec2.south);
+\draw[enld] (s3.north) -- node[pr, right] {HTTPS} (s3.north |- mec2.south);
+\draw[enld] (pipe.south) -- ++(0,-1.4) coordinate (d0) -| node[pr, pos=0.1, above] {PostgreSQL/TLS} (msaas.south);
+\end{tikzpicture}
+\end{document}

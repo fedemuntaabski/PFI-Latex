@@ -1,0 +1,57 @@
+% Vista de diseño: esquemas HTTP de la API (clases clave, 3 miembros como máximo).
+% Compilar: pdflatex 04ev_clases_api_schemas_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% ===================== COLUMNA 1: evento y respuesta con el puntaje
+\umlclase[clase=5.4cm, fill=cPep, anchor=north]{evin}{0,0}{BaseModel}{EventoIn}{%
+ + uid\\
+ + type\\
+ + params}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{evout}{0,-4.6}{BaseModel}{EventoScoreOut}{%
+ + risk\_score\_hibrido\\
+ + nivel\_sugerido\\
+ + accion\_id}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{fc}{0,-13.0}{BaseModel}{FeatureContribucion}{%
+ + feature\\
+ + z\_score\\
+ + direccion}{\vacio}
+
+% ===================== COLUMNA 2: confirmación de la acción y eventos recientes
+\umlclase[clase=5.4cm, fill=cPep, anchor=north]{cain}{8.2,0}{BaseModel}{ConfirmarAccionIn}{%
+ + accion\_id\\
+ + estado\\
+ + detalle}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{caout}{8.2,-4.6}{BaseModel}{ConfirmarAccionOut}{%
+ + accion\_id\\
+ + estado\\
+ + registrado}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{erout}{8.2,-9.4}{BaseModel}{EventosRecientesOut}{%
+ + uid\\
+ + items}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{eritem}{8.2,-13.0}{BaseModel}{EventoRecienteItem}{%
+ + timestamp\\
+ + tipo\\
+ + risk\_score\_hibrido}{\vacio}
+
+% ===================== COLUMNA 3: usuarios
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{ulist}{15.6,0}{BaseModel}{UsuariosListOut}{%
+ + items\\
+ + total}{\vacio}
+\umlclase[clase=5.4cm, fill=cPdp, anchor=north]{ures}{15.6,-4.0}{BaseModel}{UsuarioResumen}{%
+ + uid\\
+ + risk\_score\_hibrido\\
+ + nivel\_sugerido}{\vacio}
+
+% ===================== RELACIONES (composición)
+\draw[compone] (evout.south) -- node[rotulo,right]{explicacion 0..*} (fc.north);
+\draw[compone] (erout.south) -- node[rotulo,right]{items 0..*} (eritem.north);
+\draw[compone] (eritem.west) -- node[rotulo,above=1pt,text width=2.4cm,align=center]{explicacion 0..*} (fc.east);
+\draw[compone] (ulist.south) -- node[rotulo,right]{items 0..*} (ures.north);
+\end{tikzpicture}
+\end{document}

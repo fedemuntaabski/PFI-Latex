@@ -1,0 +1,46 @@
+% Vista de diseño: puntaje y modelos de la API (clases clave, 3 miembros como máximo).
+% Compilar: pdflatex 04bv_clases_api_scoring_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% ===================== FILA 1: servicios de los modelos y orquestador
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{isos}{0,0}{module}{isoforest\_service}{\vacio}{%
+ + update\_daily\_aggregate()\\
+ + score\_isoforest()}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{hyb}{6.8,0}{module}{hybrid\_service}{\vacio}{%
+ + process\_event()\\
+ + w\_iso\_efectivo()\\
+ + regla\_piso\_aplicada()}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{lstms}{13.6,0}{module}{lstm\_service}{\vacio}{%
+ + update\_lstm\_buffer()}
+
+% ===================== FILA 2: cobertura, artefactos, explicación
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{cov}{0,-5.6}{module}{coverage}{\vacio}{%
+ + determine\_coverage()}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{artc}{6.8,-5.6}{dataclass}{Artifacts}{%
+ + isolation\_forest\\
+ + lstm\_autoencoder\\
+ + config}{\vacio}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{xai}{13.6,-5.6}{module}{explainability}{\vacio}{%
+ + explicar\_features()}
+
+% ===================== FILA 3: carga de artefactos
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{art}{6.8,-10.6}{module}{artifacts}{\vacio}{%
+ + load\_artifacts()\\
+ + reload\_artifacts()\\
+ + get\_artifacts()}
+
+% ===================== RELACIONES
+\draw[usa] (hyb.west |- isos.east) -- node[rotulo,above]{«usa»} (isos.east);
+\draw[usa] (hyb.east |- lstms.west) -- node[rotulo,above]{«usa»} (lstms.west);
+\draw[usa] ([xshift=-1.8cm]hyb.south) -- ++(0,-0.7) -| node[rotulo,pos=0.2,below]{«usa»} (cov.north);
+\draw[usa] ([xshift=1.8cm]hyb.south) -- ++(0,-0.7) -| node[rotulo,pos=0.2,below]{«usa»} (xai.north);
+\draw[usa] (hyb.south) -- node[rotulo,right]{«parámetro»} (artc.north);
+\draw[usa] (art.north) -- node[rotulo,right]{«crea»} (artc.south);
+\end{tikzpicture}
+\end{document}

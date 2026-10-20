@@ -1,0 +1,39 @@
+% Vista de diseño: rutas, persistencia, configuración y reentrenamiento (clases clave, 3 miembros como máximo).
+% Compilar: pdflatex 04dv_clases_api_persistencia_config_diseno.tex
+\documentclass[tikz,border=4pt,12pt]{standalone}
+\input{estilos_uml}
+\tikzset{
+  clase/.append style={font=\ttfamily\footnotesize, inner sep=3pt},
+  rotulo/.style={font=\ttfamily\footnotesize, fill=white, inner sep=1pt},
+}
+\begin{document}
+\begin{tikzpicture}
+% ===================== FILA 1: entrada ASGI, rutas y planificador
+\umlclase[clase=4.4cm, fill=cPdp, anchor=north]{main}{0,0}{module}{main}{\vacio}{%
+ + lifespan()}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{routes}{7.4,0}{router}{routes}{\vacio}{%
+ + POST /eventos\\
+ + GET /usuarios\\
+ + PUT /config/*}
+\umlclase[clase=6.8cm, fill=cPdp, anchor=north]{sched}{15.4,0}{module}{reentrenamiento\_scheduler}{\vacio}{%
+ + loop\_reentrenamiento\_periodico()}
+
+% ===================== FILA 2: configuración, historial y criterio de promoción
+\umlclase[clase=4.4cm, fill=cPdp, anchor=north]{cfg}{0,-5.4}{module}{config\_store}{\vacio}{%
+ + get\_*()\\
+ + set\_*()}
+\umlclase[clase=5.2cm, fill=cPdp, anchor=north]{hist}{7.4,-5.4}{module}{history\_store}{\vacio}{%
+ + write\_audit\_entry()\\
+ + get\_historial()}
+\umlclase[clase=6.8cm, fill=cPdp, anchor=north]{metr}{15.4,-5.4}{module}{metricas\_service}{\vacio}{%
+ + comparar\_y\_promover()}
+
+% ===================== RELACIONES
+\draw[usa] (main.east |- routes.west) -- node[rotulo,above]{«usa»} (routes.west);
+\draw[usa] (main.north) -- ++(0,0.7) -| node[rotulo,pos=0.25,above]{«usa» lifespan} (sched.north);
+\draw[usa] (sched.south) -- node[rotulo,right]{«usa»} (metr.north);
+\draw[usa] ([xshift=-1.6cm]routes.south) -- ++(0,-0.7) -| node[rotulo,pos=0.25,below]{«usa»} (cfg.north);
+\draw[usa] (routes.south) -- node[rotulo,right]{«usa»} (hist.north);
+\draw[usa] (metr.west |- hist.east) -- node[rotulo,above]{«usa»} (hist.east);
+\end{tikzpicture}
+\end{document}
