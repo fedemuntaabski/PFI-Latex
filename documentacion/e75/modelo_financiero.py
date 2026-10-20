@@ -1,11 +1,13 @@
 """Modelo económico-financiero del PFI (E75).
 
-Todos los supuestos están en SUPUESTOS. Cambiar un valor y volver a correr:
+Genera las tablas del capítulo de negocio: clientes activos (12.IV), flujos netos (12.V),
+indicadores (12.VI), sensibilidad a la tasa (12.VII), a la nube (12.VIII) y al costo de
+adquisición y abandono (12.IX), y el punto de equilibrio por año.
     python modelo_financiero.py            -> resumen en consola
     python modelo_financiero.py --latex    -> tablas LaTeX (pegar en el capítulo de negocio)
-
-Moneda: USD constantes (sin inflación). Flujos anuales de fondos, sin valor residual.
+Todos los supuestos están en SUPUESTOS. Moneda: USD constantes, flujos anuales, sin valor residual.
 """
+import math
 import sys
 
 SUPUESTOS = {
@@ -25,14 +27,20 @@ SUPUESTOS = {
     "precio_enterprise": 8.0,           # USD por endpoint/mes (rango 6 a 10)
     "mix_enterprise": 0.30,
     # Costos variables
-    "costo_nube_por_endpoint": 0.60,    # USD por endpoint/mes (cómputo, Redis, Postgres, correo)
+    "costo_nube_por_endpoint": 0.10,    # USD por endpoint/mes (almacenamiento de eventos más margen por lo no medido)
     "comision_pagos": 0.03,             # procesador de pagos, sobre ingresos
     "ingresos_brutos": 0.03,            # supuesto conservador, sobre ingresos
     "ventas_por_canal": 0.50,           # proporción de clientes que llegan por MSSP/integradores
     "comision_canal": 0.20,             # comisión del MSSP sobre lo que vende
-    # Costos fijos mensuales por año (equipo + soporte) e infraestructura base
+    # Costos fijos mensuales por año: equipo, y contador + mesa de ayuda + certificado (tabla 12.II)
     "fijo_mensual_por_anio": [3500, 6000, 9000, 11000, 12000],
-    "infra_fija_mensual": 250,
+    "soporte_mensual_por_anio": [125, 167, 167, 167, 167],   # año 1 sin certificado (ya está en la inversión)
+    # Infraestructura de nube escalonada según los equipos monitoreados (tabla 12.II)
+    "infra_base": 179,                  # hasta 1.500 equipos
+    "infra_mas_1500": 45,               # PostgreSQL medio
+    "infra_por_3000": 73,               # otro par de instancias por cada 3.000 sobre los primeros 3.000
+    "infra_por_5000": 20,               # otro Redis por cada 5.000 sobre los primeros 5.000
+    "infra_mas_6000": 100,              # PostgreSQL grande
     "impuesto_ganancias": 0.25,         # sobre resultado positivo del año (supuesto simplificado)
     "escenarios": {
         "Pesimista": {"altas_mensuales": [0.5, 1, 2, 2, 2], "churn_mensual": 0.030, "cac": 2500},
@@ -47,12 +55,41 @@ ARPU_ENDP = (1 - S["mix_enterprise"]) * S["precio_business"] + S["mix_enterprise
 ARPU_CLIENTE = ARPU_ENDP * S["endpoints_por_cliente"]
 
 
-def margen_contribucion_cliente():
+def margen_contribucion_cliente(nube=None):
+    nube = S["costo_nube_por_endpoint"] if nube is None else nube
     pct = S["comision_pagos"] + S["ingresos_brutos"] + S["ventas_por_canal"] * S["comision_canal"]
-    return ARPU_CLIENTE * (1 - pct) - S["costo_nube_por_endpoint"] * S["endpoints_por_cliente"]
+    return ARPU_CLIENTE * (1 - pct) - nube * S["endpoints_por_cliente"]
 
 
-def simular(esc):
+def infraestructura(equipos):
+    """Gasto mensual de nube según los equipos monitoreados (tabla 12.II)."""
+    g = S["infra_base"]
+    if equipos > 1500:
+        g += S["infra_mas_1500"]
+    if equipos > 3000:
+        g += math.ceil((equipos - 3000) / 3000) * S["infra_por_3000"]
+    if equipos > 5000:
+        g += math.ceil((equipos - 5000) / 5000) * S["infra_por_5000"]
+    if equipos > 6000:
+        g += S["infra_mas_6000"]
+    return g
+
+
+def costo_fijo_mensual(anio, clientes):
+    """Equipo + contador y soporte + infraestructura escalonada (anio desde 0)."""
+    return (S["fijo_mensual_por_anio"][anio] + S["soporte_mensual_por_anio"][anio]
+            + infraestructura(clientes * S["endpoints_por_cliente"]))
+
+
+def punto_equilibrio(anio, clientes, nube=None):
+    return math.ceil(costo_fijo_mensual(anio, clientes) / margen_contribucion_cliente(nube))
+
+
+def simular(esc, nube=None, cac=None, churn=None):
+    nube = S["costo_nube_por_endpoint"] if nube is None else nube
+    cac = esc["cac"] if cac is None else cac
+    churn = esc["churn_mensual"] if churn is None else churn
+    cac_unit = cac
     clientes, filas = 0.0, []
     for a in range(S["horizonte_anios"]):
         ing = var = fijo = cac = 0.0
@@ -60,14 +97,14 @@ def simular(esc):
         for _ in range(12):
             n = esc["altas_mensuales"][a]
             altas += n
-            clientes = clientes * (1 - esc["churn_mensual"]) + n
+            clientes = clientes * (1 - churn) + n
             rev = clientes * ARPU_CLIENTE
             ing += rev
-            var += (clientes * S["endpoints_por_cliente"] * S["costo_nube_por_endpoint"]
+            var += (clientes * S["endpoints_por_cliente"] * nube
                     + rev * (S["comision_pagos"] + S["ingresos_brutos"])
                     + rev * S["ventas_por_canal"] * S["comision_canal"])
-            fijo += S["fijo_mensual_por_anio"][a] + S["infra_fija_mensual"]
-            cac += n * esc["cac"]
+            fijo += costo_fijo_mensual(a, clientes)
+            cac += n * cac_unit
         res = ing - var - fijo - cac
         imp = max(0.0, res) * S["impuesto_ganancias"]
         filas.append(dict(anio=a + 1, clientes=clientes, altas=altas, ingresos=ing, variables=var,
@@ -139,9 +176,10 @@ def consola():
     print(f"Inversión inicial: USD {fmt(INV0)}")
     print(f"Ingreso mensual por cliente: USD {fmt(ARPU_CLIENTE)}  (USD {ARPU_ENDP:.2f} por endpoint)")
     print(f"Margen de contribución mensual por cliente: USD {fmt(mc)}")
-    for a, f in enumerate(S["fijo_mensual_por_anio"]):
-        pe = (f + S["infra_fija_mensual"]) / mc
-        print(f"  Punto de equilibrio año {a + 1}: {pe:.1f} clientes activos")
+    base = simular(S["escenarios"]["Base"])
+    for a, f in enumerate(base):
+        cf = costo_fijo_mensual(a, f["clientes"])
+        print(f"  Año {a + 1}: costo fijo mensual {fmt(cf)}, equilibrio {punto_equilibrio(a, f['clientes'])} clientes")
     for n, r in resultados().items():
         print(f"\n{n}: VAN={fmt(r['van'])} TIR={pct(r['tir'])} payback={anios(r['payback'])} "
               f"descontado={anios(r['payback_desc'])} necesidad máx. de fondos={fmt(r['necesidad'])}")
@@ -179,7 +217,21 @@ def latex():
     print("Escenario & " + " & ".join(f"{int(k * 100)}\\,\\%" for k in ks) + " \\\\\n\\hline")
     for n, r in res.items():
         print(f"{n} & " + " & ".join(fmt(r['sens'][k]) for k in ks) + " \\\\")
-    print("\\hline\n\\end{tabular}")
+    print("\\hline\n\\end{tabular}\n")
+    print("% --- Sensibilidad del VAN a la nube por equipo (USD 0,10 / 0,30 / 0,60), por escenario ---")
+    k = S["tasa_descuento"]
+    base = S["escenarios"]["Base"]
+    for n in res:
+        print(f"{n} & " + " & ".join(
+            fmt(van([f['flujo'] for f in simular(S['escenarios'][n], nube=v)], k)) for v in (0.10, 0.30, 0.60)) + " \\\\")
+    print("% --- Escenario base: VAN según costo de adquisición (1.000 / 1.500 / 2.500) y abandono (1,5 / 2 / 3 %) ---")
+    print("VAN & " + " & ".join(
+        fmt(van([f['flujo'] for f in simular(base, cac=v)], k)) for v in (1000, 1500, 2500)) + " \\\\")
+    print("VAN & " + " & ".join(
+        fmt(van([f['flujo'] for f in simular(base, churn=v)], k)) for v in (0.015, 0.02, 0.03)) + " \\\\")
+    print("% --- Punto de equilibrio (escenario base): año, costo fijo mensual, equilibrio ---")
+    for a, f in enumerate(simular(base)):
+        print(f"{a + 1} & {fmt(costo_fijo_mensual(a, f['clientes']))} & {punto_equilibrio(a, f['clientes'])} \\\\")
 
 
 if __name__ == "__main__":
