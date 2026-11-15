@@ -249,6 +249,8 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\hline
 	\texttt{eventos\_\allowbreak{}crudos} sin retención & La tabla crece sin límite. & Trabajo futuro: política de retención. \\
 	\hline
+	Nota «En calibración» heredada de la versión~1 & La cobertura del puntaje depende de las secuencias del LSTM, que el camino por defecto no actualiza: un usuario nuevo queda siempre en cobertura parcial y ve la nota, y uno con secuencias previas al cambio de camino ve el texto de la combinación de dos modelos. La explicación persistida es la del último evento del día. & Trabajo futuro: definir la cobertura y los textos del \emph{dashboard} según el camino activo. \\
+	\hline
 	\multicolumn{3}{l}{\textit{Datos personales}} \\
 	\hline
 	Conservación y seudonimización & Los eventos crudos y las alertas de corrimiento de un usuario no se suprimen, y la exportación del reentrenamiento copia los eventos del agente sin seudonimizar a un archivo local que no se elimina. & Trabajo futuro: plazo de conservación y supresión compatible con la cadena de \emph{hashes}, y seudonimización del archivo exportado (secciones~\ref{sec:conservacion-datos} y~\ref{sec:datos-entrenamiento}). \\

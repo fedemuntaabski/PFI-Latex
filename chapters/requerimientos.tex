@@ -258,7 +258,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-10 & Aislamiento & El reentrenamiento se ejecuta en un proceso aislado que preserva la disponibilidad y la latencia del servicio de \emph{scoring} en producción. & Implementado\\
 	\hline
-	RNF-11 & Explicabilidad & Cada puntaje debe acompañarse de una justificación legible (principales variables que lo explican) y persistirse en el historial. & Parcial: cubre Isolation Forest y la detección de novedad; el LSTM del camino \texttt{lstm}, sin explicación \\
+	RNF-11 & Explicabilidad & Cada puntaje debe acompañarse de una justificación legible (principales variables que lo explican) y persistirse en el historial. & Parcial: cubre Isolation Forest y la detección de novedad; el LSTM del camino \texttt{lstm}, sin explicación. La explicación persistida corresponde al último evento de cada día e incluye el primer acceso a un recurso cuando ese evento lo registró \\
 	\hline
 	RNF-12 & Portabilidad / despliegue & El agente corre como un proceso nativo por dispositivo Windows, sin servidor propio ni contenedores. & Implementado \\
 	\hline
