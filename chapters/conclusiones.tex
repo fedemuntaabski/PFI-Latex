@@ -22,14 +22,14 @@ Objetivo & Evidencia \\
 \hline
 \endhead
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos (RF-01, RNF-08); TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13); credencial individual, revocable y ligada al agente y a sus usuarios (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria (RNF-02); verificado con un agente real contra la instancia por HTTPS (sección~\ref{sec:verificacion-despliegue}) \\
-2. Modelo híbrido evaluado contra metas & \textbf{Parcial.} Entrenado sobre CLUE-LDS; cumple 1 de las 5 metas de comportamiento y detección, y la de latencia (tabla~\ref{tab:metas-modelo}). Con el umbral de 70, la detección atribuible es de 0 a 13,3\,\% por escenario frente a un 15,4\,\% de días normales en nivel alto (sección~\ref{sec:validacion-escenarios}); en la partición reservada de escenarios etiquetados, el ROC-AUC del híbrido va de 0,58 a 0,80 según el escenario (sección~\ref{sec:benchmark}) \\
+2. Modelo híbrido evaluado contra metas & \textbf{Parcial.} El ruido y la estabilidad del camino por defecto están medidos con datos reales (2,66\,\% de falsos positivos en alto, sección~\ref{sec:evaluacion-default}); la detección no es medible sin ataques etiquetados del dominio (tabla~\ref{tab:metas-modelo}) \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados (RF-03, RF-04); percentil 95 de 14,9\,ms y percentil 99 de 148,9\,ms medidos desde el cliente en entorno local aislado (Redis en memoria); con Redis y PostgreSQL gestionados en la nube, el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia \\
 4. Respuesta graduada y reversible & Seis acciones configurables por nivel (RF-07, RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo (RNF-06), con pruebas con \texttt{icacls} simulado y una prueba de extremo a extremo del ciclo de decisión y aplicación (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente como administrador (sección~\ref{sec:sintesis-limitaciones}) \\
-5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a RF-17, RNF-07); evaluación heurística con los cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest, pero no el LSTM (RNF-11, parcial) \\
-6. Reentrenamiento aislado y período de aprendizaje & \textbf{Parcial.} CU-03 y CU-04 implementados. Las tres corridas reales de reentrenamiento (una automática y dos manuales) generan candidatos que la regla de promoción anterior rechaza (RF-21). El criterio de no inferioridad está implementado, con 13 pruebas automatizadas: el modelo vigente se promueve contra sí mismo y el juego v2 se rechaza por falsos positivos. Falta ejecutar una promoción desde el planificador con un modelo genuinamente nuevo \\
+5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a RF-17, RNF-07); evaluación heurística con los cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el recurso que activa la detección de novedad; en el camino \texttt{lstm}, no cubre el LSTM (RNF-11, parcial) \\
+6. Reentrenamiento aislado y período de aprendizaje & \textbf{Parcial.} CU-03 y CU-04 implementados. El criterio de no inferioridad sobre los días reales de DEV evalúa el camino por defecto completo (RF-21); el ciclo completo promovió un candidato en un entorno aislado (2~h 30~min; 2,95\,\% frente a 2,66\,\% de falsos positivos), que no se llevó a producción (sección~\ref{sec:reentrenamiento-producto}). Falta ejecutar una promoción en producción con un modelo genuinamente nuevo \\
 7. Credenciales y canal protegidos & TLS con certificado verificado; clave de agente individual, ligada a su identificador y a sus usuarios (403 si no corresponde); \emph{token} de sesión del panel opaco, con vencimiento de 8 horas y cierre de sesión; secretos en el almacén de parámetros de la nube; la autenticación mutua por certificado queda como extensión (RF-02, RNF-03, RNF-13); verificado contra la instancia (sección~\ref{sec:verificacion-despliegue}) \\
 8. Análisis de la normativa de datos personales & Marco legal (sección~\ref{sec:marco-legal}) y análisis del tratamiento (sección~\ref{sec:tratamiento-datos}); quedan pendientes el plazo de conservación y la supresión completa de los datos de un usuario \\
-9. Pruebas con cobertura $\geq$ 85\,\% & 667 pruebas automatizadas (477 de la API y 190 del agente), con una cobertura de líneas del 94,8\,\% en la API y del 91,8\,\% en el agente (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, queda fuera del umbral; prueba de extremo a extremo del ciclo de decisión y aplicación, y evaluación heurística de usabilidad \\
+9. Pruebas con cobertura $\geq$ 85\,\% & 747 pruebas automatizadas (547 de la API y 200 del agente), con una cobertura de líneas del 95,25\,\% en la API y del 91,90\,\% en el agente (sección~\ref{sec:cobertura-codigo}); el \emph{frontend}, sin lógica de negocio, queda fuera del umbral; prueba de extremo a extremo del ciclo de decisión y aplicación, y evaluación heurística de usabilidad \\
 \hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -44,23 +44,7 @@ soluciones comerciales, y lo hace con un percentil 95 de latencia de cómputo de
  La separación entre el punto de decisión y el de aplicación permite cambiar
 umbrales y acciones sin modificar los agentes.
 
-El resultado más débil es la capacidad de detección. Sobre escenarios de ataque inyectados en el
-historial de 15 usuarios, la detección atribuible nunca supera un tercio de los usuarios en ningún
-umbral, y con el umbral vigente del nivel alto llega al 13,3\,\% en el escenario combinado, mientras
-que el 15,4\,\% de los días sin ataque termina en nivel alto. La evaluación con escenarios
-etiquetados sobre un conjunto mayor de víctimas, en una partición reservada para la evaluación
-final, lo confirma: sin país, el sistema detecta en nivel alto entre el 12\,\% y el 30\,\% de los
-días atacados, con una tasa de falsos positivos del 4\,\% al 5\,\% en ese nivel; cuando la
-exfiltración introduce un país nuevo, la detección sube al rango del 91\,\% al 99\,\%, por efecto
-de la ubicación y no del comportamiento (sección~\ref{sec:benchmark}). Entre las causas verificadas
-están que casi todos los eventos del conjunto de entrenamiento tienen el país registrado como
-desconocido, que la variable de cambio de país domina el error del LSTM, que este no aprovecha el
-orden de los eventos y que su riesgo se asocia en forma inversa al volumen de actividad del
-usuario; la granularidad diaria de las variables de Isolation Forest, que diluye una ráfaga corta
-de eventos, sigue siendo una causa inferida. Estos resultados
-se basan en una muestra chica y en escenarios diseñados por el propio equipo, pero alcanzan para
-concluir que el modelo, tal como está entrenado, no detecta de forma confiable ataques de corta
-duración.
+El resultado más débil sigue siendo la capacidad de detección, que no puede medirse con los datos disponibles: ningún conjunto del dominio incluye ataques etiquetados. La revisión de modelos permitió, sin embargo, reemplazar un componente que no cumplía su propósito (el LSTM Autoencoder) y reducir el ruido de forma medible: la tasa de falsos positivos en nivel alto bajó del 5,37\,\% al 2,66\,\% y la oscilación del nivel dentro del día, del 14,04\,\% al 2,66\,\% (sección~\ref{sec:revision-evolucion}). La medición sobre telemetría de \emph{host} mostró, además, que el modelo entrenado en la nube no está calibrado para ese dominio, lo que define el principal trabajo futuro (sección~\ref{sec:revision-transferencia}).
 
 El análisis económico muestra que el producto puede ser rentable en un escenario de adopción
 moderada, con un VAN de USD 83.059 al 25\,\%; en el escenario pesimista no recupera la inversión (VAN de USD $-$183.466), por lo que su viabilidad depende de la velocidad de
@@ -71,27 +55,21 @@ internacional de los datos.
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 El trabajo futuro se prioriza según el impacto sobre la principal limitación del sistema:
 \begin{enumerate}
-  \item \textbf{Capacidad de detección}: incorporar variables con granularidad menor al día,
-        reemplazar las variables de país dentro de los modelos por una regla explícita de
-        ubicación en el motor de decisión, introducir una transición gradual al cerrar la primera
-        secuencia del LSTM y revisar el componente personal en usuarios con historial escaso
-        (secciones~\ref{sec:interpretacion} y~\ref{sec:benchmark}).
-  \item \textbf{Rediseño del LSTM}: el componente no aprovecha el orden de los eventos; rediseñarlo
-        o reemplazarlo por un modelo no secuencial sobre la misma ventana, que además permita
-        explicar los puntajes que hoy no identifican qué los causó.
-  \item \textbf{Datos propios}: reentrenar el modelo con telemetría de equipos Windows y evaluarlo
-        con escenarios etiquetados de ese dominio, para eliminar la traducción de vocabulario y la
-        variable de país sin información y medir la brecha de dominio.
-  \item \textbf{Benchmark con reproducción evento a evento}: evaluar el sistema con el agregado
-        parcial y la línea base personal que aplica la producción, y definir la partición del
-        reentrenamiento por origen del dato, de modo que los datos del agente se incorporen al
-        entrenamiento sin desplazar el corte temporal del criterio de promoción ni contaminar los
-        escenarios con los que este evalúa al candidato.
+  \item \textbf{Telemetría propia}: recolectar telemetría propia de \emph{endpoints} y reentrenar y
+        calibrar Isolation Forest en ese dominio (sección~\ref{sec:revision-transferencia}).
+  \item \textbf{Detección medible}: obtener incidentes etiquetados del dominio para medir la detección.
+  \item \textbf{Latencia en la nube}: reducir la latencia, ubicando la API junto a los servicios de datos
+        y sacando la notificación del procesamiento del evento (sección~\ref{sec:latencia-aws}).
+  \item \textbf{Retención y acceso}: definir la retención de los eventos crudos, la anonimización del
+        identificador de usuario y un límite de intentos en el inicio de sesión.
+  \item \textbf{Modelos}: incorporar variables con granularidad menor al día, reemplazar las variables
+        de país dentro de los modelos por una regla explícita de ubicación en el motor de decisión,
+        revisar el componente personal en usuarios con historial escaso y reunir evidencia de
+        detección para el camino \texttt{markov} (sección~\ref{sec:revision-modelos}).
   \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
         un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}), y la seudonimización de la telemetría usada en el reentrenamiento.
-  \item \textbf{Redacción asistida del correo}: sacar la redacción y el envío del correo del procesamiento del
-        evento, evaluar el envío de variables agregadas en lugar de nombres crudos y probar los
-        controles contra el servicio real (sección~\ref{sec:prompt-injection}).
+  \item \textbf{Redacción asistida del correo}: evaluar el envío de variables agregadas en lugar de
+        nombres crudos y probar los controles contra el servicio real (sección~\ref{sec:prompt-injection}).
   \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con
         el Redis gestionado y varios agentes concurrentes.
   \item \textbf{Seguridad}: implementar la autenticación mutua por certificado y la firma de las respuestas del PDP (un segundo sitio del

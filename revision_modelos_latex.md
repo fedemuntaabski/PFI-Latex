@@ -83,3 +83,19 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
 - **Barrido del capítulo (LSTM como componente vigente):** fila "Diferenciador" (l. 29); tecnología del proyecto (l. 176, caminos alternativos); XAI de la matriz (l. 219: IF + recurso de la novedad); "elección inicial" (l. 228); filas de relación con el diseño en LSTM secuencial, grafos, híbridos, IF extendido y revisión de la literatura (l. 274, 298, 322, 346 y 370).
 - Compilación: sin errores, 6 *warnings* y sin referencias indefinidas. Ya no quedan referencias del capítulo 3 a las anclas provisionales.
 
+### Capítulo 13, Conclusiones (`chapters/conclusiones.tex`)
+
+- **Tabla 13.I:**
+  - Fila 2: texto nuevo (ruido medido, 2,66 %; detección no medible).
+  - Fila 5: la explicación cubre IF y el recurso de la novedad.
+  - Fila 6: criterio sobre días reales y promoción en *sandbox*, en línea con 9.2.5; se retiraron "13 pruebas" y "juego v2".
+  - Fila 9: 747 pruebas (547 / 200) y cobertura del 95,25 % y el 91,90 %.
+- **13.2:** segundo párrafo reemplazado por el texto propuesto, con remisiones a 10.6.3 y 10.6.6.
+- **13.3:**
+  - Se agregaron los 4 ítems nuevos al principio, en el orden indicado.
+  - Se retiraron "Rediseño del LSTM" (ya resuelto: retirado del camino por defecto), "Datos propios" (absorbido por el ítem 1 nuevo) y "Benchmark con reproducción evento a evento" (dependía de los escenarios retirados).
+  - "Capacidad de detección" pasó a "Modelos": sin la transición gradual del LSTM y con la evidencia de detección del camino `markov`.
+  - En "Redacción asistida" se quitó "sacar del procesamiento del evento", que ahora está en el ítem 3.
+- Compilación: sin errores, 6 *warnings* y sin referencias indefinidas.
+- **Pendiente para el autor:** el primer párrafo de 13.1 sigue diciendo que siete de los nueve objetivos se cumplen y dos en forma parcial (2 y 6). Con los cambios, esa cuenta no varía.
+
