@@ -8,7 +8,7 @@ Esta sección analiza el posicionamiento del producto en el mercado. Presenta el
 Esta sección describe el producto, su rango de precios y su plaza, es decir, los canales y la modalidad con que llega al cliente.
 
 \subsection{Producto}
-Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), compuesto por un agente liviano local (PEP) que recolecta actividad del usuario, una API central (PDP) que calcula un \emph{score} de riesgo dinámico con un modelo híbrido (Isolation Forest + LSTM Autoencoder) con decaimiento temporal, y un \emph{dashboard} donde el administrador define umbrales y acciones.
+Sistema de seguridad conductual (UEBA) alineado a Zero Trust (NIST SP~800-207), compuesto por un agente liviano local (PEP) que recolecta actividad del usuario, una API central (PDP) que calcula un \emph{score} de riesgo dinámico con Isolation Forest y detección de novedad de recurso, con decaimiento temporal, y un \emph{dashboard} donde el administrador define umbrales y acciones.
 
 \noindent\textbf{Diferencial del producto.} El análisis de mercado compara el producto con las tres plataformas UEBA relevadas (Sentinel, Splunk UBA y Exabeam). Microsoft Entra ID Protection queda fuera de esta comparación porque es una solución de protección de identidad, complementaria más que sustituta, cuya respuesta se limita al acceso condicional en la autenticación (sección~\ref{sec:estado-arte-entra}); del mismo modo, Okta se trata aparte en la sección~\ref{sec:comparacion-general}. Las tres plataformas UEBA detectan y alertan, pero dejan la respuesta en manos de un analista o de una plataforma SOAR externa; el diferencial del producto es que la API que detecta la anomalía decide la respuesta y el agente la ejecuta en el \emph{endpoint}, en segundos, sin depender de un analista (sección~\ref{sec:conclusion-estado-del-arte}).
 
@@ -71,7 +71,7 @@ Las debilidades son factores internos que limitan al producto frente a esas mism
 \begin{itemize}
 	\item Producto nuevo en el mercado, sin trayectoria ni certificaciones (SOC 2, ISO 27001) que sí tienen Sentinel, Splunk UBA y Exabeam: la confianza institucional se construye con tiempo, no solo con calidad técnica.
 	\item No es un SIEM completo: se enfoca en el comportamiento del usuario en el \emph{endpoint}, no reemplaza la correlación multi-fuente de eventos de red/nube que sí ofrecen los tres competidores.
-	\item La capacidad de detección del modelo todavía es limitada: entrenado con registros de otra plataforma, detecta en nivel alto una fracción baja de los ataques sin cambio de país (sección~\ref{sec:benchmark}), y depende de la continuidad de los datos de cada usuario.
+	\item La capacidad de detección del modelo no está medida, porque no se dispone de ataques etiquetados del dominio; además, entrenado con registros de otra plataforma, el modelo no está calibrado para la telemetría de \emph{host} (sección~\ref{sec:revision-transferencia}), y depende de la continuidad de los datos de cada usuario.
 	\item Sin canal comercial, soporte 24/7 ni red de \emph{partners} consolidada desde el lanzamiento, algo que Sentinel, Splunk UBA y Exabeam ya tienen resuelto por años de estar en el mercado.
 	\item Menor ecosistema de integraciones prearmadas con otras herramientas de seguridad, comparado con plataformas consolidadas con años de desarrollo de \emph{partners}.
 \end{itemize}

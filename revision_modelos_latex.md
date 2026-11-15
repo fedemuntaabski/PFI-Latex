@@ -104,3 +104,22 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
 - Anexo nuevo con el texto propuesto, agregado al final de `annex.tex`. Por decisión del autor queda como Anexo I y no D, para no correr las letras A–H. La cita "Landauer et al., 2022b" se resolvió como `\parencite{Landauer2022Dataset}` (el conjunto en Zenodo).
 - Compilación: 278 páginas, sin errores, 6 *warnings* y sin referencias indefinidas.
 
+### Barrido final de coherencia
+
+- **Búsqueda** en `chapters/*.tex` y `chapters/appendix/*.tex`; se excluyó `chapters/archivo/`, que no se compila. Términos: "escenarios inyectados", "benchmark", b499fa3, 477, 445, "190 aprobadas", 94,76, 87,10/87,11, S1–S7, E1–E4, LANL 2015 y LSTM como componente vigente. Lo que queda está corregido, es histórico (versión 1) o es una cita de los insumos ("retirar los escenarios S1–S7" en la tabla de decisiones; LANL 2015 como descartado, sin cifras).
+- **Capítulo 1:**
+  - Objetivo específico 2: dice "evaluarlo con datos reales, en una partición de desarrollo y un conjunto reservado, informando la tasa de alertas sobre actividad normal y la estabilidad del nivel". Antes decía "escenarios de ataque inyectados… tasa de detección".
+  - Párrafo del *pipeline*: el reentrenamiento por defecto omite el LSTM.
+- **Capítulo 4, requerimientos:** introducción; RF-03 (camino por defecto, con el comportamiento de la versión 1 como camino `lstm`); RF-21 (criterio de no inferioridad sobre días reales de DEV con el p90 semanal, según 9.2.5); RNF-11; CU-03 (evaluación sobre días reales; rechazo cuando falta la partición); CU-04 (cobertura parcial solo en el camino `lstm`); HU-09.
+- **Capítulo 5, diseño:** introducción (motor de *scoring* con el camino por defecto).
+- **Capítulo 7, arquitectura:** TensorFlow solo para el camino `lstm`.
+- **Capítulo 11, mercado:** descripción del producto (IF + novedad) y la debilidad de la detección (no medida; brecha de dominio), que antes remitía a `sec:benchmark`.
+- Se quitaron las anclas provisionales de `pruebas.tex`: ya no quedan referencias a las secciones retiradas.
+- Compilación: 279 páginas, sin errores, 7 *warnings* (3 de paquetes y 4 `h` → `ht`, el mismo tipo que en la línea base) y sin referencias indefinidas.
+- **Pendientes para el autor:**
+  - **Objetivo 2 del capítulo 1:** se reformuló la forma de evaluación para que coincida con la regla de datos reales. Conviene confirmar que la redacción sea aceptable, porque modifica un objetivo declarado.
+  - **Capítulo 6, UML:** los diagramas y su texto (l. 50, 60 y 70) siguen mostrando el servicio del LSTM, el *buffer* del LSTM y la "combinación híbrida", y no incluyen la novedad ni Markov. Las figuras no se regeneraron.
+  - `e50_diseno_ux.tex` l. 123: la nota «En calibración» se justifica porque la explicación no cubre el LSTM. Hay que verificar en el *dashboard* si la nota sigue vigente.
+  - `arquitectura.tex` l. 55 y `chapter01.tex`: las "seis fases" del *pipeline* y "el puntaje híbrido" describen la versión 1.
+  - **Resumen y *abstract*:** `summary.tex` y `abstract.tex` contienen el texto de ejemplo de la plantilla y no se incluyen en `main.tex`, así que no hubo nada que revisar.
+
