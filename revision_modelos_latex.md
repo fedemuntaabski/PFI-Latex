@@ -41,3 +41,31 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
   - En 9.2.5 se conserva "El juego de modelos vigente proviene de la última corrida manual de reentrenamiento. La regla anterior lo rechaza…": los insumos no dicen de qué corrida provienen los modelos vigentes.
   - Se mantiene el nombre de la fila "Sensibilidad baja ante ataques de corta duración", como indica la guía, aunque ahora la sensibilidad no está medida. Conviene considerar renombrarla, por ejemplo a "Detección no medida".
 
+### Capítulo 10, Pruebas (`chapters/pruebas.tex`)
+
+- **Introducción y tabla de técnicas:** ya no se mencionan los escenarios inyectados ni el *benchmark*; la fila "Evaluación del modelo" remite a 10.5, 10.6 y 10.7.
+- **10.2.1 a 10.2.4:**
+  - Inventario: 747 pruebas (547 de la API y 200 del agente).
+  - Tabla de ejecución: 547 / 508 + 30 omitidas / 200. Las omitidas se describen sin desglose.
+  - Integración continua: se reemplazó "el *pipeline* finaliza con los cuatro trabajos aprobados" por la reproducción local del trabajo de la API (508 aprobadas, 30 omitidas, 86 % combinada).
+  - Cobertura: API 95,25 / 93,86; agente 91,90 / 91,20; total 94,40 / 93,17; columna de pruebas 547 / 200 / 747. Integración continua: 86 % combinada.
+- **10.3:** el ensayo de la cadena de decisión se repitió el 14/11 con el camino por defecto. El ítem de reentrenamiento aclara que el rechazo por el LSTM corresponde a la regla anterior y que ahora la promoción se verificó en un entorno aislado.
+- **10.4.2:** párrafo de la optimización del listado (2,18 → 0,12 s; 0,32 → 0,05 s; 0,40 s en la instancia).
+- **10.4.3:** se quitó "b499fa3". Ahora dice que corre la release vigente (14/11), con el servicio sano y el listado en 0,40 s, y que las verificaciones detalladas se hicieron sobre la release anterior. Se agregó la demostración del 08/11 (3 de 3; crítico entre 33,8 y 40,3 s; acción entre 46,3 y 49,1 s). Se retiró la oración de la suite en la instancia (372 / 3 / 3, 91,71 %), porque los insumos no dan cifras de la suite para la release vigente.
+- **10.5:** se agregó el aviso de que describe la versión 1. En la tabla de metas se reemplazaron las tres metas de escenarios (E4, promedio y 15,4 % de días sin inyección) por dos metas de ruido: FPR en alto ≤ 5 % (2,66 %, cumple) y estabilidad dentro del día (2,66 % y 1,29 %, sin meta numérica). Se reescribió el párrafo de lectura de las metas.
+- **10.6 y 10.7:** reemplazadas por completo por "Revisión de modelos con datos reales" (6 subsecciones, tablas `tab:evaluacion-detectores` y `tab:efecto-default`) y "Evaluación del camino por defecto". Se borraron del `.tex` la figura `fig:curva-umbral` y las tablas `tab:escenarios` y `tab:bench-*`.
+- **10.9:** la fila de redondeo ahora remite al criterio sobre días reales; la fila de la prueba de regresión atribuye las seis diferencias al oráculo; la fila de la "validación por escenarios" se reemplazó por las 6 filas nuevas. Se retiraron los cuatro párrafos de variantes evaluadas con el *benchmark* (recalibración, agregación del LSTM, decaimiento y modelos corregidos) y se reemplazaron por una remisión a 10.6.
+- **10.10:** ítem de la prueba de regresión con el texto nuevo; promoción verificada en un entorno aislado; ítems de escenarios y *benchmark* reemplazados por "sin *recall* medible / día cerrado" y "HOLDOUT usado una vez con la versión 1" (`limitaciones_provisional.md` 1.1, 1.3 y 1.4); se retiró el ítem de escenarios controlados; se agregó la nota final.
+- **10.11, síntesis:** cifras nuevas y lectura de la revisión.
+- Los capítulos 3, 11 y 13 todavía citan labels de las secciones retiradas (`sec:validacion-escenarios`, `sec:benchmark`, `sec:benchmark-particion`, `sec:lectura-benchmark`, `sec:interpretacion`). Se dejaron como anclas provisionales en 10.6 hasta actualizar esos capítulos.
+- Compilación: 276 páginas, 0 errores, 6 *warnings* (3 de paquetes y 3 `h` → `ht`) y sin referencias indefinidas.
+- **Pendientes para el autor:**
+  - **Estado del CI:** desde el 08/11 el *pipeline* de GitHub Actions termina en `startup_failure` en todas las ramas; la última corrida exitosa es del 04/11. La memoria ya no afirma que los cuatro trabajos aprueban; hay que resolverlo y volver a correrlo.
+  - Desglose de las 30 pruebas omitidas: correr `pytest -rs` en la configuración de integración continua.
+  - Inventario (10.2.1): siguen las cantidades de archivos (44 y 15); cobertura (10.2.4): siguen las sentencias (2 808, 1 107 y 3 915). Los insumos no cubren estas cifras.
+  - En la integración continua se retiró el 88,50 % de líneas; el insumo solo da el 86 % combinado.
+  - 10.4.1: la frase de que las latencias más altas coinciden con la inferencia del LSTM corresponde a la medición de la versión 1; no se re-midió.
+  - 10.4.3: los detalles de la verificación (SHA-256 de seis artefactos, TLS, códigos HTTP, agente real con 97,06) son de la release anterior; habría que repetirlos sobre la release del 14/11.
+  - 10.5.2: la meta de estabilidad dentro del día no tiene valor numérico en los insumos.
+  - **Archivos huérfanos (no se borraron):** `images/pruebas/curva_umbral.pdf` y `images/pruebas/curva_umbral.png`.
+
