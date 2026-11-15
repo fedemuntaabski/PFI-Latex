@@ -201,6 +201,8 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\endhead
 	\multicolumn{3}{l}{\textit{Modelo y detección}} \\
 	\hline
+	Arranque en frío & Tasa de falsos positivos del 11,43\,\% en los primeros 3 días del usuario. & Período de aprendizaje que atenúa la acción. \\
+	\hline
 	Sensibilidad baja ante ataques de corta duración & No hay \emph{recall} medible: ningún conjunto de datos del dominio trae ataques etiquetados. Se miden la tasa de falsos positivos, la estabilidad y la carga de alertas (sección~\ref{sec:revision-modelos}). & Recolectar incidentes etiquetados en el dominio del agente. \\
 	\hline
 	El país actúa como interruptor & En la versión 1 (camino \texttt{lstm}, sección~\ref{sec:caminos-alternativos}), en ambos modelos la ubicación, y no el comportamiento, decide la detección operativa de los ataques con país y el nivel crítico del escenario de extremo a extremo. En el camino por defecto, \texttt{n\_\allowbreak{}distinct\_\allowbreak{}countries} sigue siendo una de las ocho variables de Isolation Forest. & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
@@ -210,8 +212,6 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	Calibración sin datos independientes & El nivel de la regla de piso, los umbrales 40, 70 y 90 y el peso máximo de la línea base personal son puntos de partida razonados, sin un barrido que los calibre, y la línea base personal tiende a valores altos en usuarios con poco historial, lo que eleva sus alertas. & La calibración por cuantiles acota la proporción de días en cada nivel (sección~\ref{sub:particion-parametros}); cinco alternativas para la línea base no mejoran la detección (sección~\ref{sec:decisiones-pruebas}); los umbrales son editables en tiempo de ejecución. \\
 	\hline
 	Sustitución de cuenta sin cobertura en el camino por defecto & Ningún detector del camino por defecto analiza el orden de los eventos. & Camino \texttt{markov} disponible (sección~\ref{sec:caminos-alternativos}); trabajo futuro: evidencia de detección. \\
-	\hline
-	Arranque en frío & Tasa de falsos positivos del 11,43\,\% en los primeros 3 días del usuario. & Período de aprendizaje que atenúa la acción. \\
 	\hline
 	\multicolumn{3}{l}{\textit{Agente local}} \\
 	\hline
