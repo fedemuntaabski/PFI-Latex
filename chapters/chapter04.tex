@@ -26,7 +26,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Alcance de monitoreo & Amplio (no se limita a usuarios individuales) pero centralizado en la nube, sin agente propio en el endpoint \\
 	\hline
-	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest + LSTM) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
+	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest con detección de novedad de recurso) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
@@ -173,7 +173,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Funcionalidad principal & \emph{Score} dinámico de confianza por usuario, actualizado por evento, con decaimiento temporal y continuidad entre sesiones \\
 	\hline
-	Tecnología / IA & Modelo híbrido propio: Isolation Forest (agregado diario) + LSTM Autoencoder (secuencias), código propio auditable \\
+	Tecnología / IA & Modelo propio: Isolation Forest (agregado diario) + detección de novedad de recurso en el camino por defecto; LSTM Autoencoder (secuencias) y perfil de Markov como caminos alternativos; código propio auditable \\
 	\hline
 	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
 	\hline
@@ -216,7 +216,7 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 	\hline
 	EDR/XDR para PyMEs (Defender for Business, Wazuh) & $\bigtriangleup$ (técnicas y reglas conocidas; sin línea base por usuario) & $\bigtriangleup$ (por alerta o equipo, no por usuario) & \checkmark & \checkmark & \checkmark (técnica o regla que disparó la alerta) \\
 	\hline
-	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (solo Isolation Forest, las 3 variables con mayor \emph{z-score}; LSTM sin XAI propio) \\
+	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (Isolation Forest: las 3 variables con mayor \emph{z-score}; novedad: el recurso involucrado) \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}); las valoraciones del proyecto propuesto son una autoevaluación del equipo.\par}
@@ -225,7 +225,7 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
-Esta sección profundiza la comparación general de alternativas (sección~\ref{sec:comparacion-general}) en lo referido a los modelos de inteligencia artificial, y muestra que la elección de Isolation Forest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
+Esta sección profundiza la comparación general de alternativas (sección~\ref{sec:comparacion-general}) en lo referido a los modelos de inteligencia artificial, y muestra que la elección inicial de Isolation Forest + LSTM no es arbitraria: responde directamente a limitaciones que la propia literatura relevada reporta sobre cada técnica por separado. Cada enfoque se compara en cinco dimensiones: Fuente académica, Dataset / validación, Métrica reportada, Limitación reportada y Relación con el diseño del proyecto. Las tablas~\ref{tab:algo-catboost} a~\ref{tab:algo-proyecto} presentan esa comparación.
 
 \subsection{CatBoost (score de riesgo por solicitud)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -271,7 +271,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & \emph{Cold-start}: depende de historial suficiente por usuario, baja el rendimiento en usuarios nuevos \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto usa LSTM Autoencoder con el mismo problema de \emph{cold-start}, y lo declara explícitamente vía el estado de cobertura ``parcial''/``sin \emph{score}'' en vez de ocultarlo \\
+	Relación con el diseño del proyecto & En su versión 1, el proyecto usa LSTM Autoencoder con el mismo problema de \emph{cold-start}, y lo declara explícitamente vía el estado de cobertura ``parcial''/``sin \emph{score}'' en vez de ocultarlo; la revisión de modelos lo retiró del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
 	\hline
 \end{longtable}
 
@@ -295,7 +295,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Alta complejidad de infraestructura para grafos a gran escala \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto evalúa ese costo de infraestructura como desproporcionado para su alcance y prioriza Isolation Forest + LSTM por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
+	Relación con el diseño del proyecto & El proyecto evalúa ese costo de infraestructura como desproporcionado para su alcance y prioriza Isolation Forest y detectores por usuario de bajo costo por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
 	\hline
 \end{longtable}
 
@@ -319,7 +319,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Mayor consumo de recursos en enfoques de densidad; alta diversidad entre perfiles de usuario dificulta líneas base estables \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (Isolation Forest + LSTM) en vez de apostar a un único algoritmo \\
+	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (Isolation Forest y la detección de novedad de recurso) en vez de apostar a un único algoritmo \\
 	\hline
 \end{longtable}
 
@@ -343,7 +343,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Isolation Forest estándar introduce artefactos en el puntaje por usar cortes paralelos a los ejes; el rendimiento depende de la representación de los datos \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre ocho variables diarias estandarizadas y lo combina con LSTM, regla de piso y decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
+	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre ocho variables diarias estandarizadas y lo combina con la detección de novedad de recurso, la regla de piso y el decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
 	\hline
 \end{longtable}
 
@@ -367,11 +367,11 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Pocos trabajos enfocados específicamente en comportamiento de usuario (vs. logs de sistema en general) \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto combina las dos familias de técnicas que esta revisión destaca: LSTM y autoencoders para anomalías secuenciales, e Isolation Forest para baja latencia \\
+	Relación con el diseño del proyecto & El diseño inicial combinó las dos familias de técnicas que esta revisión destaca: LSTM y autoencoders para anomalías secuenciales, e Isolation Forest para baja latencia; la revisión de modelos retiró el LSTM del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
 	\hline
 \end{longtable}
 
-\subsection{Isolation Forest + LSTM Autoencoder (proyecto propuesto)}
+\subsection{Isolation Forest + novedad de recurso (proyecto propuesto)}
 \begin{longtable}{p{3cm}p{11.6cm}}
 	\caption{Comparación de algoritmos: proyecto propuesto}
 	\label{tab:algo-proyecto}\\
@@ -383,16 +383,18 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\textbf{Campo} & \textbf{Detalle} \\
 	\hline
 	\endhead
-	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La detección se evalúa con escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). \\
+	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La evaluación se hace exclusivamente con datos reales: tasa de falsos positivos, estabilidad y carga de alertas sobre días reales de CLUE-LDS y LANL 2017 (secciones~\ref{sec:revision-modelos} y~\ref{sec:evaluacion-default}). \\
 	\hline
-	Métrica reportada & ROC-AUC del puntaje híbrido en la partición reservada para la evaluación final (HOLDOUT, sección~\ref{sec:benchmark-particion}) de 0,58 a 0,80 en los escenarios sin país; la detección operativa con el umbral del nivel alto se presenta en la sección~\ref{sec:lectura-benchmark}. Las etiquetas provienen de los escenarios inyectados, no de ataques reales. \\
+	Métrica reportada & Tasa de falsos positivos en nivel alto del camino por defecto sobre los días reales de DEV: 2,66\,\%, con un percentil 90 semanal de 4,95\,\% (sección~\ref{sec:evaluacion-default}). No hay \emph{recall} medible: ningún conjunto de datos del dominio trae ataques etiquetados. \\
 	\hline
-	Limitación reportada & Detección baja cuando el ataque no cambia el país; el LSTM queda cerca del azar sin país; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows (secciones~\ref{sec:lectura-benchmark} y~\ref{sec:limitaciones-pruebas}). \\
+	Limitación reportada & Detección no medible sin ataques etiquetados del dominio; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows: el Isolation Forest de CLUE-LDS marca el 53,66\,\% de los días de \emph{host}, contra el 4,13\,\% de uno entrenado en \emph{host} (secciones~\ref{sec:revision-transferencia} y~\ref{sec:limitaciones-pruebas}). \\
 	\hline
-	Relación con el diseño del proyecto & Sigue la orientación de la literatura hacia enfoques híbridos \parencite{Artioli2024, Landauer2023Survey} y usa registros reales en lugar de datos sintéticos. La evaluación muestra que, sobre este conjunto de datos, el aporte del componente LSTM es limitado (sección~\ref{sec:lectura-benchmark}) \\
+	Relación con el diseño del proyecto & Sigue la orientación de la literatura hacia enfoques híbridos \parencite{Artioli2024, Landauer2023Survey} y usa registros reales en lugar de datos sintéticos. La revisión de modelos mostró que, sobre este conjunto de datos, el aporte del componente LSTM era limitado (sección~\ref{sec:revision-diagnostico}) \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
+
+El diseño inicial combinaba Isolation Forest con un LSTM Autoencoder. La revisión de modelos (sección~\ref{sec:revision-modelos}) mostró que el LSTM no aprovechaba el orden de los eventos y que su riesgo identificaba a la persona más que al comportamiento del día, por lo que el camino por defecto pasó a combinar Isolation Forest con la detección de novedad de recurso. El LSTM se conserva como alternativa configurable.
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}

@@ -77,3 +77,9 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
 - Compilación: sin errores, 6 *warnings* y sin referencias indefinidas.
 - **Pendiente para el autor:** los subapartados nuevos no tienen citas bibliográficas, porque los insumos no las proponen. Conviene agregar referencias de detección de novedad, de cadenas de Markov aplicadas a UEBA y de umbrales adaptativos.
 
+### Capítulo 3, Análisis comparativo (`chapters/chapter04.tex`)
+
+- **3.3.7:** título "Isolation Forest + novedad de recurso (proyecto propuesto)" y párrafo final, con el texto propuesto. En la tabla `tab:algo-proyecto`, las filas de validación, métrica, limitación y relación ya no remiten a las secciones de escenarios. Se retiró el ROC-AUC de 0,58 a 0,80 (escenarios retirados) y se puso en su lugar la FPR de 2,66 % / 4,95 % y la brecha de 53,66 % frente a 4,13 %.
+- **Barrido del capítulo (LSTM como componente vigente):** fila "Diferenciador" (l. 29); tecnología del proyecto (l. 176, caminos alternativos); XAI de la matriz (l. 219: IF + recurso de la novedad); "elección inicial" (l. 228); filas de relación con el diseño en LSTM secuencial, grafos, híbridos, IF extendido y revisión de la literatura (l. 274, 298, 322, 346 y 370).
+- Compilación: sin errores, 6 *warnings* y sin referencias indefinidas. Ya no quedan referencias del capítulo 3 a las anclas provisionales.
+
