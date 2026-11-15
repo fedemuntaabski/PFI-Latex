@@ -123,3 +123,42 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
   - `arquitectura.tex` l. 55 y `chapter01.tex`: las "seis fases" del *pipeline* y "el puntaje híbrido" describen la versión 1.
   - **Resumen y *abstract*:** `summary.tex` y `abstract.tex` contienen el texto de ejemplo de la plantilla y no se incluyen en `main.tex`, así que no hubo nada que revisar.
 
+## Verificación (sección 4 del plan)
+
+1. **Compilación:** 0 errores, sin referencias ni citas indefinidas y 7 *warnings*, todos de paquetes o `h` → `ht`, como en la línea base.
+2. **Índices:** 10.6 (seis subsecciones) y 10.7 quedan en el índice; las tablas nuevas (`8.I` complementarios, `10.IX` detectores, `10.X` camino por defecto) están en la lista de tablas y la numeración es continua. No queda ninguna referencia a "10.7.6" ni a las secciones retiradas.
+3. **Cifras clave** (2,66; 4,95; 14,04; 1,29; 5,37; 53,66; 4,13; 11,43; 0,493; 0,239; 547; 508; 200; 95,25; 91,90): todas aparecen en el `.tex` y se tomaron textualmente de los insumos.
+4. **`git grep` de menciones a herramientas de IA y "/goal":** no hay ninguna en los `.tex`. Sí aparecen en archivos que ya estaban en el repo (`informe_fixes_e75*.md`, `documentacion/e75/*.md`, `docs/verificacion/e75_cap13_ajustes.md`, `informes_e75/*.md`) y en `corregir_en_latex/plan_goal_latex.md`, que se versionó por decisión del autor. No se tocaron. "Gemini" aparece en la memoria como componente del sistema (redacción del correo), no como autoría. Los commits de esta rama no tienen trailers de atribución.
+
+## Cierre
+
+- **Capítulos tocados:**
+  - 1 (objetivo 2 y *pipeline*)
+  - 2
+  - 3
+  - 4 (requerimientos)
+  - 5 (introducción)
+  - 7 (TensorFlow)
+  - 8
+  - 9
+  - 10
+  - 11 (mercado)
+  - 13
+  - Anexo I (nuevo)
+- **Páginas:** 283 antes, 279 después.
+- **`LIMITACIONES_Y_ESTADO.md`:** se agregó la sección 0 con las limitaciones vigentes (de `limitaciones_provisional.md`, sin el punto del etiquetado) y un aviso de qué partes de las secciones 1 a 6 quedaron superadas.
+- **Pendientes para el autor** (detallados en cada capítulo):
+  1. **Estado del CI:** `startup_failure` desde el 08/11. Hay que resolverlo y volver a correrlo antes de afirmar que el *pipeline* aprueba.
+  2. **Cifras no cubiertas por los insumos:**
+     - archivos del inventario (44 y 15) y sentencias de la cobertura;
+     - desglose de las 30 omitidas;
+     - líneas de la integración continua;
+     - verificaciones detalladas del despliegue sobre la release vigente;
+     - meta numérica de estabilidad;
+     - procedencia del juego de modelos vigente (9.2.5).
+  3. **Archivos huérfanos:** `images/pruebas/curva_umbral.pdf` y `images/pruebas/curva_umbral.png`.
+  4. **Referencias:** completar la de Larroche (2026), hoy texto con `% TODO` en `datos.tex`; agregar las de LANL 2017, GUIDE y DARPA OpTC, y citas para 2.1.5.3–2.1.5.5.
+  5. **UML** (capítulo 6) y nota «En calibración» (capítulo 5): reflejan la versión 1.
+  6. **Objetivo específico 2:** se reformuló la forma de evaluación; confirmar la redacción.
+  7. **Etiquetado de triage:** no se integró en la memoria. Está versionado en `corregir_en_latex/etiquetado_aparte.md`, a la espera de la decisión del autor.
+- `images/cronograma.jpg` sigue borrado sin commitear y `images/gannt.jpg` sin versionar, como al inicio.
