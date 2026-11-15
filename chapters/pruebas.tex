@@ -173,7 +173,7 @@ Contra Redis y PostgreSQL reales se realizan, además, las siguientes pruebas fu
 	\item \textbf{Demostración de seis escenas.} Seis escenarios recorren los casos de uso CU-01 y CU-02: un usuario de bajo riesgo, una exfiltración de archivos con mitigación en el \emph{endpoint}, una aplicación no monitoreada, el catálogo de acciones de mitigación, una conexión de red y la configuración de umbrales con un rechazo por validación. Cada corrida genera un reporte de auditoría automático.
 	\item \textbf{Ensayo de la cadena de decisión.} Un \emph{script} envía una secuencia de eventos de exfiltración y registra la evolución del nivel. El ensayo se repitió el 14 de noviembre de 2026 con el camino por defecto: el primer evento queda en nivel medio, el nivel alto se alcanza en el evento 15 y el crítico en el evento 44, con la acción de terminar procesos y denegar la carpeta y su confirmación registrada.
 	\item \textbf{Período de aprendizaje.} Con la API conectada a los servicios reales, se verifica la lectura y modificación del umbral de aprendizaje, el rechazo de valores fuera de rango y la exigencia de autenticación de administrador.
-	\item \textbf{Reentrenamiento y promoción.} Se verifica en vivo el reemplazo del modelo sin reiniciar la API y el rechazo de un modelo peor. Una corrida real disparada por el planificador dura cerca de 1~h~50~min y no promueve el modelo, porque, con la regla vigente en ese momento, el error del LSTM empeora de 0,1155 a 0,1175. Con el criterio actual, el ciclo completo se verificó en un entorno aislado y el candidato se promovió (sección~\ref{sec:reentrenamiento-producto}).
+	\item \textbf{Reentrenamiento y promoción.} Se verifica en vivo el reemplazo del modelo sin reiniciar la API y el rechazo de un modelo peor. Una corrida real disparada por el planificador dura cerca de 1~h~50~min y no promueve el modelo, por la regla de promoción vigente en ese momento. Con el criterio actual, el ciclo completo se verificó en un entorno aislado y el candidato se promovió (sección~\ref{sec:reentrenamiento-producto}).
 	\item \textbf{Integridad de los eventos crudos.} La verificación de la cadena de \emph{hashes} sobre la tabla de eventos crudos resulta correcta en el 100\,\% de las filas, antes y después de registrar un evento nuevo.
 	\item \textbf{Concurrencia sobre PostgreSQL.} Con hasta 50 escrituras concurrentes no se producen errores, y el disparador que calcula la cadena de \emph{hashes} agrega en promedio 0,042~ms por inserción.
 	\item \textbf{Concurrencia sobre Redis.} Con el Redis gestionado, entre 3 y 4 de cada 20 escrituras simultáneas sobre un mismo usuario fallan por conflicto de transacción; con reintentos y una espera aleatoria, se completan 70 de 70 sin error (RNF-14).
@@ -219,9 +219,7 @@ Se mide la latencia de extremo a extremo de la evaluación de eventos desde el l
 
 El umbral fijado para RNF-01 es un percentil 95 menor o igual a 500~ms y un percentil 99 menor o igual a 1~s. El criterio se justifica porque el \emph{dashboard} consulta el estado cada 2~s y el agente captura actividad con una frecuencia del orden de un segundo: un evento evaluado en menos de medio segundo no se acumula. El umbral se aplica al cómputo de la evaluación medido en entorno aislado, y el resultado lo cumple con amplio margen. La latencia con servicios gestionados en la nube se informa por separado en la sección~\ref{sec:latencia-aws}, sin una meta propia.
 
-Con la versión~1 (Isolation Forest y LSTM), la misma prueba daba una media de 16,96~ms, un percentil 95 de 14,91~ms, un percentil 99 de 148,87~ms y un máximo de 880,26~ms, con 59 eventos por segundo; ejecutada en un segundo equipo (Windows~11, procesador AMD de 16 núcleos lógicos), daba un percentil 95 de 13,0~ms y un percentil 99 de 108,9~ms, con 1000 de 1000 eventos evaluados sin error.
-
-En la versión~1, las latencias más altas aparecían en rachas de eventos consecutivos, de más de 100~ms, que se atribuían a la inferencia del LSTM. Con el camino por defecto, el LSTM no se carga y esas rachas desaparecen: los valores más altos (entre 20,7 y 55,3~ms) son aislados, de tipos de evento distintos, y la medición no desglosa el tiempo por componente, por lo que no tienen una causa identificable. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se envían de forma secuencial, sin carga concurrente de varios agentes.
+Con la versión~1, que incluía el LSTM, el percentil 99 llegaba a 148,87~ms por rachas de eventos de más de 100~ms atribuidas a su inferencia. Con el camino por defecto esas rachas desaparecen: los valores más altos (entre 20,7 y 55,3~ms) son aislados, de tipos de evento distintos, y la medición no desglosa el tiempo por componente, por lo que no tienen una causa identificable. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se envían de forma secuencial, sin carga concurrente de varios agentes.
 
 \subsection{Latencia en la nube}\label{sec:latencia-aws}
 La misma operación se mide sobre la instancia desplegada en la nube, desde un cliente en Argentina y por HTTPS. La prueba envía en secuencia 300 eventos reales del conjunto de datos, precedidos por 20 de calentamiento. El percentil 95 es de 3\,110~ms (media 3\,051~ms, mediana 3\,036~ms, percentil 99 de 3\,362~ms, máximo de 4\,057~ms), con 0 errores de 320. La API informa un promedio de 2\,489~ms dentro de la evaluación del evento, alrededor del 82\,\% de la media que ve el cliente; el resto corresponde al trayecto entre el cliente y la instancia.
@@ -270,13 +268,13 @@ El agente cumple el umbral con un margen amplio: su consumo medio de CPU es más
 \section{Evaluación del modelo sin etiquetas}
 \label{sec:evaluacion-modelo}
 
-Las métricas de esta sección corresponden a la versión 1 del modelo (Isolation Forest y LSTM Autoencoder), punto de partida de la revisión de la sección~\ref{sec:revision-modelos}, entrenada sobre CLUE-LDS (sección~\ref{sec:seleccion-datos}). El conjunto de datos no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}, por lo que sobre él no se pueden calcular exactitud, precisión, exhaustividad, F1 ni curvas ROC. La sección se organiza en dos partes: primero se presentan las métricas sin etiquetas, que describen el comportamiento del modelo y el acuerdo entre sus dos componentes, y luego se fijan las metas de evaluación y se contrastan con los resultados.
+Esta sección evalúa los dos detectores del camino por defecto, Isolation Forest y la detección de novedad de recurso, entrenados y calibrados sobre CLUE-LDS (sección~\ref{sec:seleccion-datos}). El conjunto de datos no incluye etiquetas de actividad maliciosa \parencite{Landauer2022Dataset}, por lo que sobre él no se pueden calcular exactitud, precisión, exhaustividad, F1 ni curvas ROC. La sección se organiza en dos partes: primero se presentan las métricas sin etiquetas, que describen el comportamiento de cada detector, y luego se fijan las metas de evaluación y se contrastan con los resultados.
 
 \subsection{Métricas sin etiquetas}\label{sec:metricas-no-supervisadas}
-Ante la ausencia de etiquetas, el modelo se evalúa con métricas de comportamiento y de acuerdo entre sus dos componentes, presentadas en la tabla~\ref{tab:metricas-modelo}. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. Estas métricas describen cómo se comporta el modelo y no cuántos ataques detecta: la evaluación con datos reales del camino por defecto se presenta en las secciones~\ref{sec:revision-modelos} y~\ref{sec:evaluacion-default}.
+Ante la ausencia de etiquetas, cada detector se evalúa con métricas de comportamiento, presentadas en la tabla~\ref{tab:metricas-modelo}. La escasez de datos etiquetados es una limitación frecuente en la detección de anomalías sobre registros de actividad \parencite{Landauer2023Survey}. Estas métricas describen cómo se comporta cada detector y no cuántos ataques detecta; el resultado del camino completo sobre días reales se presenta en la sección~\ref{sec:evaluacion-default}.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{5.5cm}}
-	\caption{Métricas sin etiquetas del modelo híbrido}
+	\caption{Métricas sin etiquetas de los detectores del camino por defecto}
 	\label{tab:metricas-modelo}\\
 	\hline
 	\textbf{Métrica} & \textbf{Valor} & \textbf{Lectura} \\
@@ -288,23 +286,19 @@ Ante la ausencia de etiquetas, el modelo se evalúa con métricas de comportamie
 	\endhead
 	Tasa de anomalías de Isolation Forest en prueba & 0,81\,\% (99 de 12\,236 usuario-días) & Inferior a la proporción de contaminación fijada en el entrenamiento (2\,\%). \\
 	\hline
-	Tasa de anomalías del LSTM Autoencoder en prueba & 4,18\,\% (1\,558 de 37\,254 secuencias) & Cercana al 5\,\% esperable por usar el percentil 95 del error como umbral. \\
+	Falsos positivos en nivel alto de Isolation Forest como único detector, sobre los días reales de DEV & 15,17\,\% & Usado solo, el detector marcaría demasiados días; en el camino completo la tasa baja al 2,66\,\% (sección~\ref{sec:evaluacion-default}). \\
 	\hline
-	Error de reconstrucción del LSTM & Media 0,1225; umbral 0,1180 & Umbral definido como el percentil 95 del error en entrenamiento. \\
+	Concentración de las alertas de Isolation Forest & 59,9\,\% en los 5 usuarios con más alertas & Las alertas se concentran en pocos usuarios con actividad atípica frente a la población. \\
 	\hline
-	Distribución del puntaje híbrido & Mediana 42,0; percentil 95 69,3; percentil 99 82,8 & La mayor parte de la actividad queda por debajo del umbral del nivel alto (70). \\
-	\hline
-	Correlación entre modelos & $-0{,}22$ (Pearson; 234 usuarios con cobertura completa, $p < 0{,}001$) & Correlación débil y negativa: los modelos capturan aspectos distintos del comportamiento. \\
-	\hline
-	Coincidencia de anomalías & Índice de Jaccard 0,111 (6 usuarios marcados por ambos modelos) & Las anomalías que marca cada modelo casi no se superponen. \\
+	Cuantil móvil de la detección de novedad: tasa observada frente a la buscada & 4,61 a 4,64\,\% para un objetivo del 5\,\%; 0,99 a 1,02\,\% para un objetivo del 1\,\% & El cuantil poblacional sobre una ventana de 30 días (sección~\ref{sec:novedad-recurso}) produce la proporción de días marcados que se le pide. \\
 	\hline
 \end{longtable}
-{\small Fuente: elaboración propia a partir de la evaluación del modelo sobre CLUE-LDS.\par}
+{\small Fuente: elaboración propia a partir de la evaluación sobre CLUE-LDS.\par}
 
-La correlación se calcula sobre los 234 usuarios con cobertura de ambos modelos, porque los conjuntos de prueba de cada modelo solo comparten 15 usuarios; restringida a esos 15, resulta $r = -0{,}41$ ($p = 0{,}13$, no significativa). La baja coincidencia indica que los modelos no son redundantes, en línea con la decisión de combinarlos. Sin embargo, estas métricas no demuestran que la combinación detecte mejor que cada modelo por separado, y el peso de 0,5 asignado a cada uno carece de respaldo cuantitativo. Además, los conjuntos de prueba se construyen con criterios distintos (partición temporal para Isolation Forest y por usuario para el LSTM), por lo que la comparación entre ambos es limitada.
+La versión 1 del sistema combinaba Isolation Forest con un LSTM Autoencoder; sus métricas no se detallan porque ese componente se retiró del camino por defecto (sección~\ref{sec:revision-diagnostico}).
 
 \subsection{Metas de evaluación}\label{sec:metas-modelo}
-Como las métricas sin etiquetas no miden la capacidad de detección y no se dispone de ataques etiquetados del dominio, las metas de la tabla~\ref{tab:metas-modelo} combinan el comportamiento de los componentes de la versión 1 con metas de ruido del camino por defecto sobre días reales: una tasa de falsos positivos en nivel alto menor o igual al 5\,\% y la estabilidad del nivel dentro del día. Ninguna fase del \emph{pipeline} utiliza etiquetas externas, y el entrenamiento no aplica técnicas de balanceo de clases (sección~\ref{sec:dataset}).
+Como las métricas sin etiquetas no miden la capacidad de detección y no se dispone de ataques etiquetados del dominio, las metas de la tabla~\ref{tab:metas-modelo} combinan el comportamiento de Isolation Forest con metas de ruido del camino por defecto sobre días reales: una tasa de falsos positivos en nivel alto menor o igual al 5\,\% y la estabilidad del nivel dentro del día. Ninguna fase del \emph{pipeline} utiliza etiquetas externas, y el entrenamiento no aplica técnicas de balanceo de clases (sección~\ref{sec:dataset}).
 
 \begin{table}[h]
 \centering
@@ -315,7 +309,6 @@ Como las métricas sin etiquetas no miden la capacidad de detección y no se dis
 Métrica & Meta & Resultado & Cumple \\
 \hline
 Tasa de anomalías de Isolation Forest en prueba & entre 1\,\% y 3\,\% (contaminación del 2\,\%) & 0,81\,\% & No \\
-Tasa de anomalías del LSTM en prueba & entre 3\,\% y 7\,\% (umbral en el percentil 95) & 4,18\,\% & Sí \\
 Tasa de falsos positivos en nivel alto sobre los días reales de DEV (camino por defecto) & $\leq$ 5\,\% & 2,66\,\% (percentil 90 semanal: 4,95\,\%) & Sí \\
 Estabilidad dentro del día: días con algún evento en alto y días que cierran en alto (camino por defecto) & Sin meta numérica & 2,66\,\% y 1,29\,\% & -- \\
 Latencia de evaluación (cómputo, entorno aislado), percentil 95 (RNF-01) & $\leq$ 500\,ms & 13,7\,ms & Sí \\
@@ -327,42 +320,26 @@ Latencia de evaluación (cómputo, entorno aislado), percentil 95 (RNF-01) & $\l
 \end{table}
 \FloatBarrier
 
-Cada tasa de anomalías se compara con el parámetro con que su modelo fija el umbral: una tasa muy inferior indica que el umbral resulta más estricto en prueba que en entrenamiento. La meta de ruido limita la carga de revisión sobre actividad real. El camino por defecto la cumple (sección~\ref{sec:evaluacion-default}), y se cumplen también las metas de latencia y de comportamiento del LSTM, pero no la de la tasa de anomalías de Isolation Forest de la versión 1. Las metas de detección basadas en escenarios construidos se retiraron junto con esos escenarios (sección~\ref{sec:revision-metodo}): sin ataques etiquetados del dominio, la detección no es medible (sección~\ref{sec:limitaciones-pruebas}).
+La tasa de anomalías de Isolation Forest se compara con el parámetro de contaminación con que fija su umbral: una tasa muy inferior indica que el umbral resulta más estricto en prueba que en entrenamiento, por lo que esa meta no se cumple. La meta de ruido limita la carga de revisión sobre actividad real. El camino por defecto la cumple (sección~\ref{sec:evaluacion-default}), y se cumple también la meta de latencia. Las metas de detección basadas en escenarios construidos se retiraron junto con esos escenarios (sección~\ref{sec:revision-metodo}): sin ataques etiquetados del dominio, la detección no es medible (sección~\ref{sec:limitaciones-pruebas}).
 
 \section{Revisión de modelos con datos reales}
 \label{sec:revision-modelos}
 
 \subsection{Método}
 \label{sec:revision-metodo}
-La revisión partió de cuatro preguntas: si Isolation Forest y el LSTM Autoencoder estaban bien planteados, qué detector convenía agregar, si el reentrenamiento automático funcionaba de punta a punta y cómo obtener métricas con datos reales. Se adoptaron cuatro reglas: evaluar solo con datos reales, retirando todo escenario construido; fijar por escrito los criterios de decisión de cada etapa antes de medir; mantener fija la partición DEV/HOLDOUT, sin usar HOLDOUT para elegir; y ejecutar los experimentos en un entorno aislado, verificando por SHA-256 que los artefactos de producción no cambiaran. Cada cambio en la API se validó con las pruebas automatizadas, la prueba de regresión y la demostración del agente.
+La revisión partió de cuatro preguntas: si los modelos de la versión 1 estaban bien planteados, qué detector convenía agregar, si el reentrenamiento automático funcionaba de punta a punta y cómo obtener métricas con datos reales. Se adoptaron cuatro reglas: evaluar solo con datos reales, retirando todo escenario construido; fijar por escrito los criterios de decisión de cada etapa antes de medir; mantener fija la partición DEV/HOLDOUT, sin usar HOLDOUT para elegir; y ejecutar los experimentos en un entorno aislado, verificando por SHA-256 que los artefactos de producción no cambiaran. Cada cambio en la API se validó con las pruebas automatizadas, la prueba de regresión y la demostración del agente.
 
-\subsection{Diagnóstico de la versión 1}
+\subsection{Detectores del camino por defecto}
 \label{sec:revision-diagnostico}
-Isolation Forest detecta volumen y horario atípicos frente a la población, que es lo que se espera de él, y se mantiene. El LSTM Autoencoder, en cambio, no cumple su propósito: permutar los 50 eventos de una secuencia no cambia el ordenamiento (correlación de Spearman de 0,989), alrededor del 72\,\% de su error proviene del indicador de cambio de país, y el 95,4\,\% de la varianza de su riesgo es entre usuarios, con un cambio diario mediano de 0, de modo que identifica a la persona y no el comportamiento del día. Además, el 19,6\,\% de los usuarios no completa una secuencia de 50 eventos. La tabla~\ref{tab:evaluacion-detectores} resume la evaluación de cada detector.
+\textbf{Isolation Forest} se mantiene como detector principal. Marca el volumen, la diversidad y los horarios de actividad atípicos de un usuario-día frente a la población, que es lo que se espera de él, y cada alerta se explica con las variables que más se desvían. Su puntaje se calibra por cuantiles sobre los días reales de entrenamiento, de modo que los niveles medio, alto y crítico correspondan aproximadamente al 20\,\%, al 5\,\% y al 1\,\% de los días (sección~\ref{sub:particion-parametros}).
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{3.3cm}}
-	\caption{Evaluación por detector sobre los días reales de DEV}
-	\label{tab:evaluacion-detectores}\\
-	\hline
-	\textbf{Detector} & \textbf{Falsos positivos en alto (solo)} & \textbf{Alertas en los 5 usuarios con más alertas} & \textbf{Spearman con la secuencia permutada} & \textbf{Decisión} \\
-	\hline
-	\endfirsthead
-	\hline
-	\textbf{Detector} & \textbf{Falsos positivos en alto (solo)} & \textbf{Alertas en los 5 usuarios con más alertas} & \textbf{Spearman con la secuencia permutada} & \textbf{Decisión} \\
-	\hline
-	\endhead
-	Isolation Forest & 15,17\,\% & 59,9\,\% & No aplica & Mantener \\
-	\hline
-	LSTM Autoencoder & 10,01\,\% & 68,2\,\% & 0,989 & Retirar del camino por defecto \\
-	\hline
-	Perfil de Markov & 3,10\,\% & 27,4\,\% & 0,30 (CLUE-LDS), 0,00 (LANL 2017) & Conservar como alternativa \\
-	\hline
-\end{longtable}
-{\small Fuente: elaboración propia.\par}
+\textbf{La detección de novedad de recurso} se incorpora para cubrir lo que Isolation Forest no ve: que una cuenta use destinos de red, procesos o carpetas que nunca había usado. Compara la cantidad de recursos nuevos del día con el cuantil 0,95 de la población y, si lo supera, eleva el nivel a alto por la regla de piso, sin modificar el puntaje (sección~\ref{sec:novedad-recurso}). Su alerta se explica directamente con el recurso involucrado.
 
-\subsection{Evolución del camino por defecto}
+Los demás modelos evaluados no forman parte del camino por defecto. El LSTM Autoencoder de la versión 1 se retiró porque no aprovechaba el orden de los eventos e identificaba a la persona más que su comportamiento del día. Un perfil de transición de Markov, probado como reemplazo, no mostró evidencia admisible de detección y aumentaba la oscilación del nivel dentro del día. Ambos se conservan como caminos alternativos (sección~\ref{sec:caminos-alternativos}).
+
+\subsection{Resultado del camino por defecto}
 \label{sec:revision-evolucion}
-La revisión se desarrolló en nueve etapas entre el 28 y el 31 de octubre de 2026. Primero se incorporó un perfil de Markov en línea como reemplazo del LSTM y se corrigió el reentrenamiento (corte fijo, ejecución determinista y de memoria baja). Luego se retiraron los escenarios construidos y se redefinió el criterio de promoción sobre datos reales. El camino por defecto pasó a combinar Isolation Forest, el perfil de Markov y la detección de novedad, y finalmente se retiró el perfil de Markov, cuya regla de piso explicaba la mayor parte de la oscilación del nivel dentro del día (177 de 189 días transitorios). La tabla~\ref{tab:efecto-default} resume el efecto de este último cambio.
+La revisión corrigió además el reentrenamiento (corte temporal fijo y ejecución determinista y de memoria baja), retiró los escenarios construidos y redefinió el criterio de promoción sobre datos reales. La tabla~\ref{tab:efecto-default} compara el camino por defecto vigente con la configuración inmediatamente anterior, que sumaba el perfil de Markov.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{6.1cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{4.0cm}}
 	\caption{Efecto del camino por defecto vigente sobre los días reales de DEV}
@@ -388,7 +365,7 @@ Una reproducción completa de 462\,024 eventos reales a través de la API coinci
 
 \subsection{Alternativas descartadas}
 \label{sec:revision-descartadas}
-ECOD resultó redundante con Isolation Forest. Un perfil de Markov poblacional para usuarios nuevos fue inestable (15,06\,\% de falsos positivos en LANL 2017). La novedad por popularidad del recurso no alcanzó su criterio. La relación proceso padre\,$\rightarrow$\,hijo fue inestable entre semanas y queda solo como información. Calibrar Isolation Forest también en el arranque en frío bajaba la tasa de falsos positivos al 0\,\%, pero no se adoptó por el riesgo de ceguera sin etiquetas y porque dejaba la demostración sin nivel crítico. El uso de GPU no se justificó, porque solo lo aprovechaba el LSTM.
+Otras alternativas (ECOD, un perfil de Markov poblacional para usuarios nuevos, la novedad por popularidad del recurso y la relación proceso padre\,$\rightarrow$\,hijo) no cumplieron sus criterios o no aportaron sobre Isolation Forest. Calibrar Isolation Forest también en el arranque en frío bajaba la tasa de falsos positivos al 0\,\%, pero no se adoptó por el riesgo de ceguera sin etiquetas y porque dejaba la demostración sin nivel crítico.
 
 \subsection{Acumulación de alertas por cuenta}
 \label{sec:revision-cola-cuenta}
@@ -441,9 +418,7 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	Los escenarios construidos no representan ataques reales y orientaban las decisiones. & Evaluar solo con datos reales y retirar los escenarios S1--S7. \\
 	\hline
-	El LSTM no usa el orden de los eventos e identifica a la persona. & Retirarlo del camino por defecto, conservándolo como alternativa. \\
-	\hline
-	La regla de piso del perfil de Markov explica la oscilación del nivel. & Retirar el perfil de Markov del camino por defecto. \\
+	El LSTM no usa el orden de los eventos, y el perfil de Markov aumenta la oscilación del nivel sin evidencia de detección. & Retirar ambos del camino por defecto y conservarlos como caminos alternativos. \\
 	\hline
 	El criterio de promoción no evaluaba la detección de novedad. & Puntuar el camino por defecto completo. \\
 	\hline
@@ -466,7 +441,7 @@ Las decisiones sobre los modelos que surgen de la revisión con datos reales se 
 	\item Faltan pruebas automatizadas de la cadena de \emph{hashes} (RNF-09), que se verifica con \emph{scripts} manuales contra PostgreSQL, y de la concurrencia con varios usuarios (RNF-14). Para TLS (RNF-13) hay pruebas del cliente que rechazan \texttt{http} fuera de \emph{loopback}, pero no de la verificación del certificado en el despliegue.
 	\item La latencia del cómputo se mide con Redis en memoria y sin carga concurrente, y la medición en la nube es también secuencial. No se miden el rendimiento ni la concurrencia en la nube, el uso de CPU y memoria de la API sola en la instancia, la disponibilidad, los respaldos ni el monitoreo. El consumo del agente (RNF-02) se mide con uso normal del equipo, sin una ráfaga de eventos de archivo como la del escenario de exfiltración.
 	\item La evaluación del modelo carece de etiquetas: no hay \emph{recall} medible en datos del dominio, y solo se miden la tasa de falsos positivos, la carga de alertas, la oscilación y la cobertura. La evaluación puntúa el usuario-día completo, mientras que en línea la API puntúa el agregado parcial del día en cada evento; esa oscilación dentro del día se mide aparte (sección~\ref{sec:revision-evolucion}).
-	\item La partición HOLDOUT se usó una única vez, con la versión 1; el camino por defecto actual se midió solo sobre DEV (63 usuarios). Además, el LSTM de la versión 1 era parte del entrenamiento para 47 de las 57 víctimas de HOLDOUT, por lo que esa medición es optimista para el LSTM.
+	\item La partición HOLDOUT se usó una única vez, con la versión 1; el camino por defecto actual se midió solo sobre DEV (63 usuarios). Esa medición es además optimista, porque la mayoría de los usuarios evaluados en HOLDOUT formaba parte del entrenamiento del LSTM.
 	\item No se mide la tasa de falsos positivos ante cambios de ubicación legítimos, como viajes o una VPN corporativa, y ninguna cifra medida sobre CLUE-LDS se transfiere sin más al agente por la brecha de dominio entre una plataforma en la nube y la telemetría de un equipo Windows (sección~\ref{sec:revision-transferencia}).
 	\item La integración con Microsoft Entra ID se prueba solo con respuestas simuladas, sin un \emph{tenant} real; la de Keycloak se verifica contra un servidor real.
 	\item La evaluación de usabilidad es heurística y la realiza el propio equipo: no incluye pruebas con administradores de seguridad externos, que quedan como la siguiente validación del panel.
