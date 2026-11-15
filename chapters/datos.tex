@@ -30,13 +30,13 @@ Además de CLUE-LDS, la revisión de los modelos (sección~\ref{sec:revision-mod
 	\textbf{Conjunto} & \textbf{Uso} & \textbf{Motivo} \\
 	\hline
 	\endhead
-	LANL 2017 (equipos Windows, sin ataques) & Tasa de falsos positivos en el dominio de \emph{host} & Único conjunto real de \emph{host} disponible \\
+	LANL 2017 (equipos Windows, sin ataques) \parencite{Turcotte2018LANL} & Tasa de falsos positivos en el dominio de \emph{host} & Único conjunto real de \emph{host} disponible \\
 	\hline
-	GUIDE (incidentes reales etiquetados) & Validar la acumulación de alertas por cuenta & Pertenece a otro producto; no se usa para entrenar \\
+	GUIDE (incidentes reales etiquetados) \parencite{Freitas2024GUIDE} & Validar la acumulación de alertas por cuenta & Pertenece a otro producto; no se usa para entrenar \\
 	\hline
-	DARPA OpTC & Piloto de transferencia de dominio & Pocos positivos; prueba de la brecha nube--\emph{host} \\
+	DARPA OpTC \parencite{Arantes2021OpTC} & Piloto de transferencia de dominio & Pocos positivos; prueba de la brecha nube--\emph{host} \\
 	\hline
-	LANL 2015 & Descartado & Una sola intrusión simulada, casi toda desde un mismo equipo (Larroche, 2026) \\ % TODO: referencia completa de Larroche (2026) para biblio.bib
+	LANL 2015 & Descartado & Protocolo de evaluación poco realista para la detección \parencite{Larroche2026} \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -255,7 +255,7 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	\adjustbox{max width=\textwidth, max height=0.8\textheight, center}{\includegraphics{images/diagramas/mermaid/pdf/er_config_modelos.pdf}}
 	\caption{Modelo relacional: auditoría, reentrenamientos, métricas y claves de agentes}
 	\label{fig:er-config}
-	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). \texttt{historial\_\allowbreak{}politicas.form}: umbrales \textbar{} acciones \textbar{} reentrenamiento. \texttt{metricas\_\allowbreak{}modelo.modelo}: iso \textbar{} lstm \textbar{} benchmark\_dev; \texttt{rol}: candidato \textbar{} vigente. \texttt{historial\_\allowbreak{}agent\_\allowbreak{}keys.accion}: alta \textbar{} revocacion.\par}
+	{\small Todas las tablas tienen created\_at TIMESTAMPTZ DEFAULT now(). \texttt{historial\_\allowbreak{}politicas.form}: umbrales \textbar{} acciones \textbar{} notificaciones \textbar{} reentrenamiento \textbar{} aprendizaje \textbar{} iam. \texttt{metricas\_\allowbreak{}modelo.modelo}: benchmark\_dev (iso \textbar{} lstm en filas anteriores al criterio actual); \texttt{rol}: candidato \textbar{} vigente (nulo en filas anteriores). Estos valores se fijan por convención en el código, sin restricción CHECK. \texttt{historial\_\allowbreak{}agent\_\allowbreak{}keys.accion}: alta \textbar{} revocacion.\par}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
