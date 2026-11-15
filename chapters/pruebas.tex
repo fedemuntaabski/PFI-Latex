@@ -326,6 +326,9 @@ Latencia de evaluación (cómputo, entorno aislado), percentil 95 (RNF-01) & $\l
 
 Cada tasa de anomalías se compara con el parámetro con que su modelo fija el umbral: una tasa muy inferior indica que el umbral resulta más estricto en prueba que en entrenamiento. La meta de detección exige que al menos la mitad de los ataques combinados, que son los más evidentes, lleven al usuario al nivel alto; la meta de alertas limita la carga de revisión sobre actividad normal a uno de cada diez usuario-días. El sistema cumple las metas de latencia y de comportamiento del LSTM, pero no las de Isolation Forest, detección ni alertas. Esta es la principal limitación técnica del proyecto, y sus causas se analizan en la sección~\ref{sec:interpretacion}. Las metas se mantienen sin cambios en la evaluación de la sección~\ref{sec:benchmark}.
 
+% Anclas provisionales de las secciones nuevas 10.6 y 10.7; se reemplazan al reescribir el capítulo.
+\label{sec:revision-modelos}\label{sec:revision-metodo}\label{sec:revision-transferencia}\label{sec:evaluacion-default}
+
 \section{Validación por escenarios inyectados}
 \label{sec:validacion-escenarios}
 

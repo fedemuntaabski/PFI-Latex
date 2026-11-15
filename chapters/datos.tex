@@ -13,7 +13,33 @@ El conjunto no incluye etiquetas que indiquen qué eventos corresponden a activi
 
 Los modelos vigentes se entrenan exclusivamente con registros reales de CLUE-LDS, sin generar, simular ni aumentar eventos, ni aplicar técnicas de balanceo de clases, dado que el conjunto no cuenta con etiquetas. Los conjuntos de prueba se obtienen mediante particiones de esos mismos datos (sección~\ref{sub:particion-parametros}).
 
-Los únicos datos creados por el equipo corresponden a escenarios de ataque inyectados sobre historiales reales (secciones~\ref{sec:validacion-escenarios} y~\ref{sec:benchmark}). Estos escenarios no se utilizan para entrenar los modelos ni para calcular los percentiles de referencia, sino para evaluar la detección mediante las métricas correspondientes. Sin embargo, como no se dispone de ataques reales etiquetados, la capacidad de detección aún no se ha validado frente a incidentes reales (sección~\ref{sec:limitaciones-pruebas}).
+Durante una primera etapa, la detección se estimó con escenarios de ataque construidos sobre historiales reales. Esos escenarios se retiraron al definirse que la evaluación se hace exclusivamente con datos reales (sección~\ref{sec:revision-metodo}): desde entonces, el sistema se evalúa por su tasa de falsos positivos, su estabilidad y su carga de alertas sobre días reales. Como no se dispone de ataques reales etiquetados en el dominio, la capacidad de detección no está medida (sección~\ref{sec:limitaciones-pruebas}).
+
+\subsection{Conjuntos de datos complementarios}
+\label{sec:datos-complementarios}
+Además de CLUE-LDS, la revisión de los modelos (sección~\ref{sec:revision-modelos}) utilizó otros conjuntos de datos reales, que no se usan para entrenar los modelos vigentes. La tabla~\ref{tab:datos-complementarios} presenta cada uno, su uso y el motivo.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{5.5cm}}
+	\caption{Conjuntos de datos complementarios}
+	\label{tab:datos-complementarios}\\
+	\hline
+	\textbf{Conjunto} & \textbf{Uso} & \textbf{Motivo} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Conjunto} & \textbf{Uso} & \textbf{Motivo} \\
+	\hline
+	\endhead
+	LANL 2017 (equipos Windows, sin ataques) & Tasa de falsos positivos en el dominio de \emph{host} & Único conjunto real de \emph{host} disponible \\
+	\hline
+	GUIDE (incidentes reales etiquetados) & Validar la acumulación de alertas por cuenta & Pertenece a otro producto; no se usa para entrenar \\
+	\hline
+	DARPA OpTC & Piloto de transferencia de dominio & Pocos positivos; prueba de la brecha nube--\emph{host} \\
+	\hline
+	LANL 2015 & Descartado & Una sola intrusión simulada, casi toda desde un mismo equipo (Larroche, 2026) \\ % TODO: referencia completa de Larroche (2026) para biblio.bib
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia.\par}
 
 \section{Selección y preparación}
 \label{sec:seleccion-datos}
@@ -43,10 +69,12 @@ El conjunto completo contiene 50\,522\,931 eventos y 920 usuarios identificados 
 
 Las cuentas de servicio concentran el 83\,\% de los eventos y su comportamiento automatizado no representa la conducta de una persona, por lo que se excluyen del entrenamiento. Los eventos identificados por dirección IP no pueden asociarse a un usuario y también se excluyen. El mismo criterio se aplica en producción: estos casos quedan sin puntaje (RF-03).
 
+La clasificación por volumen total resultó imperfecta: con una regla basada en el comportamiento (horas activas por día y proporción de actividad fuera de horario y en fines de semana), 4 de las 12 cuentas de servicio corresponden a personas con actividad intensa y 14 de los 291 usuarios válidos muestran un patrón automatizado. La tasa de falsos positivos en personas es del 5,1\,\%, frente al 0,9\,\% en cuentas automatizadas. El \emph{pipeline} incorpora la clasificación por comportamiento como opción del reentrenamiento (\texttt{PFI\_\allowbreak{}CLASIFICACION=\allowbreak{}comportamiento}); los modelos vigentes mantienen la clasificación por volumen.
+
 \section{Variables y modelos}
 \label{sec:variables-modelos}
 
-Cada uno de los dos modelos trabaja con una unidad de análisis y un conjunto de variables propios: Isolation Forest evalúa la actividad agregada por día y el LSTM Autoencoder, secuencias de eventos. Esta subsección describe ambos y presenta la partición de los datos y los parámetros de entrenamiento.
+El camino por defecto del sistema combina dos detectores: Isolation Forest, que evalúa la actividad agregada por día, y la detección de novedad de recurso, que registra los recursos que cada usuario utiliza por primera vez. El LSTM Autoencoder y un perfil de transición de Markov se conservan como caminos alternativos, seleccionables por configuración (sección~\ref{sec:caminos-alternativos}). Esta subsección describe los modelos y presenta la partición de los datos y los parámetros de entrenamiento.
 \subsection{Isolation Forest}\label{sec:if-variables}
 Isolation Forest evalúa la actividad de cada usuario por día calendario, tomando como referencia la zona horaria UTC. Para cada par usuario-día, se calculan ocho variables que caracterizan el comportamiento: la cantidad total de eventos, la diversidad de tipos de evento y de países, la cantidad de eventos relacionados con archivos (accesos, creaciones y escrituras) y de eventos de autenticación, la hora promedio de actividad, la proporción de eventos fuera del horario habitual (antes de las 7:00 o después de las 20:00) y la entropía de la distribución de los tipos de evento.
 
@@ -86,7 +114,7 @@ Los modelos utilizan esquemas de partición diferentes, definidos en función de
         Secuencia de 50 eventos. \\
 
         Estrategia de partición &
-        Temporal, con corte el 2 de agosto de 2021, correspondiente al cuantil 0,8 de la distribución de fechas. &
+        Temporal, con corte fijado en el 2 de agosto de 2021 (el cuantil 0,8 de la distribución de fechas al momento del primer entrenamiento), y parametrizable en el reentrenamiento para que los días de evaluación no pasen a formar parte del entrenamiento. &
         Por usuario, con semilla fija para garantizar la reproducibilidad. \\
 
         Distribución de los datos &
@@ -117,11 +145,21 @@ Los modelos utilizan esquemas de partición diferentes, definidos en función de
 {\small Fuente: elaboración propia.\par}
 \end{table}
 
-El umbral del LSTM de la tabla describe el comportamiento del modelo sobre los conjuntos de entrenamiento y prueba (sección~\ref{sec:metricas-no-supervisadas}). En producción, el LSTM marca una anomalía cuando el error medio de reconstrucción del usuario, expresado como percentil respecto de la distribución de referencia del entrenamiento, supera el percentil 95 (sección~\ref{sec:benchmark-controlado}).
+El umbral del LSTM de la tabla describe el comportamiento del modelo sobre los conjuntos de entrenamiento y prueba (sección~\ref{sec:metricas-no-supervisadas}). En la versión 1 del sistema, el LSTM marca una anomalía cuando el error medio de reconstrucción del usuario, expresado como percentil respecto de la distribución de referencia del entrenamiento, supera el percentil 95. En el sistema actual, el LSTM solo interviene en el camino alternativo \texttt{lstm} (sección~\ref{sec:caminos-alternativos}).
 
-Una vez obtenidas las puntuaciones de ambos modelos, se calcula un puntaje híbrido que asigna un peso de 0,5 a cada uno. Sobre este puntaje se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados para los distintos niveles de riesgo son 40, 70 y 90.
+Sobre el puntaje de Isolation Forest se aplica una calibración por cuantiles: los valores 0,80, 0,95 y 0,99 de la distribución de puntajes en los días reales de entrenamiento se hacen corresponder con la escala de los umbrales, de modo que el nivel medio, el alto y el crítico representen aproximadamente el 20\,\%, el 5\,\% y el 1\,\% de los días. La calibración se aplica cuando el usuario tiene al menos tres días de historia en los últimos 90; antes de ese plazo se usa el puntaje sin calibrar. Para la evaluación, los usuarios se reparten en dos particiones fijas: DEV (63 usuarios), que se usa para el desarrollo y para el criterio de promoción, y HOLDOUT (60 usuarios), reservada para la evaluación final.
+
+En el camino por defecto, el puntaje del usuario es el de Isolation Forest calibrado, sobre el que se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados son 40, 70 y 90. La detección de novedad no modifica el puntaje: cuando el usuario accede a recursos nuevos en una cantidad superior al cuantil poblacional, eleva el nivel a alto por medio de la regla de piso. En la versión 1 (camino \texttt{lstm}), el puntaje combina Isolation Forest y el LSTM con igual peso.
 
 La diferencia entre los esquemas de partición también tiene implicaciones para la evaluación conjunta. Mientras que la división temporal de Isolation Forest permite analizar su capacidad para generalizar a registros futuros, la partición por usuario del LSTM Autoencoder permite evaluar su desempeño sobre usuarios no vistos durante el entrenamiento. Sin embargo, solo 15 usuarios coinciden en los conjuntos de prueba de ambos modelos, lo que limita la comparación conjunta de sus resultados. Esta restricción se considera en la evaluación presentada en la sección~\ref{sec:evaluacion-modelo}.
+
+\subsection{Detección de novedad de recurso}
+\label{sec:novedad-recurso}
+La detección de novedad mantiene, para cada usuario, los recursos utilizados en los últimos 90 días: destinos de red, procesos y carpetas, a partir de los parámetros que el agente ya envía con cada evento. Se activa cuando el usuario tiene al menos tres días de historia. Cada día cuenta los recursos que aparecen por primera vez y los compara con el cuantil 0,95 de la distribución poblacional de recursos nuevos por usuario-día, calculado sobre una ventana móvil de 30 días con un mínimo de 50 muestras; al cuantil solo entran los días con actividad sobre recursos. Superar ese valor cuenta como anomalía para la regla de piso. La detección no modifica el puntaje numérico y se explica directamente con el recurso involucrado (``primer acceso a\ldots'').
+
+\subsection{Caminos alternativos}
+\label{sec:caminos-alternativos}
+La variable de configuración \texttt{SCORING\_\allowbreak{}TERCER\_\allowbreak{}MODELO} permite seleccionar otros dos caminos sin modificar el código. Con el valor \texttt{markov}, se suma un perfil de transición por usuario de orden 2, en el que cada símbolo combina el tipo de evento y una franja de 6 horas en hora local, sobre una ventana de 90 días; el puntaje del día es el máximo calibrado entre Isolation Forest y el perfil de Markov. Con el valor \texttt{lstm}, el sistema vuelve exactamente a la versión 1. Solo este último camino requiere TensorFlow.
 
 
 \section{Adaptación de la telemetría del agente}
@@ -166,7 +204,7 @@ Esta correspondencia constituye una decisión de diseño que permite reutilizar 
 
 En consecuencia, el modelo analiza los tipos de evento y su distribución temporal, pero no considera el nombre del proceso, el archivo involucrado ni el destino de la conexión. Por lo tanto, no identifica directamente procesos inusuales o destinos de red sospechosos, sino que detecta variaciones en el volumen, la diversidad y los horarios de la actividad. A estas limitaciones se suma que el 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, lo que reduce considerablemente la variabilidad de la variable de cambio de país durante el entrenamiento. Por último, el indicador de dirección local enviado por el agente describe la red del equipo y no la de la conexión, por lo que no se utiliza como entrada del modelo.
 
-La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo, aunque hoy el criterio de promoción rechaza esos reentrenamientos por el corrimiento del corte temporal (sección~\ref{sec:sintesis-limitaciones}).
+La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo, con el corte temporal fijo (sección~\ref{sub:particion-parametros}), aunque el reentrenamiento con datos de CLUE-LDS se puede aislar de los del agente (\texttt{PFI\_\allowbreak{}ORIGEN\_\allowbreak{}REENTRENAMIENTO=\allowbreak{}clue}). La medición sobre LANL 2017 cuantifica la brecha: aplicado a telemetría de \emph{host}, el Isolation Forest entrenado con CLUE-LDS marca el 53,66\,\% de los días, contra el 4,13\,\% de un Isolation Forest entrenado en ese dominio (sección~\ref{sec:revision-transferencia}).
 
 \section{Modelo de datos}
 \label{sec:modelo-datos}
@@ -221,7 +259,7 @@ La base de datos relacional tiene siete tablas, presentadas en la tabla~\ref{tab
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-Las tablas no utilizan claves foráneas, sino que se relacionan lógicamente mediante el identificador de usuario. Esta decisión simplifica la persistencia y permite que la evaluación de eventos continúe incluso cuando la base de datos no está disponible, lo que aporta tolerancia a fallas. Como contrapartida, la integridad referencial debe garantizarse desde la aplicación, que también se encarga de aplicar reglas como la existencia de un único modelo vigente por tipo. En cuanto a la seguridad, seis de las siete tablas tienen activada la seguridad a nivel de fila (\emph{Row-Level Security}, RLS), lo que impide su lectura a través de la API pública de la plataforma de base de datos. El acceso a estas tablas queda restringido a la API del sistema, que utiliza sus propias credenciales. La tabla \texttt{historial\_scores} constituye una excepción, ya que todavía no cuenta con esta protección; su incorporación se encuentra registrada como una mejora pendiente.
+Las tablas no utilizan claves foráneas, sino que se relacionan lógicamente mediante el identificador de usuario. Esta decisión simplifica la persistencia y permite que la evaluación de eventos continúe incluso cuando la base de datos no está disponible, lo que aporta tolerancia a fallas. Como contrapartida, la integridad referencial debe garantizarse desde la aplicación, que también se encarga de aplicar reglas como la existencia de un único modelo vigente por tipo. En cuanto a la seguridad, las siete tablas tienen activada la seguridad a nivel de fila (\emph{Row-Level Security}, RLS), lo que impide su lectura a través de la API pública de la plataforma de base de datos; la última en incorporarla fue \texttt{historial\_scores}, el 29 de octubre de 2026. El acceso a estas tablas queda restringido a la API del sistema, que utiliza sus propias credenciales.
 
 Por otra parte, la integridad de los eventos crudos se protege mediante una cadena de \emph{hashes} por usuario. Antes de cada inserción, un disparador de la base de datos calcula el \emph{hash} SHA-256 de la nueva fila a partir de sus campos y del \emph{hash} de la fila anterior del mismo usuario. De este modo, cada registro queda vinculado al precedente, por lo que cualquier modificación o eliminación de una fila rompe la continuidad de la cadena a partir de ese punto y permite detectar alteraciones en los registros.
 
@@ -235,4 +273,4 @@ La mayoría de estas claves gestiona el vencimiento desde la aplicación: la fec
 
 \section{Síntesis}
 \label{sec:sintesis-datos}
-El modelo se entrena con 8,5 millones de eventos reales de 908 usuarios, sin etiquetas. Isolation Forest trabaja sobre variables diarias y el LSTM sobre secuencias de 50 eventos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
+El modelo se entrena con 8,5 millones de eventos reales de 908 usuarios, sin etiquetas. El camino por defecto combina Isolation Forest, que trabaja sobre variables diarias, con la detección de novedad de recurso; el LSTM, sobre secuencias de 50 eventos, y el perfil de Markov quedan como caminos alternativos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
