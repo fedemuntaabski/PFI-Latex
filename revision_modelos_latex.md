@@ -25,3 +25,19 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
   - LANL 2017, GUIDE y DARPA OpTC no tienen referencia bibliográfica; los insumos no la dan.
   - La nota de la figura `fig:er-config` sigue mostrando `metricas_modelo.modelo: iso | lstm | benchmark_dev`, y la de `fig:er-scoring`, `drift_alerts.lado: iso | lstm`. Es el esquema de la base de datos y los insumos no lo cubren, así que no se tocó.
 
+### Capítulo 9, Producto (`chapters/producto.tex`)
+
+- **9.2.2:** motor de *scoring* con el camino por defecto (IF calibrado + novedad, regla de piso por IF o por recursos nuevos; caminos alternativos por configuración).
+- **9.2.5:** criterio de promoción nuevo (no inferioridad de la FPR ≥ alto y de su p90 semanal en DEV, margen 0,01, sobre el camino por defecto completo), párrafo de los dos criterios anteriores y verificación en *sandbox* (2 h 30 min; 2,95 % frente a 2,66 %; no se llevó a producción). Se quitó la frase "con la versión 1 vigente, la salida del puntaje no cambia", que remitía a `sec:resultados-holdout`; ahora remite al camino `lstm`.
+- **9.2.7, control de acceso:** el rechazo de la clave de administración ya forma parte de la release vigente (antes decía "todavía no publicada").
+- **9.3:** segundo párrafo reemplazado: camino por defecto desde el 08/11 y release del 14/11; se conservó la remisión a la verificación del despliegue.
+- **9.4, tabla de la Ley 25.326:** "RLS en seis de las siete tablas" pasó a "en las siete tablas".
+- **9.5, tabla 9.IV:**
+  - Filas modificadas: "Sensibilidad baja" (sin *recall* medible); "El país actúa como interruptor" (aplica a la versión 1); "Aporte limitado del LSTM" (tratamiento: retirado del camino por defecto); "Calibración sin datos independientes" (sin la remisión a los escenarios etiquetados; parámetros sin barrido, según `limitaciones_provisional.md` 2.7); "Partición del candidato con datos del agente", que pasó a "Promoción no ejercitada en producción" (corte fijo, promoción en *sandbox*, según `limitaciones_provisional.md` 3.5); "Eventos incorporados sin revisión" (el criterio protege contra regresiones de la FPR); "Clave de administración" (publicada en la release vigente).
+  - Filas nuevas: brecha de dominio, sustitución de cuenta, arranque en frío y, en un grupo nuevo "Operación", latencia en la nube y `eventos_crudos` sin retención.
+- **9.6, síntesis:** limitaciones principales actualizadas.
+- Compilación: 285 páginas, 0 errores, 8 *warnings* y sin referencias indefinidas.
+- **Pendientes para el autor:**
+  - En 9.2.5 se conserva "El juego de modelos vigente proviene de la última corrida manual de reentrenamiento. La regla anterior lo rechaza…": los insumos no dicen de qué corrida provienen los modelos vigentes.
+  - Se mantiene el nombre de la fila "Sensibilidad baja ante ataques de corta duración", como indica la guía, aunque ahora la sensibilidad no está medida. Conviene considerar renombrarla, por ejemplo a "Detección no medida".
+
