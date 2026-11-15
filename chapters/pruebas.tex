@@ -66,9 +66,9 @@ El repositorio contiene 747 pruebas automatizadas, 547 de la API y 200 del agent
 	\textbf{Componente} & \textbf{Archivos} & \textbf{Pruebas} & \textbf{Tipos y foco} \\
 	\hline
 	\endhead
-	API de \emph{scoring} & 44 & 547 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP, el criterio de promoción del modelo y la paridad de las variables entre versiones. \\
+	API de \emph{scoring} & 54 & 547 & Unitarias, de integración, de extremo a extremo con modelos reales, de contrato y de regresión. Cubren autenticación y sesiones, ligadura de las claves de agente, configuración y su atomicidad, auditoría, período de aprendizaje, explicación persistida, IAM, notificaciones con y sin el modelo de lenguaje, persistencia con una base de datos simulada, planificador de reentrenamiento y el ciclo PDP$\rightarrow$PEP, el criterio de promoción del modelo y la paridad de las variables entre versiones. \\
 	\hline
-	Agente local & 15 & 200 & Unitarias con el sistema operativo simulado: colectores, filtro de procesos, \emph{buffer} local, \emph{circuit breaker}, exigencia de HTTPS, confirmación de acciones, reversión de la ACL y contrato del evento. \\
+	Agente local & 16 & 200 & Unitarias con el sistema operativo simulado: colectores, filtro de procesos, \emph{buffer} local, \emph{circuit breaker}, exigencia de HTTPS, confirmación de acciones, reversión de la ACL y contrato del evento. \\
 	\hline
 	\emph{Frontend} & -- & -- & Sin pruebas unitarias; se valida con análisis estático, verificación de tipos y compilación. \\
 	\hline
@@ -102,7 +102,7 @@ La tabla~\ref{tab:ejecucion-pruebas} presenta el resultado de la ejecución comp
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-Las 30 pruebas omitidas en la configuración de integración continua dependen de artefactos que no están versionados: los modelos entrenados y las salidas de la evaluación fuera de línea. La cobertura de código se mide y se informa en la sección~\ref{sec:cobertura-codigo}.
+Las 30 pruebas omitidas en la configuración de integración continua dependen de artefactos que no están versionados: 25 requieren los modelos entrenados, 3 los datos procesados de la versión~2 y 2 la referencia de Markov de una corrida en un entorno aislado (\emph{sandbox}). La cobertura de código se mide y se informa en la sección~\ref{sec:cobertura-codigo}.
 
 \subsection{Integración continua}\label{sec:integracion-continua}
 El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en cada \emph{push} y está compuesto por cuatro trabajos independientes:
@@ -113,7 +113,9 @@ El repositorio cuenta con un \emph{pipeline} de GitHub Actions que se ejecuta en
 	\item \textbf{Infraestructura} (Ubuntu, Terraform~1.16.4): verificación de formato y validación de la configuración, sin aplicar cambios.
 \end{itemize}
 
-Sobre la versión de entrega (sección~\ref{sec:estado-despliegue}), el trabajo de la API se reprodujo localmente sobre una copia limpia del repositorio, que contiene solo los archivos versionados: 508 pruebas aprobadas, 30 omitidas y un 86\,\% de cobertura combinada, por encima del umbral del 85\,\%. Las pruebas que requieren los modelos entrenados, entre ellas la de extremo a extremo PDP$\rightarrow$PEP, y la prueba de regresión se ejecutan localmente.
+Sobre la versión de entrega (sección~\ref{sec:estado-despliegue}), el trabajo de la API se reprodujo localmente sobre una copia limpia del repositorio, que contiene solo los archivos versionados: 508 pruebas aprobadas, 30 omitidas y una cobertura del 87,65\,\% de líneas y del 85,70\,\% combinada, por encima del umbral del 85\,\% (medida con Python~3.12; el \emph{workflow} usa Python~3.11 y admite una diferencia de hasta dos puntos). Las pruebas que requieren los modelos entrenados, entre ellas la de extremo a extremo PDP$\rightarrow$PEP, y la prueba de regresión se ejecutan localmente.
+
+La última corrida completa del \emph{pipeline}, del 4 de noviembre de 2026, aprobó los cuatro trabajos. Desde el 8 de noviembre, las corridas terminan en \texttt{startup\_failure} sin llegar a iniciar ningún trabajo, en todas las ramas. El archivo del \emph{workflow} no cambió desde la corrida aprobada, Actions está habilitado en el repositorio y el consumo de minutos está dentro de lo incluido, sin cargos. GitHub no informa la causa, que queda sin identificar; por eso la evidencia de la integración continua para la versión de entrega es la reproducción local descrita.
 
 \subsection{Cobertura de código}
 \label{sec:cobertura-codigo}
@@ -138,16 +140,16 @@ Cada componente se mide por separado con su propia suite: la API con los artefac
 	\textbf{Componente} & \textbf{Pruebas} & \textbf{Sentencias} & \textbf{\% líneas} & \textbf{\% líneas y ramas} \\
 	\hline
 	\endhead
-	API (PDP) & 547 & 2\,808 & \textbf{95,25} & 93,86 \\
+	API (PDP) & 547 & 3\,287 & \textbf{95,25} & 93,86 \\
 	\hline
-	Agente (PEP) & 200 & 1\,107 & \textbf{91,90} & 91,20 \\
+	Agente (PEP) & 200 & 1\,124 & \textbf{91,90} & 91,20 \\
 	\hline
-	\textbf{Total (suma de ambos componentes)} & \textbf{747} & 3\,915 & \textbf{94,40} & 93,17 \\
+	\textbf{Total (suma de ambos componentes)} & \textbf{747} & 4\,411 & \textbf{94,40} & 93,17 \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-En integración continua, la API se mide sin los modelos entrenados, por lo que el núcleo de \emph{scoring} no se ejercita: esa medición da un 86\,\% de líneas y ramas y funciona como protección contra regresiones, no como evidencia del objetivo.
+En integración continua, la API se mide sin los modelos entrenados, por lo que el núcleo de \emph{scoring} no se ejercita: esa medición da un 87,65\,\% de líneas y un 85,70\,\% de líneas y ramas, y funciona como protección contra regresiones, no como evidencia del objetivo.
 
 \textbf{\emph{Frontend}.} El \emph{dashboard} queda fuera del umbral, y se declara así explícitamente. Por una invariante de la arquitectura, el \emph{frontend} no contiene lógica de negocio: no calcula el puntaje, no aplica el decaimiento ni combina modelos. Solo muestra lo que expone la API y edita la configuración operativa, que la API valida. El riesgo funcional del sistema reside en la API y en el agente, que son los componentes medidos. El \emph{frontend} se valida con análisis estático y verificación de tipos en cada \emph{push}, y de forma manual contra la API.
 
@@ -156,7 +158,7 @@ Los requerimientos funcionales tienen prueba automatizada, salvo RF-08 (ejecuci�
 
 \section{Pruebas funcionales de extremo a extremo}
 \label{sec:pruebas-e2e}
-La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida con una prueba automatizada que reproduce el guion de la demostración: 46 eventos, de los cuales 9 son de calentamiento, 31 de exfiltración de archivos y 6 desde un país simulado. El agente usa su código real para construir cada evento, interpretar la respuesta y confirmar la acción, y la API decide con los modelos entrenados; como el guion no completa una secuencia de 50 eventos, el puntaje proviene solo de Isolation Forest. Únicamente los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) se reemplazan por un registro en memoria. La prueba verifica que:
+La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida con una prueba automatizada que reproduce el guion de la demostración: 46 eventos, de los cuales 9 son de calentamiento, 31 de exfiltración de archivos y 6 desde un país simulado. El agente usa su código real para construir cada evento, interpretar la respuesta y confirmar la acción, y la API decide con los modelos entrenados. La suite fija el camino \texttt{lstm} de la versión~1, pero como el guion no completa una secuencia de 50 eventos, el puntaje proviene solo de Isolation Forest; con el camino por defecto, el mismo guion alcanza el nivel alto en el evento 15 y el crítico en el 44, con la misma acción. Únicamente los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) se reemplazan por un registro en memoria. La prueba verifica que:
 \begin{itemize}
 	\item cada evento recibe puntaje, nivel y una acción coherente con la política configurada;
 	\item el nivel escala hasta alto y luego crítico;
@@ -185,7 +187,7 @@ Como complemento, el código del agente, de la API y del \emph{frontend} se some
 Esta subsección mide los dos requerimientos de rendimiento del sistema: la latencia de evaluación de eventos (RNF-01), en el entorno local y en la nube, y el consumo de recursos del agente (RNF-02). Incluye además la verificación del despliegue en la nube.
 
 \subsection{Latencia de evaluación de eventos (RNF-01)}
-Se mide la latencia de extremo a extremo de la evaluación de eventos desde el lado del cliente. La prueba envía en secuencia 1000 eventos, precedidos por 50 de calentamiento que se descartan, distribuidos entre cinco usuarios con una mezcla de tipos representativa de la actividad que captura el agente. La API se ejecuta en el mismo equipo, con Redis en memoria y sin base de datos. La tabla~\ref{tab:rnf01} presenta los resultados.
+Se mide la latencia de extremo a extremo de la evaluación de eventos desde el lado del cliente. La prueba envía en secuencia 1000 eventos, precedidos por 50 de calentamiento que se descartan, distribuidos entre cinco usuarios con una mezcla de tipos representativa de la actividad que captura el agente. La API se ejecuta en el mismo equipo, con Redis en memoria, sin base de datos y con el camino por defecto. La tabla~\ref{tab:rnf01} presenta los resultados, medidos el 15 de noviembre de 2026.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{6.0cm}>{\raggedright\arraybackslash}p{4.0cm}}
 	\caption{Latencia de evaluación de eventos (RNF-01)}
@@ -198,44 +200,46 @@ Se mide la latencia de extremo a extremo de la evaluación de eventos desde el l
 	\textbf{Métrica} & \textbf{Valor} \\
 	\hline
 	\endhead
-	Media & 16,96~ms \\
+	Media & 12,83~ms \\
 	\hline
-	Mediana & 13,35~ms \\
+	Mediana & 12,59~ms \\
 	\hline
-	Percentil 95 & 14,91~ms \\
+	Percentil 95 & 13,71~ms \\
 	\hline
-	Percentil 99 & 148,87~ms \\
+	Percentil 99 & 18,24~ms \\
 	\hline
-	Máximo & 880,26~ms \\
+	Máximo & 55,28~ms \\
 	\hline
 	Errores & 0 de 1000 \\
 	\hline
-	Rendimiento secuencial & 59 eventos por segundo \\
+	Rendimiento secuencial & 78 eventos por segundo \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir de las mediciones del sistema.\par}
 
 El umbral fijado para RNF-01 es un percentil 95 menor o igual a 500~ms y un percentil 99 menor o igual a 1~s. El criterio se justifica porque el \emph{dashboard} consulta el estado cada 2~s y el agente captura actividad con una frecuencia del orden de un segundo: un evento evaluado en menos de medio segundo no se acumula. El umbral se aplica al cómputo de la evaluación medido en entorno aislado, y el resultado lo cumple con amplio margen. La latencia con servicios gestionados en la nube se informa por separado en la sección~\ref{sec:latencia-aws}, sin una meta propia.
 
-La misma prueba, ejecutada en un segundo equipo (Windows~11, procesador AMD de 16 núcleos lógicos), da un percentil 95 de 13,0~ms y un percentil 99 de 108,9~ms, con 1000 de 1000 eventos evaluados sin error.
+Con la versión~1 (Isolation Forest y LSTM), la misma prueba daba una media de 16,96~ms, un percentil 95 de 14,91~ms, un percentil 99 de 148,87~ms y un máximo de 880,26~ms, con 59 eventos por segundo; ejecutada en un segundo equipo (Windows~11, procesador AMD de 16 núcleos lógicos), daba un percentil 95 de 13,0~ms y un percentil 99 de 108,9~ms, con 1000 de 1000 eventos evaluados sin error.
 
-Las latencias más altas coinciden con los eventos que completan una secuencia de 50 eventos de un usuario, momento en que se ejecuta la inferencia del LSTM. Esta relación se infiere de la posición de los valores extremos y no está instrumentada. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se envían de forma secuencial, sin carga concurrente de varios agentes.
+En la versión~1, las latencias más altas aparecían en rachas de eventos consecutivos, de más de 100~ms, que se atribuían a la inferencia del LSTM. Con el camino por defecto, el LSTM no se carga y esas rachas desaparecen: los valores más altos (entre 20,7 y 55,3~ms) son aislados, de tipos de evento distintos, y la medición no desglosa el tiempo por componente, por lo que no tienen una causa identificable. La medición tiene dos limitaciones: Redis en memoria no representa la latencia de red de un Redis gestionado, y los eventos se envían de forma secuencial, sin carga concurrente de varios agentes.
 
 \subsection{Latencia en la nube}\label{sec:latencia-aws}
 La misma operación se mide sobre la instancia desplegada en la nube, desde un cliente en Argentina y por HTTPS. La prueba envía en secuencia 300 eventos reales del conjunto de datos, precedidos por 20 de calentamiento. El percentil 95 es de 3\,110~ms (media 3\,051~ms, mediana 3\,036~ms, percentil 99 de 3\,362~ms, máximo de 4\,057~ms), con 0 errores de 320. La API informa un promedio de 2\,489~ms dentro de la evaluación del evento, alrededor del 82\,\% de la media que ve el cliente; el resto corresponde al trayecto entre el cliente y la instancia.
 
-El tiempo no se debe al cómputo del modelo (14,9~ms en entorno aislado) sino a las idas y vueltas hacia los servicios gestionados de datos. Medidos desde la instancia con la conexión reutilizada (n = 50), cada comando a Redis y cada consulta a PostgreSQL tardan unos 124~ms, contra 43 a 48~ms desde un cliente en Argentina. Un evento requiere unos 20 viajes secuenciales: 16 a Redis, contados con un servidor simulado que registra cada ida y vuelta, y 4 a PostgreSQL, estimados por lectura del código. El producto, (16 + 4) $\times$ 124~ms $\approx$ 2\,480~ms, coincide con los 2\,489~ms informados por la API. La coincidencia depende de la estimación de los viajes a PostgreSQL (con 2 o 3 la suma sería de 2\,240 o 2\,360~ms) y proviene de una única jornada de medición. La misma cuenta aplicada a la medición local contra los mismos servicios (17 viajes a Redis y 4 a PostgreSQL) da unos 930~ms, frente a 921~ms medidos.
+El tiempo no se debe al cómputo del modelo (percentil 95 de 13,7~ms en entorno aislado) sino a las idas y vueltas hacia los servicios gestionados de datos. Medidos desde la instancia con la conexión reutilizada (n = 50), cada comando a Redis y cada consulta a PostgreSQL tardan unos 124~ms, contra 43 a 48~ms desde un cliente en Argentina. Un evento requiere unos 20 viajes secuenciales: 16 a Redis, contados con un servidor simulado que registra cada ida y vuelta, y 4 a PostgreSQL, estimados por lectura del código. El producto, (16 + 4) $\times$ 124~ms $\approx$ 2\,480~ms, coincide con los 2\,489~ms informados por la API. La coincidencia depende de la estimación de los viajes a PostgreSQL (con 2 o 3 la suma sería de 2\,240 o 2\,360~ms) y proviene de una única jornada de medición. La misma cuenta aplicada a la medición local contra los mismos servicios (17 viajes a Redis y 4 a PostgreSQL) da unos 930~ms, frente a 921~ms medidos.
 
 Con esta topología, la latencia extremo a extremo depende de la distancia entre la instancia y los servicios de datos y de la cantidad de viajes por evento. Reducirla exige acercar los servicios a la región de la API o disminuir los viajes por evento. Como la nube es la configuración de referencia del producto (sección~\ref{sec:estado-despliegue}), esta es la latencia que percibe hoy el agente desplegado: la meta de RNF-01 se cumple en el cómputo de la evaluación, pero no de extremo a extremo con la topología actual, en la que la instancia (us-east-2) y los servicios de datos (São Paulo) están en regiones distintas. Ubicar la instancia en la misma región que los servicios de datos es la primera medida para reducirla.
 
 La consulta que alimenta la pantalla principal del \emph{dashboard} se optimizó después de esta medición. Recorrer las claves de Redis en lotes de 1\,000 en lugar de 10 y leer el estado de todos los usuarios en una sola operación redujo el tiempo de recorrido de 2,18~s a 0,12~s, con 388 claves contra el Redis gestionado, y el de lectura de 0,32~s a 0,05~s, con 7 usuarios. En la instancia, la consulta responde en 0,40~s.
 
 \subsection{Verificación del despliegue}\label{sec:verificacion-despliegue}
-En la instancia corre la release vigente, del 14 de noviembre de 2026; tras su instalación se verificó que el servicio queda sano y que el listado de usuarios responde en 0,40~s. Las verificaciones siguientes se realizaron sobre la release anterior, con Python 3.11.16: los seis artefactos de modelo comprobados (modelos de Isolation Forest y LSTM, los dos escaladores y las dos referencias de percentiles) tienen el mismo SHA-256 que los del repositorio local. Desde el exterior, el certificado TLS de Let's Encrypt es válido y el HTTP redirige a HTTPS con un código 308, la documentación interactiva responde 404, el puerto de la API no responde, y la recepción de eventos devuelve 401 sin clave y con una clave falsa, y 200 con una clave de agente válida. Tras detener y volver a arrancar la instancia, el proxy y la API se restablecen sin intervención.
+En la instancia corre la release vigente, \texttt{20261114-221354-3634c38}, del 14 de noviembre de 2026; tras su instalación, el listado de usuarios responde en 0,40~s. Las verificaciones siguientes se realizaron sobre esa release el 15 de noviembre de 2026. La API corre con Python 3.11.16 y el camino por defecto, y carga solo sus artefactos (Isolation Forest, su escalador, la codificación de tipos, la configuración del puntaje y las referencias de entrenamiento); los seis archivos de modelo de ese camino, incluida la calibración, tienen el mismo SHA-256 que los del repositorio local. Desde el exterior, el certificado TLS de Let's Encrypt es válido y el HTTP redirige a HTTPS con un código 308, la documentación interactiva está deshabilitada y responde 404, y la recepción de eventos devuelve 401 sin clave y con una clave falsa, y 200 con una clave de agente válida. Tras detener y volver a arrancar la instancia, el servicio vuelve a estar listo por HTTPS en 41~s, sin intervención, con los artefactos cargados y las conexiones a Redis y PostgreSQL activas.
+
+La suite de la release, ejecutada en la instancia con el Python de producción y en un entorno aislado, da 496 pruebas aprobadas, 4 omitidas y 7 con error, con una cobertura de la API del 91,38\,\% de líneas y del 89,63\,\% combinada. Los errores no son fallas del código: la release no incluye los \emph{scripts} fuera de línea que importan cinco archivos de prueba ni el código del agente que usa la prueba de extremo a extremo.
 
 Sobre la instancia se verifica, además, el funcionamiento de extremo a extremo:
 \begin{description}[leftmargin=0pt, itemsep=2pt]
-	\item[Agente real.] Un agente envía eventos por HTTPS con su credencial individual y alcanza el nivel crítico (97,06), con la acción de terminar el proceso y denegar la carpeta, que ejecuta. El nivel alto no se observa, porque el puntaje pasa de 52 a 97 en un solo evento.
+	\item[Agente real.] Sobre la release vigente, un agente real envía eventos por HTTPS con su credencial individual. Desde un estado inicial en nivel bajo, el puntaje pasa por medio (44,8) y alto (89,9) y alcanza el nivel crítico (93,25) unos 36~s después de iniciado el ataque. El agente ejecuta la acción de terminar el proceso y denegar la carpeta, la confirmación queda registrada y la reversión restaura el acceso. Las verificaciones de control de acceso e IAM que siguen se realizaron sobre la release anterior.
 	\item[Control de acceso.] La API rechaza con 403 los eventos con usuario o identificador de agente ajenos y la confirmación de un usuario ajeno. Una clave de agente revocada recibe 401, y el agente abre su \emph{circuit breaker}. El inicio de sesión del administrador entrega un \emph{token} de 43 caracteres, distinto de las claves fijas; el operador recibe 403 en los \emph{endpoints} de administración, y el \emph{token} queda inválido tras cerrar la sesión.
 	\item[Integración IAM.] Con Keycloak en la instancia, la API incorpora el rol y el departamento del usuario a su estado y a la respuesta del evento, sin que intervengan en el puntaje.
 \end{description}
@@ -318,7 +322,7 @@ Tasa de anomalías de Isolation Forest en prueba & entre 1\,\% y 3\,\% (contamin
 Tasa de anomalías del LSTM en prueba & entre 3\,\% y 7\,\% (umbral en el percentil 95) & 4,18\,\% & Sí \\
 Tasa de falsos positivos en nivel alto sobre los días reales de DEV (camino por defecto) & $\leq$ 5\,\% & 2,66\,\% (percentil 90 semanal: 4,95\,\%) & Sí \\
 Estabilidad dentro del día: días con algún evento en alto y días que cierran en alto (camino por defecto) & Sin meta numérica & 2,66\,\% y 1,29\,\% & -- \\
-Latencia de evaluación (cómputo, entorno aislado), percentil 95 (RNF-01) & $\leq$ 500\,ms & 14,9\,ms & Sí \\
+Latencia de evaluación (cómputo, entorno aislado), percentil 95 (RNF-01) & $\leq$ 500\,ms & 13,7\,ms & Sí \\
 	\hline
 	Latencia extremo a extremo en la nube, percentil 95 (informativa) & Sin meta propia & 3\,110\,ms & -- \\
 \hline
