@@ -162,3 +162,61 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
   6. **Objetivo específico 2:** se reformuló la forma de evaluación; confirmar la redacción.
   7. **Etiquetado de triage:** no se integró en la memoria. Está versionado en `corregir_en_latex/etiquetado_aparte.md`, a la espera de la decisión del autor.
 - `images/cronograma.jpg` sigue borrado sin commitear y `images/gannt.jpg` sin versionar, como al inicio.
+
+## Integración de `respuestas_para_latex.md` (15/11/2026)
+
+Insumo: `respuestas_para_latex.md`, relevado sobre el repo de código (rama `entrega/limpieza`, *commit* `0f53d62`), con P1 a P19. Decisiones del autor antes de empezar: regenerar las figuras UML; citar GUIDE con el título real del artículo; incorporar las 5 citas candidatas al capítulo 2; dejar con motivo genérico el descarte de LANL 2015.
+
+### Capítulo 10 (`pruebas.tex`; arrastra `requerimientos.tex` y `conclusiones.tex`)
+- **P1:** archivos de prueba, 54 (API) y 16 (agente); antes decía 44 y 15.
+- **P2:** sentencias, 3 287 / 1 124 / 4 411; los porcentajes no cambian.
+- **P3:** desglose de las 30 omitidas: 25 por los modelos entrenados, 3 por los datos de la v2 y 2 por la referencia de Markov de *sandbox*.
+- **P4:** integración continua sin artefactos, 87,65 % de líneas y 85,70 % combinada (Python 3.12); reemplaza el 86 %.
+- **P5:** párrafo nuevo con el estado del CI: última corrida completa el 04/11, `startup_failure` desde el 08/11 sin trabajos, causa no identificada.
+- **P6:** la prueba E2E corre con el camino `lstm` (el puntaje lo da IF); con el camino por defecto, crítico en el evento 44.
+- **P7:**
+  - La tabla RNF-01 tiene las cifras del camino por defecto (12,83 / 12,59 / 13,71 / 18,24 / 55,28 ms; 78 ev/s) y las de la versión 1 quedan en el texto.
+  - Las colas sin LSTM no tienen causa identificable.
+  - El p95 de 14,9 ms pasó a 13,7 ms en la meta (10.5), en RNF-01 (cap. 4) y en conclusiones (tabla 13.I y 13.2).
+- **P8:**
+  - 10.4.3 se reescribió sobre la release `20261114-221354-3634c38`: Python 3.11.16, 6 SHA-256 coincidentes, TLS, 308, documentación 404, eventos 401/401/200, recuperación en 41 s, agente real con crítico 93,25 a ~36 s, y suite en la instancia 496/4/7 con 91,38 % de líneas.
+  - Control de acceso e IAM quedan como verificaciones de la release anterior.
+  - El incidente de Supabase pausado no se menciona en la memoria; está en `LIMITACIONES_Y_ESTADO.md`.
+- Compilación: 280 páginas, sin errores ni referencias indefinidas.
+
+### Capítulos 9, 1 y 7
+- **P9:** 9.2.5 dice que el IF vigente proviene de la corrida manual del 02/09/2026, rechazada por la regla de entonces y conservada porque la restauración llegó el 28/09. Las referencias se regeneraron el 06/10 y la calibración el 31/10.
+- **P12:** el registro de cada corrida es candidato contra vigente (FPR ≥ alto, p90 semanal, días, usuarios, SHA-256 y motivo); ya no "ambos modelos".
+- **P10:** capítulo 1 y arquitectura, con fases 1 a 4 más la variante de la fase 6 sin LSTM; la auditoría bloqueante solo corre en `lstm`.
+
+### Capítulos 8 y 2, y bibliografía
+- **P17:**
+  - Entradas `Larroche2026`, `Turcotte2018LANL`, `Freitas2024GUIDE` y `Arantes2021OpTC`, citadas en `tab:datos-complementarios`.
+  - LANL 2015 queda con "Protocolo de evaluación poco realista para la detección"; se quitó el `% TODO`.
+- **P11:** en la nota de `fig:er-config`, `form` tiene seis valores; `modelo` es `benchmark_dev` (iso y lstm en filas anteriores); `rol` es nulo en filas anteriores; sin CHECK. `drift_alerts.lado` sigue como `iso | lstm`, que es correcto.
+- **P18:** `Bowman2020`, `Ho2021Hopper`, `Kim2018Markov`, `Rashid2016HMM` y `Siffer2017SPOT`, citadas en 2.1.5.3 a 2.1.5.5 como enfoques afines. El proyecto usa variantes más simples.
+
+### Capítulos 4, 5 y 9 (UX y explicación)
+- **P15:** en `e50_diseno_ux.tex` se describe el recurso de la novedad en la tarjeta y la nota «En calibración» como heredada de la v1, que en el camino por defecto aparece siempre para un usuario nuevo. Se agregó la fila "Nota «En calibración» heredada de la versión 1" en `tab:limitaciones-producto`.
+- **P16:** RNF-11 aclara que la explicación persistida es la del último evento del día.
+
+### Capítulo 6, UML
+- **P13 y P14:**
+  - Se regeneraron `04b`/`04bv`: novedad, Markov (camino activo y calibración), cola, umbral móvil y LSTM como camino `lstm`.
+  - Se regeneraron `04a`/`04av`: campos `novedad`, `iso_dias`, `markov` y `cola`, y la clave `umbral_movil:scores`.
+  - Fuentes en `images/diagramas/Cargar/`; PDF copiados a `images/diagramas/uml/`.
+  - El ancho de las láminas completas no cambió, así que los recortes del Anexo H siguen valiendo.
+  - Se reescribió el texto de `e50_uml.tex`.
+  - La vista de paquetes (`04_clases_api_paquetes`) no se regeneró: el texto ya no dice "puntaje híbrido".
+
+### Pendientes que siguen
+1. **CI:** causa del `startup_failure` sin identificar; en consulta con el soporte de GitHub. Si se resuelve, volver a correr y actualizar 10.2.3.
+2. **GUIDE:** licencia exacta. El artículo dice "CDLA-2.0" y Kaggle no muestra el campo.
+3. **Larroche (2026):** el detalle sobre LANL 2015 no se verificó en el texto completo; la memoria usa un motivo genérico.
+4. **Meta de estabilidad dentro del día (P19):** sin criterio escrito; es decisión del autor. 10.5.2 sigue sin meta numérica.
+5. **Código** (fuera de la memoria): la nota «En calibración» y la cobertura no siguen al camino activo, y el comentario de `novedad` en `redis_state.py:278` está desactualizado.
+6. **Supabase** se pausa tras unos 7 días sin uso; reactivarlo antes de una demostración.
+7. **Archivos huérfanos:** `images/pruebas/curva_umbral.{pdf,png}`.
+8. **Objetivo específico 2** (cap. 1) y etiquetado de triage: siguen a la espera de la decisión del autor.
+
+- Compilación final: 283 páginas, 0 errores, 8 *warnings* (3 de paquetes y 5 `h`→`ht`, del mismo tipo que en la línea base), sin referencias ni citas indefinidas.

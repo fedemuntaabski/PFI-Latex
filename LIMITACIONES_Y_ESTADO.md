@@ -15,7 +15,7 @@ Documento de síntesis elaborado a partir de `main.pdf` (283 páginas) y de los 
 Se distinguen las limitaciones de evaluación (qué no se puede afirmar), las de los modelos, las de la arquitectura y la operación, y las decisiones de alcance.
 
 ### 0.1 Limitaciones de evaluación
-- **Sin *recall* medible en datos del dominio.** CLUE-LDS no trae etiquetas de ataque y LANL 2017 (*host* Windows) tampoco tiene ataques. LANL 2015 se descartó como evidencia, porque contiene una sola intrusión simulada, casi toda desde un mismo *host* (Larroche, 2026). Los escenarios construidos (S1–S7) se retiraron para evaluar solo con datos reales. Solo se miden la FPR, la carga de alertas, la oscilación y la cobertura, y la cobertura no es detección. Para superarlo hace falta un conjunto del dominio con incidentes reales etiquetados.
+- **Sin *recall* medible en datos del dominio.** CLUE-LDS no trae etiquetas de ataque y LANL 2017 (*host* Windows) tampoco tiene ataques. LANL 2015 se descartó como evidencia, por un protocolo de evaluación poco realista para la detección (Larroche, 2026; el detalle "una sola intrusión, casi toda desde un *host*" no se verificó en el texto completo). Los escenarios construidos (S1–S7) se retiraron para evaluar solo con datos reales. Solo se miden la FPR, la carga de alertas, la oscilación y la cobertura, y la cobertura no es detección. Para superarlo hace falta un conjunto del dominio con incidentes reales etiquetados.
 - **Evaluación sobre día cerrado.** Con el camino por defecto, el 2,66 % de los días tiene algún evento ≥ alto y el 1,29 % termina así al cierre. La evaluación de día cerrado no cubre la oscilación dentro del día.
 - **HOLDOUT usado una sola vez, con la versión 1** (IF + LSTM): FPR ≥ alto del 4 % en negativos y del 5 % en la población de prueba. El camino por defecto actual se midió solo sobre DEV (63 usuarios). El LSTM v1 era *in-sample* para 47 de las 57 víctimas de HOLDOUT, por lo que esa medición es optimista para el LSTM.
 
@@ -33,7 +33,7 @@ Se distinguen las limitaciones de evaluación (qué no se puede afirmar), las de
 
 ### 0.3 Limitaciones de arquitectura y operación
 - **Latencia en la nube:**
-  - El p95 es de 3 110 ms (14,9 ms en local): unos 20 viajes secuenciales de unos 124 ms a Redis y PostgreSQL gestionados.
+  - El p95 es de 3 110 ms (13,71 ms en local con el camino por defecto, medido el 15/11/2026): unos 20 viajes secuenciales de unos 124 ms a Redis y PostgreSQL gestionados.
   - En la demostración en la nube, el nivel crítico llega entre 33,8 y 40,3 s y la acción se confirma entre 46,3 y 49,1 s (3 de 3).
   - El correo de notificación corre dentro del *request* y le suma unos 3 s al evento que dispara la acción.
 - **Persistencia:** `eventos_crudos` crece sin límite (sin retención ni poda) y el `uid` se guarda sin anonimizar. PostgreSQL es *best-effort*: si no está disponible, se pierde ese historial.
@@ -43,7 +43,9 @@ Se distinguen las limitaciones de evaluación (qué no se puede afirmar), las de
   - La resolución IAM es síncrona en `POST /eventos`.
 - **Agente:** solo Windows; *enforcement* acotado a `DEMO_ROOT`; ruido de procesos mitigado pero no eliminado; sin *heartbeat*; un agente por usuario y por equipo.
 - **Reentrenamiento:** el ciclo con su criterio de promoción funcionó de punta a punta en *sandbox* (2 h 30), pero no se ejercitó con un modelo genuinamente nuevo en producción. El criterio exige no inferioridad en la FPR (margen 0,01); no prueba una mejor detección.
-- **Integración continua:** desde el 08/11/2026 el *pipeline* de GitHub Actions termina en `startup_failure` (problema de la cuenta o de la configuración, no del código). El trabajo de la API se reprodujo localmente: 508 aprobadas, 30 omitidas, 86 % de cobertura combinada.
+- **Integración continua:** desde el 08/11/2026 el *pipeline* de GitHub Actions termina en `startup_failure` en todas las ramas, sin crear trabajos. Se descartaron el `ci.yml` (sin cambios desde la última corrida exitosa, 04/11/2026, con los 4 trabajos aprobados), los permisos (Actions habilitado) y la facturación (consumo dentro de lo incluido, cargo 0). La causa no está identificada y está en consulta con el soporte de GitHub. El trabajo de la API se reprodujo localmente: 508 aprobadas, 30 omitidas (25 por los modelos entrenados, 3 por los datos de la v2 y 2 por la referencia de Markov), 87,65 % de líneas y 85,70 % combinada.
+- **Nota «En calibración» del *dashboard*:** depende de la cobertura del LSTM, que el camino por defecto no actualiza. Un usuario nuevo la ve siempre, y uno con secuencias previas ve el texto de la combinación de dos modelos. La explicación persistida en `historial_scores` es la del último evento del día.
+- **Supabase en el plan gratuito:** el proyecto se pausa tras unos 7 días sin uso. El 15/11/2026 estaba pausado y la API arrancó con `postgres_ok: false` hasta reactivarlo.
 - ***Frontend*:** sin suite de pruebas automatizadas.
 
 ### 0.4 Decisiones de alcance (no defectos)
