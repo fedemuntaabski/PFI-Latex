@@ -19,7 +19,8 @@
 % ===================== estado del usuario
 \umlclase[clase=5.2cm, fill=cPdp, anchor=north]{uss}{7.4,0}{dataclass}{UserScoringState}{%
  + total\_events\\
- + last\_risk\_score\_hibrido}{%
+ + novedad, iso\_dias\\
+ + markov, cola}{%
  + en\_aprendizaje()}
 
 % ===================== partes (columna izquierda y derecha)
@@ -27,7 +28,7 @@
  + last\_time\\
  + last\_country\\
  + last\_type}{\vacio}
-\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{lstm}{0.4,-11.4}{dataclass}{LstmState}{%
+\umlclase[clase=4.6cm, fill=cPdp, anchor=north]{lstm}{0.4,-11.4}{dataclass, camino lstm}{LstmState}{%
  + buffer\\
  + chunks\_completed\\
  + error\_sum}{\vacio}

@@ -1,4 +1,4 @@
-% Diagrama de clases de la API (PDP) — lámina B: pipeline de scoring híbrido
+% Diagrama de clases de la API (PDP) — lámina B: pipeline de scoring (caminos iso, markov y lstm)
 % Compilar: pdflatex 04b_clases_api_scoring.tex
 \documentclass[tikz,border=6pt]{standalone}
 \input{estilos_uml}
@@ -51,7 +51,7 @@
  - \_sin_score_response(uid: str, total_events: int,\\
  \quad umbral_aprendizaje: int): dict}
 
-\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{lstms}{13,0}{module}{lstm_service}{%
+\umlclase[clase=10.8cm, fill=cPdp, anchor=north]{lstms}{13,0}{module}{lstm_service \textmd{(camino lstm)}}{%
  + SEQUENCE_LENGTH = 50\\
  + LSTM_USER_PERCENTIL_PISO = 95.0}{%
  + update_lstm_buffer(state: LstmState, event_features:\\
@@ -74,6 +74,35 @@
  redis_state: UserScoringState,\\\quad load_state, update_state,\\\quad push_recent_event (lámina A)\\
  iam_service, notifications (lámina C)\\
  config_store, history_store (lámina D)};
+
+% ===================== FILA 0: piezas de la revisión de modelos
+\umlclase[clase=8.4cm, fill=cPdp, anchor=south]{umb}{-24,2.5}{module}{umbral_movil_service}{%
+ + scores globales en Redis \hfill umbral_movil:scores}{%
+ + umbral_movil_activo() \hfill SCORING_UMBRAL_MOVIL=1\\
+ + parametros()\\
+ + registrar_dia()\\
+ + cuantil() \hfill cuantil (1 - FPR), 30 días}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=south]{nov}{-13,2.5}{module}{novedad_service}{%
+ «dataclass» ResultadoNovedad}{%
+ + detector_novedad() \hfill modo nivel en el camino iso\\
+ + novedad_al_nivel()\\
+ + actualizar() \hfill recursos de los últimos 90 días\\
+ + umbral_nuevos() \hfill cuantil móvil poblacional}
+
+\umlclase[clase=12cm, fill=cPdp, anchor=south]{mark}{0,2.5}{module}{markov_service \textmd{(camino activo y calibración)}}{%
+ + CAMINO_DEFAULT = "iso"\\
+ «dataclass» MarkovReferencia, ResultadoMarkov}{%
+ + camino(): str \hfill iso | markov | lstm\\
+ + historia_iso() \hfill ≥ 3 días de historia en 90\\
+ + cargar_nudos_iso() \hfill iso_calibracion.json\\
+ + actualizar()\\
+ + congelar()}
+
+\umlclase[clase=10.8cm, fill=cPdp, anchor=south]{cola}{13,2.5}{module}{cola_service}{\vacio}{%
+ + cola_activa() \hfill SCORING_COLA_CUENTA=1\\
+ + clases() \hfill clases de señal en 7 días\\
+ + actualizar()}
 
 % ===================== FILA 2
 \umlclase[clase=8.4cm, fill=cPdp, anchor=north]{lef}{-24,-15}{dataclass}{LstmEventFeatures}{%
@@ -198,6 +227,10 @@
 
 % ===================== RELACIONES
 % el orquestador usa cada servicio
+\draw[usa] (hyb.north) -- node[rotulo,right,pos=0.7]{«usa»} (mark.south);
+\draw[usa] ([xshift=-4cm]hyb.north) -- ++(0,1.5) -| node[rotulo,pos=0.75,right]{«usa»} (nov.south);
+\draw[usa] ([xshift=4cm]hyb.north) -- ++(0,1.5) -| node[rotulo,pos=0.75,right]{«usa»} (cola.south);
+\draw[usa] (nov.west) -- node[rotulo,above]{«usa»} (umb.east |- nov.west);
 \draw[usa] (hyb.west |- isos.east) -- node[rotulo,above]{«usa»} (isos.east);
 \draw[usa] (hyb.east |- lstms.west) -- node[rotulo,above]{«usa»} (lstms.west);
 \draw[usa] (hyb.south) -- node[rotulo,right]{«usa»} (pbsv.north);

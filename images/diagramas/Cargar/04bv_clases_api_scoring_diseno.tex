@@ -16,8 +16,18 @@
  + process\_event()\\
  + w\_iso\_efectivo()\\
  + regla\_piso\_aplicada()}
-\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{lstms}{13.6,0}{module}{lstm\_service}{\vacio}{%
+\umlclase[clase=4.8cm, fill=cPdp, anchor=north]{lstms}{13.6,0}{module, camino lstm}{lstm\_service}{\vacio}{%
  + update\_lstm\_buffer()}
+
+% ===================== FILA 0: piezas de la revisión de modelos
+\umlclase[clase=4.8cm, fill=cPdp, anchor=south]{nov}{0,2.2}{module}{novedad\_service}{\vacio}{%
+ + detector\_novedad()\\
+ + novedad\_al\_nivel()}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=south]{mark}{6.8,2.2}{module}{markov\_service}{\vacio}{%
+ + camino()\\
+ + cargar\_nudos\_iso()}
+\umlclase[clase=4.8cm, fill=cPdp, anchor=south]{cola}{13.6,2.2}{module}{cola\_service}{\vacio}{%
+ + cola\_activa()}
 
 % ===================== FILA 2: cobertura, artefactos, explicación
 \umlclase[clase=4.8cm, fill=cPdp, anchor=north]{cov}{0,-5.6}{module}{coverage}{\vacio}{%
@@ -36,6 +46,9 @@
  + get\_artifacts()}
 
 % ===================== RELACIONES
+\draw[usa] (hyb.north) -- node[rotulo,right]{«usa»} (mark.south);
+\draw[usa] ([xshift=-1.6cm]hyb.north) -- ++(0,0.9) -| (nov.south);
+\draw[usa] ([xshift=1.6cm]hyb.north) -- ++(0,0.9) -| (cola.south);
 \draw[usa] (hyb.west |- isos.east) -- node[rotulo,above]{«usa»} (isos.east);
 \draw[usa] (hyb.east |- lstms.west) -- node[rotulo,above]{«usa»} (lstms.west);
 \draw[usa] ([xshift=-1.8cm]hyb.south) -- ++(0,-0.7) -| node[rotulo,pos=0.2,below]{«usa»} (cov.north);
