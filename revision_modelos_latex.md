@@ -99,3 +99,8 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
 - Compilación: sin errores, 6 *warnings* y sin referencias indefinidas.
 - **Pendiente para el autor:** el primer párrafo de 13.1 sigue diciendo que siete de los nueve objetivos se cumplen y dos en forma parcial (2 y 6). Con los cambios, esa cuenta no varía.
 
+### Anexo I, Contenido de la entrega (`chapters/appendix/contenido_entrega.tex`)
+
+- Anexo nuevo con el texto propuesto, agregado al final de `annex.tex`. Por decisión del autor queda como Anexo I y no D, para no correr las letras A–H. La cita "Landauer et al., 2022b" se resolvió como `\parencite{Landauer2022Dataset}` (el conjunto en Zenodo).
+- Compilación: 278 páginas, sin errores, 6 *warnings* y sin referencias indefinidas.
+
