@@ -74,84 +74,58 @@ La clasificación por volumen total resultó imperfecta: con una regla basada en
 \section{Variables y modelos}
 \label{sec:variables-modelos}
 
-El camino por defecto del sistema combina dos detectores: Isolation Forest, que evalúa la actividad agregada por día, y la detección de novedad de recurso, que registra los recursos que cada usuario utiliza por primera vez. El LSTM Autoencoder y un perfil de transición de Markov se conservan como caminos alternativos, seleccionables por configuración (sección~\ref{sec:caminos-alternativos}). Esta subsección describe los modelos y presenta la partición de los datos y los parámetros de entrenamiento.
+El camino por defecto del sistema combina dos detectores: Isolation Forest, que evalúa la actividad agregada por día, y la detección de novedad de recurso, que registra los recursos que cada usuario utiliza por primera vez. Un perfil de transición de Markov y la versión 1 del sistema, con LSTM Autoencoder, se conservan como caminos alternativos, seleccionables por configuración (sección~\ref{sec:caminos-alternativos}). Esta subsección describe los modelos y presenta la partición de los datos y los parámetros de entrenamiento.
 \subsection{Isolation Forest}\label{sec:if-variables}
 Isolation Forest evalúa la actividad de cada usuario por día calendario, tomando como referencia la zona horaria UTC. Para cada par usuario-día, se calculan ocho variables que caracterizan el comportamiento: la cantidad total de eventos, la diversidad de tipos de evento y de países, la cantidad de eventos relacionados con archivos (accesos, creaciones y escrituras) y de eventos de autenticación, la hora promedio de actividad, la proporción de eventos fuera del horario habitual (antes de las 7:00 o después de las 20:00) y la entropía de la distribución de los tipos de evento.
 
 El entrenamiento incluye usuarios válidos y usuarios con baja actividad. En total, se consideran 908 usuarios de CLUE-LDS, lo que da como resultado 61\,284 pares usuario-día. Antes del entrenamiento, las ocho variables se estandarizan para que sus diferencias de escala no afecten al modelo.
 
-\subsection{LSTM Autoencoder}
-El LSTM Autoencoder evalúa secuencias de 50 eventos consecutivos de cada usuario, sin solapamiento. Cada evento se representa con ocho variables: el tipo de evento codificado, la hora y el día de la semana en codificación cíclica (seno y coseno), el tiempo transcurrido desde el evento anterior del usuario, y dos indicadores de cambio, de país y de tipo de evento, respecto del evento previo. De los 291 usuarios válidos, 234 tienen al menos una secuencia completa, y se obtienen 169\,737 secuencias. Los 57 usuarios restantes tienen menos de 50 eventos.
-
-
-
 \subsection{Partición y parámetros}
 \label{sub:particion-parametros}
 
-Los modelos utilizan esquemas de partición diferentes, definidos en función de su unidad de análisis y del objetivo de evaluación. En Isolation Forest, se adopta una división temporal para evaluar su capacidad de generalización a períodos posteriores. En cambio, el LSTM Autoencoder se divide por usuario, de modo que su desempeño pueda evaluarse sobre usuarios que no participaron en el entrenamiento. La tabla~\ref{tab:configuracion-modelos} resume la configuración y los principales resultados del entrenamiento de ambos modelos.
+Isolation Forest adopta una división temporal, que permite evaluar su capacidad de generalización a períodos posteriores. La tabla~\ref{tab:configuracion-modelos} resume su configuración.
 
 \begin{table}[htbp]
     \centering
-    \caption{Configuración y entrenamiento de los modelos de detección de anomalías.}
+    \caption{Configuración y entrenamiento de Isolation Forest.}
     \label{tab:configuracion-modelos}
     \small
     \renewcommand{\arraystretch}{1.25}
 	\begin{tabular*}{\textwidth}{
         @{}
-		p{0.20\textwidth}
-		p{0.36\textwidth}
-		p{0.36\textwidth}
+		p{0.25\textwidth}
+		p{0.70\textwidth}
 		@ {\extracolsep{\fill}}
     }
 		\hline
         \textbf{Aspecto} &
-        \textbf{Isolation Forest} &
-        \textbf{LSTM Autoencoder} \\
+        \textbf{Isolation Forest} \\
 		\hline
 
         Unidad de análisis &
-        Par usuario-día. &
-        Secuencia de 50 eventos. \\
+        Par usuario-día. \\
 
         Estrategia de partición &
-        Temporal, con corte fijado en el 2 de agosto de 2021 (el cuantil 0,8 de la distribución de fechas al momento del primer entrenamiento), y parametrizable en el reentrenamiento para que los días de evaluación no pasen a formar parte del entrenamiento. &
-        Por usuario, con semilla fija para garantizar la reproducibilidad. \\
+        Temporal, con corte fijado en el 2 de agosto de 2021 (el cuantil 0,8 de la distribución de fechas al momento del primer entrenamiento), y parametrizable en el reentrenamiento para que los días de evaluación no pasen a formar parte del entrenamiento. \\
 
         Distribución de los datos &
         Entrenamiento: 49\,048 pares usuario-día.
-        Prueba: 12\,236 pares usuario-día. &
-        Entrenamiento: 70\,\% (163 usuarios; 111\,742 secuencias).
-        Validación: 15\,\% (35 usuarios; 20\,741 secuencias).
-        Prueba: 15\,\% (36 usuarios; 37\,254 secuencias). \\
+        Prueba: 12\,236 pares usuario-día. \\
 
         Arquitectura y configuración &
-        200 árboles y parámetro de contaminación de 0,02. &
-        Codificador con dos capas LSTM de 64 y 32 unidades, \emph{embedding} de dimensión 8 y decodificador simétrico. Total: 67\,375 parámetros. \\
-
-        Entrenamiento &
-        No requiere optimización iterativa. &
-        Optimizador Adam, lotes de 128 secuencias y detención temprana. \\
-
-        Resultado del entrenamiento &
-        No aplica. &
-        Finalización en la época 22, con una pérdida de validación de 0,0805. \\
+        200 árboles y parámetro de contaminación de 0,02. No requiere optimización iterativa. \\
 
         Criterio de detección &
-        Umbral de puntuación determinado por el parámetro de contaminación. &
-        Error de reconstrucción superior al percentil 95 de los errores de entrenamiento (0,1180). \\
+        Umbral de puntuación determinado por el parámetro de contaminación. \\
 
 		\hline
 	\end{tabular*}
 {\small Fuente: elaboración propia.\par}
 \end{table}
 
-El umbral del LSTM de la tabla describe el comportamiento del modelo sobre los conjuntos de entrenamiento y prueba (sección~\ref{sec:metricas-no-supervisadas}). En la versión 1 del sistema, el LSTM marca una anomalía cuando el error medio de reconstrucción del usuario, expresado como percentil respecto de la distribución de referencia del entrenamiento, supera el percentil 95. En el sistema actual, el LSTM solo interviene en el camino alternativo \texttt{lstm} (sección~\ref{sec:caminos-alternativos}).
-
 Sobre el puntaje de Isolation Forest se aplica una calibración por cuantiles: los valores 0,80, 0,95 y 0,99 de la distribución de puntajes en los días reales de entrenamiento se hacen corresponder con la escala de los umbrales, de modo que el nivel medio, el alto y el crítico representen aproximadamente el 20\,\%, el 5\,\% y el 1\,\% de los días. La calibración se aplica cuando el usuario tiene al menos tres días de historia en los últimos 90; antes de ese plazo se usa el puntaje sin calibrar. Para la evaluación, los usuarios se reparten en dos particiones fijas: DEV (63 usuarios), que se usa para el desarrollo y para el criterio de promoción, y HOLDOUT (60 usuarios), reservada para la evaluación final.
 
-En el camino por defecto, el puntaje del usuario es el de Isolation Forest calibrado, sobre el que se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados son 40, 70 y 90. La detección de novedad no modifica el puntaje: cuando el usuario accede a recursos nuevos en una cantidad superior al cuantil poblacional, eleva el nivel a alto por medio de la regla de piso. En la versión 1 (camino \texttt{lstm}), el puntaje combina Isolation Forest y el LSTM con igual peso.
-
-La diferencia entre los esquemas de partición también tiene implicaciones para la evaluación conjunta. Mientras que la división temporal de Isolation Forest permite analizar su capacidad para generalizar a registros futuros, la partición por usuario del LSTM Autoencoder permite evaluar su desempeño sobre usuarios no vistos durante el entrenamiento. Sin embargo, solo 15 usuarios coinciden en los conjuntos de prueba de ambos modelos, lo que limita la comparación conjunta de sus resultados. Esta restricción se considera en la evaluación presentada en la sección~\ref{sec:evaluacion-modelo}.
+En el camino por defecto, el puntaje del usuario es el de Isolation Forest calibrado, sobre el que se aplica un decaimiento temporal con una vida media de 3 días. Los umbrales predeterminados son 40, 70 y 90. La detección de novedad no modifica el puntaje: cuando el usuario accede a recursos nuevos en una cantidad superior al cuantil poblacional, eleva el nivel a alto por medio de la regla de piso.
 
 \subsection{Detección de novedad de recurso}
 \label{sec:novedad-recurso}
@@ -159,7 +133,7 @@ La detección de novedad mantiene, para cada usuario, los recursos utilizados en
 
 \subsection{Caminos alternativos}
 \label{sec:caminos-alternativos}
-La variable de configuración \texttt{SCORING\_\allowbreak{}TERCER\_\allowbreak{}MODELO} permite seleccionar otros dos caminos sin modificar el código. Con el valor \texttt{markov}, se suma un perfil de transición por usuario de orden 2, en el que cada símbolo combina el tipo de evento y una franja de 6 horas en hora local, sobre una ventana de 90 días; el puntaje del día es el máximo calibrado entre Isolation Forest y el perfil de Markov. Con el valor \texttt{lstm}, el sistema vuelve exactamente a la versión 1. Solo este último camino requiere TensorFlow.
+La variable de configuración \texttt{SCORING\_\allowbreak{}TERCER\_\allowbreak{}MODELO} permite seleccionar otros dos caminos sin modificar el código. Con el valor \texttt{markov}, se suma un perfil de transición por usuario de orden 2, en el que cada símbolo combina el tipo de evento y una franja de 6 horas en hora local, sobre una ventana de 90 días; el puntaje del día es el máximo calibrado entre Isolation Forest y el perfil de Markov. Con el valor \texttt{lstm}, el sistema vuelve exactamente a la versión 1, que suma un LSTM Autoencoder sobre secuencias de 50 eventos consecutivos de cada usuario, con partición por usuario y umbral en el percentil 95 del error de reconstrucción del entrenamiento, y combina su puntaje con el de Isolation Forest con igual peso. Se retiró del camino por defecto porque no aprovecha el orden de los eventos (sección~\ref{sec:revision-diagnostico}). Solo este último camino requiere TensorFlow.
 
 
 \section{Adaptación de la telemetría del agente}
@@ -198,11 +172,11 @@ El agente observa un \emph{endpoint} Windows, mientras que el modelo se entrena 
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-En esta tabla, las variables generales son la cantidad de eventos, la variedad de tipos, la hora promedio, la proporción fuera de horario y la entropía. El LSTM utiliza para todos los eventos el tipo codificado, la información temporal y los indicadores de cambio.
+En esta tabla, las variables generales son la cantidad de eventos, la variedad de tipos, la hora promedio, la proporción fuera de horario y la entropía.
 
 Esta correspondencia constituye una decisión de diseño que permite reutilizar un modelo entrenado con datos reales, en lugar de recurrir a uno entrenado con datos sintéticos. Sin embargo, es importante tener en cuenta algunas limitaciones. En primer lugar, ninguno de los tipos de evento utilizados representa de forma nativa la ejecución de un proceso o una conexión de red. Los eventos de aplicación de CLUE-LDS corresponden a aplicaciones de la propia plataforma, mientras que el acceso a un recurso compartido públicamente se utiliza como una aproximación semántica a una conexión saliente.
 
-En consecuencia, el modelo analiza los tipos de evento y su distribución temporal, pero no considera el nombre del proceso, el archivo involucrado ni el destino de la conexión. Por lo tanto, no identifica directamente procesos inusuales o destinos de red sospechosos, sino que detecta variaciones en el volumen, la diversidad y los horarios de la actividad. A estas limitaciones se suma que el 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, lo que reduce considerablemente la variabilidad de la variable de cambio de país durante el entrenamiento. Por último, el indicador de dirección local enviado por el agente describe la red del equipo y no la de la conexión, por lo que no se utiliza como entrada del modelo.
+En consecuencia, el modelo analiza los tipos de evento y su distribución temporal, pero no considera el nombre del proceso, el archivo involucrado ni el destino de la conexión. Por lo tanto, no identifica directamente procesos inusuales o destinos de red sospechosos, sino que detecta variaciones en el volumen, la diversidad y los horarios de la actividad. A estas limitaciones se suma que el 99,95\,\% de los eventos utilizados tiene el país registrado como desconocido, lo que reduce considerablemente la variabilidad de la diversidad de países durante el entrenamiento. Por último, el indicador de dirección local enviado por el agente describe la red del equipo y no la de la conexión, por lo que no se utiliza como entrada del modelo.
 
 La forma de eliminar esta transferencia de dominio es reentrenar el modelo con telemetría propia de \emph{endpoints}, recolectada por el agente durante un período de operación real. El mecanismo de reentrenamiento periódico ya incorpora los eventos crudos recibidos como insumo, con el corte temporal fijo (sección~\ref{sub:particion-parametros}), aunque el reentrenamiento con datos de CLUE-LDS se puede aislar de los del agente (\texttt{PFI\_\allowbreak{}ORIGEN\_\allowbreak{}REENTRENAMIENTO=\allowbreak{}clue}). La medición sobre LANL 2017 cuantifica la brecha: aplicado a telemetría de \emph{host}, el Isolation Forest entrenado con CLUE-LDS marca el 53,66\,\% de los días, contra el 4,13\,\% de un Isolation Forest entrenado en ese dominio (sección~\ref{sec:revision-transferencia}).
 
@@ -273,4 +247,4 @@ La mayoría de estas claves gestiona el vencimiento desde la aplicación: la fec
 
 \section{Síntesis}
 \label{sec:sintesis-datos}
-El modelo se entrena con 8,5 millones de eventos reales de 908 usuarios, sin etiquetas. El camino por defecto combina Isolation Forest, que trabaja sobre variables diarias, con la detección de novedad de recurso; el LSTM, sobre secuencias de 50 eventos, y el perfil de Markov quedan como caminos alternativos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.
+El modelo se entrena con 8,5 millones de eventos reales de 908 usuarios, sin etiquetas. El camino por defecto combina Isolation Forest, que trabaja sobre variables diarias, con la detección de novedad de recurso; el perfil de Markov y la versión 1 con LSTM quedan como caminos alternativos. La telemetría del agente se traduce al vocabulario del conjunto de datos, lo que permite usar un modelo entrenado con datos reales, a costa de una transferencia de dominio que limita qué patrones puede reconocer. El sistema separa el estado operativo, en Redis, del historial auditable, en PostgreSQL, y protege la integridad de los eventos crudos con una cadena de \emph{hashes}.

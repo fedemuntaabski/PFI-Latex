@@ -149,7 +149,7 @@ Cada componente se mide por separado con su propia suite: la API con los artefac
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-En integración continua, la API se mide sin los modelos entrenados, por lo que el núcleo de \emph{scoring} no se ejercita: esa medición da un 87,65\,\% de líneas y un 85,70\,\% de líneas y ramas, y funciona como protección contra regresiones, no como evidencia del objetivo.
+En integración continua, la API se mide sin los modelos entrenados, por lo que el núcleo de \emph{scoring} no se ejercita: esa medición (sección~\ref{sec:integracion-continua}) funciona como protección contra regresiones, no como evidencia del objetivo.
 
 \textbf{\emph{Frontend}.} El \emph{dashboard} queda fuera del umbral, y se declara así explícitamente. Por una invariante de la arquitectura, el \emph{frontend} no contiene lógica de negocio: no calcula el puntaje, no aplica el decaimiento ni combina modelos. Solo muestra lo que expone la API y edita la configuración operativa, que la API valida. El riesgo funcional del sistema reside en la API y en el agente, que son los componentes medidos. El \emph{frontend} se valida con análisis estático y verificación de tipos en cada \emph{push}, y de forma manual contra la API.
 
@@ -158,7 +158,7 @@ Los requerimientos funcionales tienen prueba automatizada, salvo RF-08 (ejecuci�
 
 \section{Pruebas funcionales de extremo a extremo}
 \label{sec:pruebas-e2e}
-La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida con una prueba automatizada que reproduce el guion de la demostración: 46 eventos, de los cuales 9 son de calentamiento, 31 de exfiltración de archivos y 6 desde un país simulado. El agente usa su código real para construir cada evento, interpretar la respuesta y confirmar la acción, y la API decide con los modelos entrenados. La suite fija el camino \texttt{lstm} de la versión~1, pero como el guion no completa una secuencia de 50 eventos, el puntaje proviene solo de Isolation Forest; con el camino por defecto, el mismo guion alcanza el nivel alto en el evento 15 y el crítico en el 44, con la misma acción. Únicamente los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) se reemplazan por un registro en memoria. La prueba verifica que:
+La integración entre el punto de decisión (API) y el punto de aplicación (agente) se valida con una prueba automatizada que reproduce el guion de la demostración: 46 eventos, de los cuales 9 son de calentamiento, 31 de exfiltración de archivos y 6 desde un país simulado. El agente usa su código real para construir cada evento, interpretar la respuesta y confirmar la acción, y la API decide con los modelos entrenados. La suite fija el camino \texttt{lstm} de la versión~1, pero como el guion no completa una secuencia de 50 eventos, el puntaje proviene solo de Isolation Forest; con el camino por defecto, el mismo guion produce la misma secuencia de niveles y la misma acción (ensayo de la cadena de decisión, más abajo). Únicamente los efectos sobre el sistema operativo (terminar procesos y denegar la carpeta) se reemplazan por un registro en memoria. La prueba verifica que:
 \begin{itemize}
 	\item cada evento recibe puntaje, nivel y una acción coherente con la política configurada;
 	\item el nivel escala hasta alto y luego crítico;
@@ -233,7 +233,7 @@ Con esta topología, la latencia extremo a extremo depende de la distancia entre
 La consulta que alimenta la pantalla principal del \emph{dashboard} se optimizó después de esta medición. Recorrer las claves de Redis en lotes de 1\,000 en lugar de 10 y leer el estado de todos los usuarios en una sola operación redujo el tiempo de recorrido de 2,18~s a 0,12~s, con 388 claves contra el Redis gestionado, y el de lectura de 0,32~s a 0,05~s, con 7 usuarios. En la instancia, la consulta responde en 0,40~s.
 
 \subsection{Verificación del despliegue}\label{sec:verificacion-despliegue}
-En la instancia corre la release vigente, \texttt{20261114-221354-3634c38}, del 14 de noviembre de 2026; tras su instalación, el listado de usuarios responde en 0,40~s. Las verificaciones siguientes se realizaron sobre esa release el 15 de noviembre de 2026. La API corre con Python 3.11.16 y el camino por defecto, y carga solo sus artefactos (Isolation Forest, su escalador, la codificación de tipos, la configuración del puntaje y las referencias de entrenamiento); los seis archivos de modelo de ese camino, incluida la calibración, tienen el mismo SHA-256 que los del repositorio local. Desde el exterior, el certificado TLS de Let's Encrypt es válido y el HTTP redirige a HTTPS con un código 308, la documentación interactiva está deshabilitada y responde 404, y la recepción de eventos devuelve 401 sin clave y con una clave falsa, y 200 con una clave de agente válida. Tras detener y volver a arrancar la instancia, el servicio vuelve a estar listo por HTTPS en 41~s, sin intervención, con los artefactos cargados y las conexiones a Redis y PostgreSQL activas.
+En la instancia corre la release vigente, \texttt{20261114-221354-3634c38}, del 14 de noviembre de 2026. Las verificaciones siguientes se realizaron sobre esa release el 15 de noviembre de 2026. La API corre con Python 3.11.16 y el camino por defecto, y carga solo sus artefactos (Isolation Forest, su escalador, la codificación de tipos, la configuración del puntaje y las referencias de entrenamiento); los seis archivos de modelo de ese camino, incluida la calibración, tienen el mismo SHA-256 que los del repositorio local. Desde el exterior, el certificado TLS de Let's Encrypt es válido y el HTTP redirige a HTTPS con un código 308, la documentación interactiva está deshabilitada y responde 404, y la recepción de eventos devuelve 401 sin clave y con una clave falsa, y 200 con una clave de agente válida. Tras detener y volver a arrancar la instancia, el servicio vuelve a estar listo por HTTPS en 41~s, sin intervención, con los artefactos cargados y las conexiones a Redis y PostgreSQL activas.
 
 La suite de la release, ejecutada en la instancia con el Python de producción y en un entorno aislado, da 496 pruebas aprobadas, 4 omitidas y 7 con error, con una cobertura de la API del 91,38\,\% de líneas y del 89,63\,\% combinada. Los errores no son fallas del código: la release no incluye los \emph{scripts} fuera de línea que importan cinco archivos de prueba ni el código del agente que usa la prueba de extremo a extremo.
 
@@ -245,8 +245,6 @@ Sobre la instancia se verifica, además, el funcionamiento de extremo a extremo:
 \end{description}
 
 La demostración de extremo a extremo sobre la nube con el camino por defecto se ejecutó el 8 de noviembre de 2026, con 3 de 3 ensayos correctos: el nivel crítico se alcanza entre 33,8 y 40,3~s después de iniciado el ataque, y la acción de terminar procesos y denegar la carpeta se confirma entre 46,3 y 49,1~s.
-
-El control de acceso, la revocación de la clave y el rearranque tras detener la instancia se verificaron previamente sobre la misma instancia.
 
 \subsection{Consumo de recursos del agente (RNF-02)}
 Para RNF-02 se registra, cada 5~s durante 30 minutos de uso normal del equipo, el consumo de CPU del proceso del agente, normalizado sobre el total de núcleos lógicos, y su memoria residente. El agente se ejecuta en modo de simulación de mitigaciones, de modo que la medición refleja la captura y el envío de eventos sin efectos sobre el equipo. El umbral es un consumo medio de CPU menor o igual al 5\,\% de la máquina y una memoria residente menor o igual a 150~MB. La medición se realiza en un equipo con Windows~11 Pro y 16 núcleos lógicos: se toman 360 muestras sin pérdidas y el agente envía unos 112 eventos, todos respondidos. La tabla~\ref{tab:rnf02} presenta los resultados.
@@ -404,7 +402,7 @@ Sobre LANL 2017, el Isolation Forest entrenado con CLUE-LDS marca el 53,66\,\% d
 
 \section{Evaluación del camino por defecto}
 \label{sec:evaluacion-default}
-Sin ataques etiquetados en el dominio, el camino por defecto se evalúa por su ruido y su estabilidad. Sobre los días reales de DEV, la tasa de falsos positivos en nivel alto es del 2,66\,\%, con un percentil 90 semanal de 4,95\,\%, y el 1,29\,\% de los días termina en alto. La versión 1, evaluada una única vez sobre HOLDOUT, había mostrado una tasa del 4\,\% en los negativos y del 5\,\% en la población de prueba. Estos valores cumplen la meta de ruido de la sección~\ref{sec:metas-modelo}. No permiten afirmar una capacidad de detección: menos alertas, sin etiquetas, también puede significar menor sensibilidad.
+Sin ataques etiquetados en el dominio, el camino por defecto se evalúa por su ruido y su estabilidad. Sobre los días reales de DEV, la tasa de falsos positivos en nivel alto es del 2,66\,\%, con un percentil 90 semanal de 4,95\,\%, y el 1,29\,\% de los días termina en alto; la versión 1, sobre HOLDOUT, había mostrado una tasa del 4\,\% en los negativos y del 5\,\% en la población de prueba (sección~\ref{sec:limitaciones-pruebas}). Estos valores cumplen la meta de ruido de la sección~\ref{sec:metas-modelo}. No permiten afirmar una capacidad de detección: menos alertas, sin etiquetas, también puede significar menor sensibilidad.
 
 \section{Evaluación de usabilidad}
 \label{sec:evaluacion-usabilidad}
@@ -441,8 +439,6 @@ La tabla~\ref{tab:decisiones-pruebas} resume las decisiones de diseño e impleme
 	\hline
 	La integración continua falla en un entorno limpio porque las pruebas requieren los modelos entrenados. & Incorporar artefactos simulados para la integración continua y ejecutar localmente las pruebas que necesitan los modelos reales. \\
 	\hline
-	El 19,6\,\% de los usuarios del conjunto de datos nunca completa una secuencia de 50 eventos para el LSTM. & Mantener el puntaje con Isolation Forest para esos usuarios (cobertura parcial) y declararlo como limitación. \\
-	\hline
 	El disparador de la cadena de \emph{hashes} agrega 0,042~ms por inserción y no produce errores con hasta 50 escrituras concurrentes. & Mantener la configuración del grupo de conexiones a la base de datos sin ampliarla. \\
 	\hline
 	Los escenarios construidos no representan ataques reales y orientaban las decisiones. & Evaluar solo con datos reales y retirar los escenarios S1--S7. \\
@@ -477,8 +473,6 @@ Las decisiones sobre los modelos que surgen de la revisión con datos reales se 
 	\item La integración con Microsoft Entra ID se prueba solo con respuestas simuladas, sin un \emph{tenant} real; la de Keycloak se verifica contra un servidor real.
 	\item La evaluación de usabilidad es heurística y la realiza el propio equipo: no incluye pruebas con administradores de seguridad externos, que quedan como la siguiente validación del panel.
 \end{itemize}
-
-La detección de novedad y el criterio de promoción se evaluaron sobre días reales de CLUE-LDS y LANL 2017, sin ataques etiquetados.
 
 \section{Síntesis}
 \label{sec:sintesis-pruebas}
