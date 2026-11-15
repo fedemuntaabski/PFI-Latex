@@ -39,10 +39,12 @@
 \node[mod] (xai)  at (-4.4,-8.0) {explainability};
 \node[mod] (cov)  at ( 0.0,-8.0) {coverage};
 \node[mod] (art)  at ( 4.4,-8.0) {artifacts};
+\node[mod] (nov)  at (-4.4,-9.3) {novedad_service};
+\node[mod] (mark) at ( 0.0,-9.3) {markov_service};
 \begin{scope}[on background layer]
-\node[pkg=cPdp!60, fit=(hyb)(lstm)(xai)(art)] (pB) {};
+\node[pkg=cPdp!60, fit=(hyb)(lstm)(xai)(art)(nov)] (pB) {};
 \end{scope}
-\node[zonatit, anchor=south west] at ([yshift=0.5mm]pB.north west) {B · scoring híbrido (04b)};
+\node[zonatit, anchor=south west] at ([yshift=0.5mm]pB.north west) {B · scoring (04b)};
 
 % ---- C: IAM, auth, dedup, notificaciones
 \node[mod] (iams)  at (12.6,-4.7) {iam_service};

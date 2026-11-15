@@ -46,8 +46,8 @@
 % ===================== API
 \node[p] (p1) at (8,-8.4) {\textbf{Autenticación}\\ require_agent_key: sha256(key) → \texttt{scoring:agent_key:*}\\ autorizar_agente: agent_id y uid de la key (403)};
 \node[decision, fill=white] (p2) at (8,-11.4) {dedup\\sha256 evento};
-\node[p] (p3) at (8,-14.6) {\textbf{process_event → \_mutate} (WATCH/MULTI/EXEC)\\ IsolationForest sobre agregado diario (8 features)\\ LSTM autoencoder sobre secuencia de 50 eventos\\ baseline personal (Welford) + blend, drift};
-\node[p] (p4) at (8,-18.4) {\textbf{Score híbrido y decisión}\\ w_iso = 0,5 · decay vida media 3 días\\ regla de piso (anomalía ⇒ ≥ alto)\\ umbrales 40/70/90 → bajo/medio/alto/critico\\ → accion_id + explicación top-3 (z-score)};
+\node[p] (p3) at (8,-14.6) {\textbf{process_event → \_mutate} (WATCH/MULTI/EXEC)\\ IsolationForest sobre agregado diario (8 features)\\ novedad de recurso (primer acceso en 90 días)\\ baseline personal (Welford) + blend, drift};
+\node[p] (p4) at (8,-18.4) {\textbf{Score y decisión}\\ Isolation Forest calibrado + novedad · decay vida media 3 días\\ regla de piso (anomalía ⇒ ≥ alto)\\ umbrales 40/70/90 → bajo/medio/alto/critico\\ → accion_id + explicación top-3 (z-score)};
 \node[p] (p5) at (8,-22.4) {\textbf{Post-proceso (fuera de \_mutate)}\\ eventos_crudos · cierre de día · drift_alerts\\ sincronización IAM · notificar_admin};
 \node[p] (p6) at (8,-25.6) {\textbf{Respuesta EventoScoreOut}\\ risk_score_hibrido, nivel_sugerido, accion_id, cobertura, explicacion, en_aprendizaje};
 \node[p] (p7) at (8,-28.4) {\textbf{Registro de confirmación}\\ last_confirmacion_* en el estado del uid};

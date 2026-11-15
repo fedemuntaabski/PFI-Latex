@@ -38,7 +38,7 @@
 % ===================== AWS
 \node[cmp=white] (caddy) at (0,7.6) {\st{component} \textbf{Caddy} (proxy inverso)\\ :80 / :443 · TLS Let's Encrypt\\ \texttt{<ip>.sslip.io} · HSTS};
 \node[cmp=cUi] (spa) at (0,11.6) {\st{artifact} \textbf{SPA React} (build Vite)\\ \texttt{/srv/pfi-frontend}\\ React 19 · React Query · zod};
-\node[cmp=cPdp, text width=6.2cm, minimum height=3.4cm] (api) at (0,1.2) {\st{component} \textbf{API de scoring · PDP}\\ FastAPI + uvicorn\\ \texttt{app.scoring.main:app} · 127.0.0.1:8001\\[2pt] routes · auth · dedup · hybrid_service\\ IsolationForest + LSTM AE (TensorFlow, in-process)\\ iam_service · notifications\\ (scheduler deshabilitado en EC2)};
+\node[cmp=cPdp, text width=6.2cm, minimum height=3.4cm] (api) at (0,1.2) {\st{component} \textbf{API de scoring · PDP}\\ FastAPI + uvicorn\\ \texttt{app.scoring.main:app} · 127.0.0.1:8001\\[2pt] routes · auth · dedup · hybrid_service\\ IsolationForest + novedad (in-process)\\ iam_service · notifications\\ (scheduler deshabilitado en EC2)};
 \node[cmp=cExt] (kc) at (7.6,11.6) {\st{component} \textbf{Keycloak 26}\\ realm \texttt{ueba-demo} · 127.0.0.1:8080/auth\\ H2 en EBS · flujo \texttt{browser-ueba} (OTP si riesgo alto|critico)};
 \node[cmp=cDato] (art) at (0,-5.6) {\st{artifact} \textbf{Artefactos de modelo}\\ isolation_forest.joblib · lstm_autoencoder.keras · scalers .pkl · config_score_hibrido.json};
 \begin{scope}[on background layer]
