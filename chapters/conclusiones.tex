@@ -9,7 +9,7 @@ limitación del sistema.
 El objetivo general se cumple en su alcance funcional: el sistema evalúa cada evento durante toda
 la sesión, mantiene un puntaje de riesgo con continuidad entre sesiones y ejecuta en el equipo una
 respuesta graduada, con la decisión centralizada en la API y la aplicación distribuida en los
-agentes. Siete de los nueve objetivos específicos se cumplen y dos se cumplen en forma parcial: el segundo, referido al modelo híbrido, y el sexto, referido al reentrenamiento. La tabla~\ref{tab:cumplimiento-objetivos} detalla la evidencia de cada uno.
+agentes. Siete de los nueve objetivos específicos se cumplen y dos se cumplen en forma parcial: el segundo, referido al modelo de detección, y el sexto, referido al reentrenamiento. La tabla~\ref{tab:cumplimiento-objetivos} detalla la evidencia de cada uno.
 
 \begin{longtable}{p{5.0cm}p{9.0cm}}
 \caption{Cumplimiento de los objetivos específicos}\label{tab:cumplimiento-objetivos}\\
@@ -22,7 +22,7 @@ Objetivo & Evidencia \\
 \hline
 \endhead
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos (RF-01, RNF-08); TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13); credencial individual, revocable y ligada al agente y a sus usuarios (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria (RNF-02); verificado con un agente real contra la instancia por HTTPS (sección~\ref{sec:verificacion-despliegue}) \\
-2. Modelo híbrido evaluado contra metas & \textbf{Parcial.} El ruido y la estabilidad del camino por defecto están medidos con datos reales (2,66\,\% de falsos positivos en alto, sección~\ref{sec:evaluacion-default}); la detección no es medible sin ataques etiquetados del dominio (tabla~\ref{tab:metas-modelo}) \\
+2. Modelo de detección evaluado contra metas & \textbf{Parcial.} El ruido y la estabilidad del camino por defecto están medidos con datos reales (2,66\,\% de falsos positivos en alto, sección~\ref{sec:evaluacion-default}); la detección no es medible sin ataques etiquetados del dominio (tabla~\ref{tab:metas-modelo}) \\
 3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados (RF-03, RF-04); percentil 95 de 13,7\,ms y percentil 99 de 18,2\,ms medidos desde el cliente en entorno local aislado (Redis en memoria); con Redis y PostgreSQL gestionados en la nube, el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia \\
 4. Respuesta graduada y reversible & Seis acciones configurables por nivel (RF-07, RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo (RNF-06), con pruebas con \texttt{icacls} simulado y una prueba de extremo a extremo del ciclo de decisión y aplicación (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente como administrador (sección~\ref{sec:sintesis-limitaciones}) \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a RF-17, RNF-07); evaluación heurística con los cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el recurso que activa la detección de novedad; en el camino \texttt{lstm}, no cubre el LSTM (RNF-11, parcial) \\

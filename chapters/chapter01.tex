@@ -23,7 +23,7 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
         (procesos, archivos y conexiones de red), los envíe a una API central por un canal cifrado
         con TLS, autenticándose con una credencial individual por agente, y consuma como máximo el 5\,\% de la CPU y
         150\,MB de memoria residente.
-  \item Entrenar un modelo híbrido de detección de anomalías (Isolation Forest y LSTM Autoencoder)
+  \item Entrenar un modelo no supervisado de detección de anomalías
         sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo con datos reales,
         en una partición de desarrollo y un conjunto reservado (\emph{holdout}), informando la tasa de
         alertas sobre actividad normal y la estabilidad del nivel frente a las metas definidas en la sección
@@ -74,7 +74,7 @@ Para lograrlo, el sistema se organiza en tres componentes: un agente instalado e
 
 Dicho nivel de confianza no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
 
-Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de confianza y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el modelo de inteligencia artificial se reentrena para incorporar nuevos comportamientos de los usuarios, lo que permite mantener su precisión a lo largo del tiempo. El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
+Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de confianza y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el modelo de inteligencia artificial se reentrena para incorporar nuevos comportamientos de los usuarios, lo que permite mantener su vigencia a lo largo del tiempo. El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
 \section{Metodología de desarrollo}
 \label{sec:metodologia}
@@ -96,18 +96,15 @@ aprendizaje (CU-04), la integración con sistemas de gestión de identidad y el 
 ingesta, la autenticación y el canal. La planificación inicial del proyecto, previa a esta
 organización en incrementos, se presenta en el Anexo~A.
 
-El \emph{pipeline} de entrenamiento del modelo se organiza en seis fases sucesivas, desde la
-preparación del conjunto de datos hasta la exportación de los artefactos que consume la API,
-y se ejecuta en forma separada del ciclo de desarrollo del software. Las fases son el análisis exploratorio y el perfilado del conjunto de
-datos; la limpieza y la clasificación de los usuarios por volumen y tipo; la ingeniería de
-variables para ambos modelos; el entrenamiento de Isolation Forest; el entrenamiento del LSTM
-Autoencoder; y la combinación de ambos en el puntaje híbrido, que fija los pesos, la vida media
-del decaimiento y los umbrales. Antes de la última fase se ejecutan dos auditorías de
-consistencia de los datos, la segunda de carácter bloqueante. En el camino por defecto, el
-reentrenamiento ejecuta las fases 1 a 4 y reemplaza la sexta por una variante sin LSTM, que
-además exporta las referencias, la calibración y el perfil de Markov; la auditoría bloqueante y el
-entrenamiento del LSTM solo corren en el camino alternativo \texttt{lstm}
-(sección~\ref{sec:caminos-alternativos}).
+El \emph{pipeline} de entrenamiento del modelo va desde la preparación del conjunto de datos
+hasta la exportación de los artefactos que consume la API, y se ejecuta en forma separada del
+ciclo de desarrollo del software. En el camino por defecto, sus fases son el análisis
+exploratorio y el perfilado del conjunto de datos; la limpieza y la clasificación de los usuarios
+por volumen y tipo; la ingeniería de variables; el entrenamiento de Isolation Forest; y la
+configuración del puntaje, que fija la vida media del decaimiento y los umbrales y exporta las
+referencias, la calibración y el perfil de Markov. El camino alternativo \texttt{lstm} agrega el
+entrenamiento del LSTM Autoencoder, una auditoría bloqueante de consistencia de los datos y la
+combinación de ambos modelos (sección~\ref{sec:caminos-alternativos}).
 
 La gestión del trabajo se apoya en el control de versiones con ramas por funcionalidad, la
 revisión de cada cambio antes de integrarlo y un \emph{pipeline} de integración continua que ejecuta el
