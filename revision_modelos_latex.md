@@ -69,3 +69,11 @@ Rama: `revision-modelos-latex` (desde `correcciones-e75-revision`). Guía: `corr
   - 10.5.2: la meta de estabilidad dentro del día no tiene valor numérico en los insumos.
   - **Archivos huérfanos (no se borraron):** `images/pruebas/curva_umbral.pdf` y `images/pruebas/curva_umbral.png`.
 
+### Capítulo 2, Antecedentes (`chapters/chapter02.tex`)
+
+- **2.1.5:** se agregaron 2.1.5.3 "Detección de novedad por usuario", 2.1.5.4 "Perfiles de transición (cadenas de Markov)" y 2.1.5.5 "Umbrales por cuantil móvil", con el texto propuesto.
+- **2.1.6:** párrafo final sobre la regla de evaluar solo con datos reales y el retiro de los escenarios construidos, con remisiones a 10.6.1 y 10.7. El texto lo redactó el equipo, porque la guía no lo propone.
+- **Larroche (2026):** el capítulo 2 no lo cita, así que no se agregó a `biblio.bib`. Solo aparece como texto en la tabla de datos complementarios (cap. 8), con un `% TODO`.
+- Compilación: sin errores, 6 *warnings* y sin referencias indefinidas.
+- **Pendiente para el autor:** los subapartados nuevos no tienen citas bibliográficas, porque los insumos no las proponen. Conviene agregar referencias de detección de novedad, de cadenas de Markov aplicadas a UEBA y de umbrales adaptativos.
+
