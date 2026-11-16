@@ -23,7 +23,7 @@ Objetivo & Evidencia \\
 \endhead
 1. Agente liviano con canal cifrado y autenticado & Recolección de metadatos (RF-01, RNF-08); TLS en el despliegue y rechazo de \texttt{http} fuera de \emph{loopback} (RNF-13); credencial individual, revocable y ligada al agente y a sus usuarios (RF-02); consumo medio de 0,09\,\% de CPU y 33~MB de memoria (RNF-02); verificado con un agente real contra la instancia por HTTPS (sección~\ref{sec:verificacion-despliegue}) \\
 2. Modelo de detección evaluado contra metas & \textbf{Parcial.} El ruido y la estabilidad del camino por defecto están medidos con datos reales (2,66\,\% de falsos positivos en alto, sección~\ref{sec:evaluacion-default}); la detección no es medible sin ataques etiquetados del dominio (tabla~\ref{tab:metas-modelo}) \\
-3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados (RF-03, RF-04); percentil 95 de 13,7\,ms y percentil 99 de 18,2\,ms medidos desde el cliente en entorno local aislado (Redis en memoria); con Redis y PostgreSQL gestionados en la nube, el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia \\
+3. Puntaje con continuidad y latencia $\leq$ 500\,ms & Continuidad y decaimiento implementados (RF-03, RF-04); percentil 95 de 13,7\,ms y percentil 99 de 18,2\,ms medidos desde el cliente en entorno local aislado (Redis en memoria); con Redis y PostgreSQL gestionados en la nube, el percentil 95 es de 3,1\,s, dominado por unos 20 viajes de red de 124\,ms (sección~\ref{sec:latencia-aws}), que se informan sin meta propia. La meta se fijó sobre el cómputo de la evaluación; en la configuración de referencia, de extremo a extremo, no se cumple con la topología actual \\
 4. Respuesta graduada y reversible & Seis acciones configurables por nivel (RF-07, RF-08); la denegación de carpeta se revierte restaurando la ACL previa desde un respaldo (RNF-06), con pruebas con \texttt{icacls} simulado y una prueba de extremo a extremo del ciclo de decisión y aplicación (sección~\ref{sec:pruebas-e2e}); la terminación de procesos no es reversible por limitación del sistema operativo; la prueba manual de reversión da resultado satisfactorio con el agente como administrador (sección~\ref{sec:sintesis-limitaciones}) \\
 5. Panel con explicación y configuración en tiempo de ejecución & CU-02 implementado (RF-12 a RF-17, RNF-07); evaluación heurística con los cuatro problemas mayores corregidos; la explicación cubre las variables de Isolation Forest y el recurso que activa la detección de novedad; en el camino \texttt{lstm}, no cubre el LSTM (RNF-11, parcial) \\
 6. Reentrenamiento aislado y período de aprendizaje & \textbf{Parcial.} CU-03 y CU-04 implementados. El criterio de no inferioridad sobre los días reales de DEV evalúa el camino por defecto completo (RF-21); el ciclo completo promovió un candidato en un entorno aislado (2~h 30~min; 2,95\,\% frente a 2,66\,\% de falsos positivos), que no se llevó a producción (sección~\ref{sec:reentrenamiento-producto}). Falta ejecutar una promoción en producción con un modelo genuinamente nuevo \\
@@ -44,7 +44,7 @@ soluciones comerciales, y lo hace con un percentil 95 de latencia de cómputo de
  La separación entre el punto de decisión y el de aplicación permite cambiar
 umbrales y acciones sin modificar los agentes.
 
-El resultado más débil sigue siendo la capacidad de detección, que no puede medirse con los datos disponibles: ningún conjunto del dominio incluye ataques etiquetados. La revisión de modelos permitió, sin embargo, reemplazar un componente que no cumplía su propósito (el LSTM Autoencoder) y reducir el ruido de forma medible: la tasa de falsos positivos en nivel alto bajó del 5,37\,\% al 2,66\,\% y la oscilación del nivel dentro del día, del 14,04\,\% al 2,66\,\% (sección~\ref{sec:revision-evolucion}). La medición sobre telemetría de \emph{host} mostró, además, que el modelo entrenado en la nube no está calibrado para ese dominio, lo que define el principal trabajo futuro (sección~\ref{sec:revision-transferencia}).
+El resultado más débil sigue siendo la capacidad de detección, que no puede medirse con los datos disponibles: ningún conjunto del dominio incluye ataques etiquetados. La revisión de modelos permitió, sin embargo, reemplazar un componente que no cumplía su propósito (el LSTM Autoencoder) y reducir el ruido de forma medible: la tasa de falsos positivos en nivel alto bajó del 5,37\,\% al 2,66\,\% y los días con algún evento en nivel alto, del 14,04\,\% al 2,66\,\% (sección~\ref{sec:revision-evolucion}). La medición sobre telemetría de \emph{host} mostró, además, que el modelo entrenado en la nube no está calibrado para ese dominio, lo que define el principal trabajo futuro (sección~\ref{sec:revision-transferencia}).
 
 El análisis económico muestra que el producto puede ser rentable en un escenario de adopción
 moderada, con un VAN de USD 83.059 al 25\,\%; en el escenario pesimista no recupera la inversión (VAN de USD $-$183.466), por lo que su viabilidad depende de la velocidad de
@@ -60,14 +60,13 @@ El trabajo futuro se prioriza según el impacto sobre la principal limitación d
   \item \textbf{Detección medible}: obtener incidentes etiquetados del dominio para medir la detección.
   \item \textbf{Latencia en la nube}: reducir la latencia, ubicando la API junto a los servicios de datos
         y sacando la notificación del procesamiento del evento (sección~\ref{sec:latencia-aws}).
-  \item \textbf{Retención y acceso}: definir la retención de los eventos crudos, la anonimización del
-        identificador de usuario y un límite de intentos en el inicio de sesión.
+  \item \textbf{Acceso}: agregar un límite de intentos en el inicio de sesión del panel.
   \item \textbf{Modelos}: incorporar variables con granularidad menor al día, reemplazar las variables
         de país dentro de los modelos por una regla explícita de ubicación en el motor de decisión,
         revisar el componente personal en usuarios con historial escaso y reunir evidencia de
         detección para el camino \texttt{markov} (sección~\ref{sec:revision-modelos}).
-  \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período y
-        un plazo de conservación configurable (sección~\ref{sec:tratamiento-datos}), y la seudonimización de la telemetría usada en el reentrenamiento.
+  \item \textbf{Conservación de datos}: implementar el cierre de la cadena de hashes por período,
+        un plazo de conservación configurable para los eventos crudos (sección~\ref{sec:tratamiento-datos}) y la seudonimización del identificador de usuario en la telemetría usada en el reentrenamiento.
   \item \textbf{Redacción asistida del correo}: evaluar el envío de variables agregadas en lugar de
         nombres crudos y probar los controles contra el servicio real (sección~\ref{sec:prompt-injection}).
   \item \textbf{Pruebas}: agregar pruebas al \emph{frontend}, a la cadena de hashes (RNF-09) y a la concurrencia con varios usuarios (RNF-14), automatizar la verificación de las mitigaciones en el equipo y medir la latencia con

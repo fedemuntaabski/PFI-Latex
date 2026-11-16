@@ -32,7 +32,7 @@ centro de operaciones de seguridad propio; unas 10.500 empresas emplean entre 51
 datos o sistemas de criticidad media-alta o alta, como indicio y no como estimación del segmento (muestra por conveniencia, sección~\ref{sec:encuesta-usuarios}). \\
 Propuesta de valor & Detección del uso indebido de una sesión válida y respuesta automática en el
 propio equipo, sin depender de un analista ni de una plataforma de orquestación externa, con
-la explicación de las variables que más contribuyen a cada alerta y a un precio acorde al presupuesto de una PyME. \\
+la explicación de las variables que más se desvían en cada alerta y a un precio acorde al presupuesto de una PyME. \\
 Canales & Venta directa, con alta autogestionada prevista, y reventa a través de integradores y MSSP que ya
 atienden PyMEs. La elección del canal de reventa es consistente con la encuesta, donde la
 recomendación de proveedores es el factor de adopción más mencionado (21\,\%)
@@ -65,8 +65,8 @@ equipo (USD 0,10), las comisiones de pago e impuestos sobre ventas (6\,\%) y la 
 
 El costo variable de nube se estima a partir de los gastos del despliegue y no como un valor por
 equipo fijado de antemano. Con la carga medida en el prototipo (unos 3,7 eventos por minuto por equipo,
-o unos 37.000 eventos al mes en jornadas de 8 horas), cada evento requiere unos 17 comandos a Redis y una
-escritura en PostgreSQL. A esa escala los servicios gestionados conviene contratarlos por plan y no por uso:
+o unos 37.000 eventos al mes en jornadas de 8 horas), cada evento requiere unos 17 comandos a Redis y unas 4
+operaciones en PostgreSQL (sección~\ref{sec:latencia-aws}). A esa escala los servicios gestionados conviene contratarlos por plan y no por uso:
 Redis con un plan fijo de USD 20 por mes admite hasta 10.000 comandos por segundo,
 mientras que el cobro por comando (USD 0,20 cada 100.000, unos USD 1,30 por equipo y por mes) solo resulta
 más barato por debajo de 16 equipos en total. PostgreSQL gestionado (plan Pro de USD 25 por mes con 8~GB
@@ -164,7 +164,7 @@ siguiente), con sensibilidad entre 20\,\% y 35\,\%. \\
 La tasa de descuento se construye por acumulación. Parte del rendimiento del bono del Tesoro de los
 Estados Unidos a diez años, cercano al 5,3\,\% según la serie DGS10 de la Reserva Federal de
 St.~Louis \parencite{FRED2026DGS10}, y le suma el riesgo país de Argentina, de 650 puntos básicos,
-su máximo del año según el índice de J.\,P.~Morgan \parencite{MENDEZ2026RiesgoPais}. El resultado,
+el máximo del año al 2 de octubre de 2026 según el índice de J.\,P.~Morgan \parencite{MENDEZ2026RiesgoPais}. El resultado,
 cercano al 12\,\%, representa el costo de financiarse en dólares para un emisor argentino. A ese valor
 se agrega una prima por riesgo de emprendimiento de 13 a 14 puntos porcentuales, que refleja que el
 producto todavía no tiene clientes ni historial comercial. Esa prima es un supuesto del equipo y el
@@ -347,7 +347,7 @@ Los supuestos que más pesan son el costo de adquisición y el abandono (tabla~\
 
 La tabla~\ref{tab:equilibrio-fin} muestra cuándo se alcanza el equilibrio. En el escenario optimista
 se alcanza en el séptimo mes y el primer año cierra con 22 clientes frente a 12 necesarios. En el base
-se alcanza en el mes 16, a mitad del segundo año, que cierra con 41 clientes frente a 21. En el
+se alcanza en el mes 16, el cuarto del segundo año, que cierra con 41 clientes frente a 21. En el
 pesimista el tercer año cierra apenas por debajo (30 clientes frente a 31) y el equilibrio se alcanza
 recién a mediados del cuarto año, que cierra con 41 clientes frente a 37.
 

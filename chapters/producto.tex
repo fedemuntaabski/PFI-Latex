@@ -46,6 +46,8 @@ La respuesta de la API indica la acción de mitigación que corresponde aplicar.
 	\hline
 	\texttt{suspender\_proceso} & Suspende el proceso sin finalizarlo. & Reanuda el proceso. \\
 	\hline
+	\texttt{notificar\_admin} & Ninguno; el correo al administrador lo envía la API según los niveles configurados para notificar. & No corresponde. \\
+	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
@@ -87,7 +89,7 @@ Este criterio reemplaza a dos anteriores. El primero comparaba la tasa de anomal
 
 El ciclo completo se verificó en un entorno aislado: el reentrenamiento terminó y promovió un candidato en 2~h 30~min (1~h 57~min de \emph{pipeline} y 32~min de evaluación). Con el camino por defecto vigente, el candidato obtiene una tasa de falsos positivos del 2,95\,\% contra el 2,66\,\% del modelo vigente y se promueve. Ese candidato no se llevó a producción. En el despliegue en la nube, el planificador está desactivado.
 
-El Isolation Forest vigente proviene de la corrida manual de reentrenamiento del 2 de septiembre de 2026. La regla de promoción de entonces lo rechazó por diferencias del orden del ruido, pero sus artefactos quedaron cargados porque la restauración automática ante un rechazo se incorporó después, el 28 de septiembre; se adopta como vigente por la consistencia del juego completo, no como resultado de una promoción (sección~\ref{sec:evaluacion-modelo}). Sobre ese mismo modelo se regeneraron en octubre las referencias de percentil (6 de octubre) y la calibración por cuantiles (31 de octubre). Las corridas en el entorno aislado produjeron otros modelos, y ninguno se llevó al repositorio. El conjunto de variables del modelo queda versionado y, con el camino \texttt{lstm}, la salida del puntaje es la de la versión 1 (sección~\ref{sec:caminos-alternativos}).
+El Isolation Forest vigente proviene de la corrida manual de reentrenamiento del 2 de septiembre de 2026. La regla de promoción de entonces lo rechazó por diferencias del orden del ruido, pero sus artefactos quedaron cargados porque la restauración automática ante un rechazo se incorporó después, el 28 de septiembre. Su adopción como vigente es, por lo tanto, una decisión manual tomada por la consistencia del juego completo de artefactos: ese modelo no superó ningún criterio de promoción, ni el de entonces ni el actual (sección~\ref{sec:evaluacion-modelo}). Sobre ese mismo modelo se regeneraron en octubre las referencias de percentil (6 de octubre) y la calibración por cuantiles (31 de octubre). Las corridas en el entorno aislado produjeron otros modelos, y ninguno se llevó al repositorio. El conjunto de variables del modelo queda versionado y, con el camino \texttt{lstm}, la salida del puntaje es la de la versión 1 (sección~\ref{sec:caminos-alternativos}).
 
 Cada corrida queda registrada con su fecha, la cantidad de eventos y el motivo de la decisión, junto con las métricas del candidato y del modelo vigente: la tasa de falsos positivos en nivel alto o superior, su percentil 90 semanal, la cantidad de días y de usuarios evaluados y el SHA-256 de cada artefacto. El administrador puede registrar también los reentrenamientos realizados en forma manual.
 
@@ -147,7 +149,7 @@ El sistema actúa como herramienta de una organización que monitorea los equipo
 	\hline
 	Datos no excesivos (art.~4) & El agente recolecta solo metadatos de actividad (RNF-08): no captura el contenido de archivos, mensajes, pantallas ni pulsaciones de teclado. Las cuentas identificadas por dirección IP y las de volumen muy alto quedan fuera del puntaje. & Configurar las carpetas y aplicaciones vigiladas de forma acotada. \\
 	\hline
-	Consentimiento e información (arts.~5 y 6) & El panel muestra, para cada puntaje, las variables que lo explican, lo que permite informar al empleado por qué se toma una acción. & Informar a los empleados la existencia del control, su finalidad y sus derechos mediante una política de uso aceptable o una cláusula contractual. La LCT exige que los controles relativos a la actividad del trabajador sean conocidos por este (art.~71). \\
+	Consentimiento e información (arts.~5 y 6) & El panel muestra, para cada puntaje, las variables que lo explican, lo que permite informar al empleado por qué se toma una acción. & Informar a los empleados la existencia del control, su finalidad y sus derechos mediante una política de uso aceptable o una cláusula contractual. La LCT exige que los controles salvaguarden la dignidad del trabajador (art.~70) y que los sistemas de control se pongan en conocimiento de la autoridad de aplicación (art.~71). \\
 	\hline
 	Seguridad (art.~9) & Cifrado con TLS y certificado verificado entre el panel o el agente y la API en la nube (sección~\ref{sec:despliegue-nube}); el agente se niega a usar \texttt{http://} fuera de \emph{loopback}. Credencial individual por agente y \emph{token} de sesión del panel con vencimiento (sección~\ref{sec:control-acceso-producto}). Cadena de \emph{hashes} sobre los eventos crudos, seguridad a nivel de fila en las siete tablas (sección~\ref{sec:modelo-datos}) y secretos en el almacén de parámetros de la nube. Lo verificado en la instancia figura en la sección~\ref{sec:verificacion-despliegue}, y lo pendiente, en la tabla~\ref{tab:limitaciones-producto}. & Gestionar los accesos al panel y rotar las claves. \\
 	\hline
@@ -201,11 +203,11 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	\endhead
 	\multicolumn{3}{l}{\textit{Modelo y detección}} \\
 	\hline
-	Arranque en frío & Tasa de falsos positivos del 11,43\,\% en los primeros 3 días del usuario. & Período de aprendizaje que atenúa la acción. \\
+	Arranque en frío & Tasa de falsos positivos del 11,43\,\% en los primeros 3 días del usuario, con el puntaje de Isolation Forest sin calibrar. & El período de aprendizaje atenúa la acción, pero cubre solo los primeros 20 eventos (que un cuarto de los usuarios reúne en menos de una hora, sección~\ref{sec:decisiones-pruebas}) y no se aplica a los eventos de archivo, que reciben la política normal. \\
 	\hline
 	Sensibilidad baja ante ataques de corta duración & No hay \emph{recall} medible: ningún conjunto de datos del dominio trae ataques etiquetados. Se miden la tasa de falsos positivos, la estabilidad y la carga de alertas (sección~\ref{sec:revision-modelos}). & Recolectar incidentes etiquetados en el dominio del agente. \\
 	\hline
-	El país actúa como interruptor & \texttt{n\_\allowbreak{}distinct\_\allowbreak{}countries} es una de las ocho variables de Isolation Forest, de modo que un cambio de ubicación puede pesar más que el comportamiento; en la versión 1 la ubicación decidía la detección de los ataques con país. & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
+	El país actúa como interruptor & \texttt{n\_\allowbreak{}distinct\_\allowbreak{}countries} es una de las ocho variables de Isolation Forest, de modo que un cambio de ubicación puede pesar más que el comportamiento; en la versión 1 la ubicación decidía la detección de los ataques con país, y en la demostración el nivel crítico se alcanza al activar un país simulado. El país lo declara el propio agente, desde su configuración, y no se deriva de la dirección IP. & Trabajo futuro: regla explícita de ubicación en el motor de decisión, que reemplace a las variables de país dentro de los modelos. \\
 	\hline
 	Datos de entrenamiento de otro dominio (brecha nube\,$\rightarrow$\,\emph{host}) & El modelo se entrena con registros de una plataforma de archivos compartidos; los eventos del sistema operativo se traducen a ese vocabulario, y algunos no aportan a las variables de Isolation Forest. Las variables horarias se calculan en UTC, no en la hora local del usuario. El Isolation Forest de CLUE-LDS marca el 53,66\,\% de los días de \emph{host}, contra el 4,13\,\% de uno entrenado en \emph{host} (sección~\ref{sec:revision-transferencia}). & Documentado como decisión de diseño; trabajo futuro: reentrenar con telemetría propia de \emph{endpoints} y calcular las variables horarias en hora local. \\
 	\hline
@@ -232,6 +234,8 @@ La tabla~\ref{tab:limitaciones-producto} reúne las limitaciones conocidas del p
 	Sin autenticación mutua (mTLS) ni firma de las respuestas & El agente se autentica con una clave individual, de modo que una clave robada sirve para reportar los eventos del usuario al que está ligada. La integridad de las respuestas del PDP depende de TLS; la respuesta solo indica la clase de acción, y una acción desconocida no se ejecuta. & Trabajo futuro: certificados de cliente y firma de las respuestas (sección~\ref{sec:trabajo-futuro}). \\
 	\hline
 	Sin política de seguridad de contenido (CSP) en el \emph{dashboard} & El \emph{token} de sesión se guarda en el almacenamiento de sesión del navegador, por lo que un ataque de \emph{cross-site scripting} podría leerlo mientras dure la sesión. & Trabajo futuro: CSP en el proxy. El \emph{token} vence a las 8 horas y se invalida al cerrar la sesión; HSTS ya está activo en el proxy. \\
+	\hline
+	Sin límite de intentos en el inicio de sesión del panel & Un atacante con acceso al panel puede probar contraseñas sin restricción de frecuencia. & Trabajo futuro: límite de intentos por usuario y por dirección (sección~\ref{sec:trabajo-futuro}). \\
 	\hline
 	Microsoft Entra ID sin validación real & El proveedor está probado con solicitudes simuladas, sin acceso a un \emph{tenant} real. & Validación pendiente; Keycloak está validado contra un servidor real. \\
 	\hline
