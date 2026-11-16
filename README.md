@@ -57,7 +57,6 @@ pdflatex -file-line-error -interaction=errorstopmode main
   * Si compila sin ellos, no hay comentarios pendientes.
 * Generar la portada con [este enlace](https://biblioteca.uade.edu.ar/custom/web/content/biblioteca/pdf/tif-pfi/generarCaratulas/crearCaratula.html).
 * En `biblio.bib`, el campo **note** debe estar actualizado si corresponde.
-* No hacer el **resumen** ni el **abstract** hasta la entrega final.
 * Todo contenido no propio debe estar citado, incluidas imágenes y tablas.
 * El **marco teórico** solo debe incluir lo necesario para que el lector entienda la tesis.
 * La fecha completa en la portada solo en la entrega final; de lo contrario, solo el año.

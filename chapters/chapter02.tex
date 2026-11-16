@@ -181,56 +181,58 @@ Esta subsección presenta los conceptos técnicos sobre los que se construye la 
 \section{Estado del arte}
 \label{sec:estado-del-arte}
 
-Esta sección revisa las soluciones y la investigación existentes sobre detección de comportamiento anómalo y control de acceso basado en riesgo. Se analizan soluciones comerciales, trabajos académicos y enfoques alternativos, y se cierra con las limitaciones reportadas por otros autores y las tendencias emergentes.
+Esta sección revisa las soluciones y la investigación existentes sobre detección de comportamiento anómalo y control de acceso basado en riesgo. Se analizan soluciones comerciales, trabajos académicos y enfoques alternativos, cada grupo con una tabla comparativa frente al proyecto; se relevan los conjuntos de datos de referencia y se resume la cobertura de cada alternativa en una matriz de capacidades. La sección se cierra con las limitaciones reportadas por otros autores, las tendencias emergentes y una conclusión con la síntesis de diferenciadores.
+
 
 \subsection{Soluciones comerciales vigentes}
 
-Esta subsección analiza cuatro soluciones comerciales: Microsoft Sentinel UEBA, Splunk UBA, Exabeam y Microsoft Entra ID Protection. Para cada una se describen su objetivo, su funcionamiento, los datos que utiliza, los resultados que reporta y sus limitaciones.
+Esta subsección analiza cuatro soluciones comerciales: Microsoft Sentinel UEBA, Splunk UBA, Exabeam y Microsoft Entra ID Protection. Las cuatro comparten un núcleo: construyen líneas base de comportamiento a partir del historial de usuarios y entidades, asignan un puntaje de riesgo a las desviaciones y se alimentan de registros que ya existen en la organización, como los de autenticación, red y aplicaciones. En todos los casos, los resultados de detección que se publican provienen del propio fabricante, y la documentación no describe los modelos con el detalle necesario para auditarlos o reproducirlos. Lo que las distingue, y lo que interesa a este proyecto, es dónde termina el ciclo: qué hace cada una cuando el riesgo sube y si dispone de un componente propio en el equipo del usuario. Los apartados que siguen se limitan a esas diferencias.
 
 \subsubsection{Microsoft Sentinel UEBA}\label{sec:ea-sentinel}
-Microsoft Sentinel integra funciones de UEBA para enfrentar el desafío de detectar conductas atípicas que sugieran vulneraciones de cuentas, amenazas de origen interno o desplazamientos malintencionados en la infraestructura organizacional. Su objetivo principal es determinar desviaciones en las rutinas de actividad de los usuarios y diversas entidades corporativas.
-
-Su funcionamiento se basa en la construcción de perfiles de comportamiento a partir de información histórica. El sistema analiza variables como la ubicación geográfica desde la que se accede, el dispositivo utilizado, la frecuencia de determinadas acciones y el historial de actividad de cada usuario o entidad. A partir de estos datos, genera líneas base de comportamiento y calcula puntajes de riesgo que permiten identificar actividades inusuales. Una característica diferencial de Sentinel es que no limita el análisis a usuarios individuales, sino que también incluye servidores, dispositivos de red y otros componentes de infraestructura, ampliando así el alcance de la detección.
-
-Los datos utilizados provienen principalmente de registros de eventos, actividad de red, sistemas de autenticación, dispositivos y servicios integrados dentro del ecosistema de monitoreo. Esta capacidad de centralizar información de múltiples fuentes le permite construir una visión más completa del comportamiento de cada entidad analizada.
-
-Según la documentación pública del fabricante, la solución mejora la detección temprana de amenazas avanzadas y actividades anómalas que podrían pasar desapercibidas mediante mecanismos tradicionales basados únicamente en reglas o firmas. El uso de perfiles de comportamiento permite identificar riesgos incluso cuando se emplean credenciales válidas o técnicas previamente desconocidas.
-
-No obstante, la solución presenta algunas limitaciones. Su modelo de costos se basa en el volumen de datos ingeridos, lo que puede resultar elevado en organizaciones con grandes cantidades de registros. Asimismo, la integración con plataformas externas al ecosistema Microsoft puede requerir esfuerzos adicionales de configuración. Por último, existe una falta de visibilidad en el funcionamiento de sus algoritmos de detección, lo cual limita la capacidad de los administradores para auditar los fundamentos de las alertas o personalizar con precisión la lógica del sistema.
+Sentinel construye perfiles dinámicos de comportamiento no solo para usuarios, sino también para equipos, direcciones IP y aplicaciones, y compara la actividad de cada entidad con su propio historial, con su grupo de pares y con el resto de la organización \parencite{MicrosoftSentinelUEBA}. El resultado son dos puntajes: una prioridad de investigación de 0 a 10 por evento, calculada casi en tiempo real, y un puntaje de anomalía de 0 a 1 que se calcula por lotes sobre el comportamiento acumulado. Sus fuentes son los conectores de la propia plataforma, en particular Microsoft Entra ID, Defender for Identity y Office 365. La función UEBA no tiene un costo propio, pero sus datos se almacenan en las tablas de Sentinel, que se factura por el volumen de datos ingeridos, con niveles de compromiso de 100 a 50\,000~GB diarios \parencite{MicrosoftSentinelPricing}. La respuesta no forma parte de UEBA: se configura aparte, con reglas de automatización y \emph{playbooks} que orquestan otras herramientas, y Sentinel no tiene un agente propio que actúe en el equipo.
 
 \subsubsection{Splunk UBA}\label{sec:ea-splunk}
-El propósito central de Splunk User Behavior Analytics (UBA) es el descubrimiento de amenazas de origen interno, vulneraciones de cuentas y desplazamientos laterales maliciosos en la red corporativa. Esta herramienta busca reconocer conductas dudosas que los sistemas convencionales, regidos por firmas fijas o reglas preestablecidas, suelen omitir.
-
-Para lograrlo, el sistema analiza grandes volúmenes de información provenientes de diferentes fuentes de seguridad y actividad de la infraestructura. A partir de estos datos, construye perfiles de comportamiento y establece relaciones entre eventos ocurridos en distintos sistemas y momentos. Esta capacidad de correlación le permite detectar patrones complejos y asignar niveles de riesgo a las actividades observadas, ayudando a priorizar las alertas más relevantes para los equipos de seguridad.
-
-Los datos utilizados incluyen registros de autenticación, actividad de red, logs de sistemas, accesos a recursos y otra información generada por los distintos componentes tecnológicos de la organización. 
-
-Según el fabricante, Splunk UBA mejora la identificación de amenazas avanzadas y reduce la cantidad de falsos positivos en comparación con soluciones tradicionales de detección. Además, su capacidad para correlacionar eventos a lo largo del tiempo facilita la detección de ataques que se desarrollan de forma gradual y distribuida. Cabe señalar que Splunk anunció el fin de venta de Splunk UBA como producto independiente en diciembre de 2025, con fin de soporte previsto para enero de 2027 \parencite{Splunk2025UBAEoS}, y orienta a sus clientes hacia la capacidad UEBA integrada en Splunk Enterprise Security. El análisis se mantiene porque describe un enfoque UEBA representativo del segmento corporativo.
-
-Sin embargo, la solución presenta algunas limitaciones. Su puesta en marcha requiere integrar y normalizar múltiples fuentes de datos, lo que demanda conocimientos especializados para su configuración. Además, aunque permite detectar y priorizar riesgos, las acciones de respuesta suelen depender de integraciones externas o configuraciones adicionales, ya que no incorpora de forma nativa mecanismos de respuesta adaptativa basados en el nivel de riesgo detectado.
+Splunk UBA aplica algoritmos de aprendizaje no supervisado a los datos que ya indexa la plataforma Splunk, enriquecidos con información de recursos humanos para asociar las cuentas a una misma persona, y organiza el resultado en dos niveles: las anomalías, que son la evidencia, y las amenazas, que surgen cuando una secuencia de anomalías en una ventana de tiempo cumple un patrón \parencite{SplunkUBADocs}. Esa correlación temporal entre fuentes es su rasgo más característico. La integración con Splunk Enterprise Security es opcional y sirve para intercambiar eventos y amenazas; la respuesta automatizada queda a cargo de un producto aparte (Splunk SOAR). Splunk anunció el fin de venta de UBA como producto independiente en diciembre de 2025, con fin de soporte previsto para enero de 2027 \parencite{Splunk2025UBAEoS}, y orienta a sus clientes hacia la capacidad UEBA integrada en Enterprise Security. Por eso se conserva en el análisis como un enfoque representativo del segmento corporativo y no como un competidor.
 
 \subsubsection{Exabeam}\label{sec:ea-exabeam}
-Exabeam es una plataforma de seguridad orientada a la detección y respuesta ante amenazas, especialmente aquellas relacionadas con cuentas comprometidas, actividades anómalas de usuarios y ataques que logran evadir los mecanismos de detección tradicionales. Su objetivo principal es mejorar la capacidad de los equipos de seguridad para identificar incidentes complejos y reducir los tiempos de respuesta frente a posibles compromisos.
-
-Su funcionamiento combina capacidades de gestión de eventos de seguridad (SIEM), análisis de comportamiento de usuarios y entidades (UEBA) y automatización de respuestas (SOAR). A partir de la información recopilada, el sistema construye perfiles de comportamiento, correlaciona eventos provenientes de múltiples fuentes y asigna niveles de riesgo a usuarios, dispositivos y actividades. Esta combinación permite detectar patrones sospechosos que podrían pasar desapercibidos cuando los eventos se analizan de forma aislada.
-
-Los datos utilizados incluyen registros de autenticación, actividad de usuarios, eventos de red, logs de aplicaciones, sistemas de seguridad y otras fuentes de telemetría disponibles dentro de la organización. Gracias a esta diversidad de información, la plataforma puede generar una visión unificada del comportamiento observado y detectar desviaciones relevantes.
-
-Entre los resultados reportados por el fabricante, Exabeam permite mejorar la detección temprana de amenazas y acelerar los procesos de investigación y respuesta ante incidentes. Además, una de sus características más destacadas es la flexibilidad de implementación, ya que puede funcionar tanto como una plataforma independiente como integrarse con soluciones de seguridad ya existentes, ampliando sus capacidades de análisis.
-
-No obstante, la plataforma presenta algunas limitaciones. Al tratarse de una solución comercial de nivel empresarial, el funcionamiento interno de sus modelos de detección no es completamente transparente para los usuarios, lo que dificulta comprender con precisión cómo se generan ciertos resultados o alertas. Asimismo, su rendimiento depende en gran medida de la calidad y cantidad de los datos disponibles. Finalmente, la solución se apoya principalmente en fuentes de información ya existentes dentro de la infraestructura y no incorpora de forma nativa un agente ligero y configurable para la recolección directa de datos desde los equipos finales.
+Exabeam es el más cercano al proyecto en concepto, porque reúne en una misma plataforma la recolección de registros, la analítica de comportamiento con puntaje de riesgo contextual y la automatización de la respuesta mediante \emph{playbooks} \parencite{ExabeamDocs}. Esa respuesta, sin embargo, consiste en integrar y orquestar las herramientas de seguridad que la organización ya tiene. La recolección se hace con colectores de registros en la nube o en las instalaciones del cliente, y la documentación no describe un agente liviano propio que actúe en el equipo del usuario.
 
 \subsubsection{Microsoft Entra ID Protection}
 \label{sec:estado-arte-entra}
-Microsoft Entra ID Protection es una solución orientada a la protección de identidades que busca detectar accesos potencialmente comprometidos y reducir el riesgo asociado al uso indebido de credenciales. Su objetivo principal es identificar situaciones que puedan indicar la vulneración de una cuenta y aplicar medidas de protección antes de que se produzcan accesos no autorizados a los recursos de la organización.
+Entra ID Protection evalúa riesgo de identidad, no de uso del equipo. Calcula un riesgo de inicio de sesión en cada autenticación y un riesgo de usuario a partir de detecciones como el uso de direcciones IP anónimas, los ataques de rociado de contraseñas o las credenciales filtradas, y esos niveles se usan en políticas de acceso condicional que exigen un segundo factor o un cambio seguro de contraseña \parencite{MicrosoftEntraIDProtection}. Fuera del inicio de sesión, la evaluación continua de acceso (\emph{Continuous Access Evaluation}) permite que servicios como Exchange Online, SharePoint Online y Teams revoquen una sesión ante eventos críticos, entre ellos un riesgo de usuario alto, con una demora de hasta unos 15 minutos \parencite{MicrosoftCAE}. La acción, en todos los casos, es sobre el acceso a esos servicios: la solución no observa lo que el usuario hace en su equipo.
 
-Su funcionamiento se basa en la evaluación continua de señales de riesgo asociadas tanto a los usuarios como a los procesos de autenticación. Para ello, analiza distintos indicadores como ubicaciones de acceso inusuales, dispositivos desconocidos, intentos de autenticación sospechosos, credenciales filtradas y otros eventos que puedan representar una amenaza para la identidad digital del usuario. A partir de esta información, la plataforma calcula niveles de riesgo que pueden utilizarse para aplicar políticas de acceso condicional o requerir mecanismos adicionales de autenticación.
+\subsubsection{Comparación de las soluciones comerciales}\label{sec:comparacion-general}
+Vistas en conjunto, la diferencia que importa al proyecto está en dos ejes: qué se observa (la identidad o el uso del equipo) y dónde se ejecuta la respuesta (en una plataforma SOAR externa, en el proveedor de identidad, en ningún lado, o en el agente del equipo). La tabla~\ref{tab:comparacion-comercial} resume esos ejes para las cuatro soluciones, para la autenticación adaptativa de Okta y para las plataformas EDR/XDR orientadas a PyMEs, que se describen en la sección~\ref{sec:ea-okta} y en la sección~\ref{sec:ea-edr}, y los contrasta con el proyecto.
 
-Los datos utilizados provienen principalmente de eventos de autenticación, registros de actividad de usuarios, información contextual de los dispositivos y señales de seguridad recopiladas dentro del ecosistema de identidad de Microsoft. La combinación de estas fuentes permite construir una evaluación dinámica del riesgo asociado a cada acceso.
-
-Según el fabricante, la solución contribuye a detectar intentos de compromiso de cuentas de manera temprana y permite automatizar respuestas ante situaciones de riesgo elevado. Asimismo, la integración con políticas de acceso condicional facilita la aplicación de controles de seguridad adaptativos sin necesidad de intervención manual por parte de los administradores.
-
-No obstante, la solución presenta algunas limitaciones. El cálculo del riesgo se encuentra fuertemente ligado a las señales disponibles dentro del ecosistema Microsoft, lo que puede restringir la visibilidad sobre comportamientos generados en sistemas externos. Además, los criterios específicos utilizados para determinar ciertos niveles de riesgo no son completamente transparentes para los usuarios de la plataforma. Finalmente, aunque la solución reevalúa el riesgo del usuario también fuera del inicio de sesión y, mediante la evaluación continua de acceso (\emph{Continuous Access Evaluation}), puede revocar sesiones ante ciertos eventos críticos, su enfoque se encuentra principalmente orientado a la protección de identidades y no al análisis profundo del comportamiento operativo de los usuarios durante el uso continuo de los recursos.
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{1.7cm}>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{1.4cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.7cm}>{\raggedright\arraybackslash}p{2.6cm}}
+	\caption{Comparación de las soluciones comerciales con el proyecto}
+	\label{tab:comparacion-comercial}\\
+	\hline
+	\textbf{Solución} & \textbf{Tipo} & \textbf{Dónde se ejecuta la respuesta} & \textbf{Agente propio} & \textbf{Transparencia del modelo} & \textbf{Modelo de costo} & \textbf{Diferencia con el proyecto} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Solución} & \textbf{Tipo} & \textbf{Dónde se ejecuta la respuesta} & \textbf{Agente propio} & \textbf{Transparencia del modelo} & \textbf{Modelo de costo} & \textbf{Diferencia con el proyecto} \\
+	\hline
+	\endhead
+	Microsoft Sentinel UEBA & SIEM + UEBA en la nube & \emph{Playbooks} y reglas de automatización (SOAR) & No & Puntajes y motivos; modelos no publicados & Por volumen ingerido & El proyecto actúa en el equipo sin orquestación externa y su costo no depende del volumen de registros \\
+	\hline
+	Splunk UBA & UEBA sobre la plataforma Splunk & No nativa; producto aparte (SOAR) & No & Anomalías y amenazas; modelos no publicados & Licencia corporativa; fin de venta en 2025 & El proyecto cierra el ciclo detección, decisión y acción \\
+	\hline
+	Exabeam & SIEM + UEBA + automatización & \emph{Playbooks} que orquestan herramientas existentes & No (colectores de registros) & Puntaje contextual; modelos no publicados & Licencia corporativa & El agente del proyecto ejecuta la acción sobre el proceso o la carpeta \\
+	\hline
+	Microsoft Entra ID Protection & Protección de identidad & Acceso condicional y revocación de sesiones (CAE) & No & Tipo de detección; criterios no publicados & Licencia Entra ID P2 & El proyecto observa el uso del equipo durante la sesión, no solo la identidad \\
+	\hline
+	Okta Adaptive MFA & Autenticación adaptativa & Segundo factor o bloqueo en el inicio de sesión & No & Nivel de riesgo y factores & Por usuario & El proyecto cubre lo que ocurre después de conceder el acceso \\
+	\hline
+	EDR/XDR para PyMEs (Defender for Business, Wazuh) & Detección y respuesta en el equipo & En el agente, por técnica o regla & Sí & Técnica o regla que disparó la alerta & Incluido en M365 Business Premium; Wazuh gratuito & El proyecto detecta la desviación del usuario respecto de su propia conducta; es complementario \\
+	\hline
+	Proyecto propuesto & UEBA + aplicación local (PDP/PEP) & En el agente, graduada por nivel de riesgo & Sí & Código propio; variables que más se desvían o recurso nuevo & Por equipo y por mes & Fila de referencia \\
+	\hline
+\end{longtable}
+}
+{\small Fuente: elaboración propia a partir de la documentación de cada fabricante citada en esta sección; las valoraciones del proyecto propuesto son una autoevaluación del equipo.\par}
 
 \subsection{Trabajos académicos: modelos de detección de anomalías}
 
@@ -257,20 +259,49 @@ Extended Isolation Forest es una extensión del algoritmo Isolation Forest orien
 
 De manera complementaria, la revisión sistemática sobre técnicas de detección de anomalías en registros de eventos \parencite{Landauer2023Survey} confirma varias de las tendencias observadas en los trabajos analizados. Los autores concluyen que los modelos basados en LSTM y \emph{Autoencoders} se encuentran entre las soluciones más utilizadas para detectar anomalías secuenciales. Fuera del aprendizaje profundo, algoritmos como \emph{Isolation Forest} siguen siendo una alternativa eficiente cuando se requiere baja latencia y un menor costo computacional, por su complejidad lineal y su bajo consumo de memoria \parencite{Liu2008}. Asimismo, la investigación destaca que gran parte de los estudios disponibles se basan en datasets de logs de sistemas y aplicaciones, existiendo una menor cantidad de trabajos enfocados específicamente en el comportamiento de usuarios.
 
+\subsubsection{Comparación de los trabajos académicos}\label{sec:comparacion-algoritmos}
+La tabla~\ref{tab:comparacion-algoritmos} reúne los trabajos de esta subsección y los contrasta con el diseño del proyecto. La comparación muestra que la combinación de técnicas que usa el proyecto responde a limitaciones que la propia literatura reporta sobre cada técnica por separado.
+
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{3.5cm}}
+	\caption{Comparación de los trabajos académicos con el diseño del proyecto}
+	\label{tab:comparacion-algoritmos}\\
+	\hline
+	\textbf{Trabajo y técnica} & \textbf{Datos de validación} & \textbf{Métrica reportada} & \textbf{Limitación reportada} & \textbf{Relación con el diseño del proyecto} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Trabajo y técnica} & \textbf{Datos de validación} & \textbf{Métrica reportada} & \textbf{Limitación reportada} & \textbf{Relación con el diseño del proyecto} \\
+	\hline
+	\endhead
+	\textcite{Aliyu2024}: ad-RACs, CatBoost & Comparación con un sistema existente (MAN-SVMDT) & \emph{Recall} 100\,\%, precisión 95\,\%, F1 98\,\% (referencia: 98, 97 y 96\,\%) & No se reporta una limitación explícita & Comparte el puntaje dinámico por solicitud; el proyecto usa un modelo no supervisado porque no tiene etiquetas, y agrega el punto de aplicación en el equipo que ad-RACs no describe \\
+	\hline
+	\textcite{VillarrealVasquez2021}: LADOHD, LSTM & 38,9 millones de eventos de un EDR (30 equipos) y un ataque de \emph{red team} & Verdaderos positivos 97,29\,\%, falsos positivos 0,38\,\% & Modelo por equipo con historial previo; no analiza el \emph{cold-start} & La versión 1 usó un LSTM Autoencoder y declaraba la cobertura parcial; la revisión de modelos lo retiró del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
+	\hline
+	\textcite{Tian2023HGNN}: HGNN & CERT (sintético) & Mejora frente a modelos secuenciales, según los autores & Alta complejidad de infraestructura para grafos & Costo desproporcionado para el alcance; se priorizan detectores por usuario de bajo costo \\
+	\hline
+	\textcite{Artioli2024}: \emph{clustering} no supervisado & Clickstream, CLUE-LDS y CERT r5.2 & Sin un algoritmo ganador: el mejor cambia con el conjunto & Costo alto de algunos métodos; \emph{concept drift} & Se combina un modelo con reglas explícitas y la novedad de recurso en lugar de apostar a un único algoritmo \\
+	\hline
+	\textcite{Hariri2019}: Extended Isolation Forest & Datos sintéticos y conjuntos de referencia & Mejor área bajo las curvas ROC y PR que Isolation Forest estándar & Artefactos por cortes paralelos a los ejes; dependencia de la representación & Isolation Forest estándar sobre siete variables diarias, sin el país, con reglas de piso y de ubicación; la variante extendida queda sin evaluar \\
+	\hline
+	\textcite{Landauer2023Survey}: revisión sistemática & Múltiples conjuntos de registros & LSTM y \emph{autoencoders}, entre los más usados para anomalías secuenciales & Pocos trabajos centrados en el usuario & El diseño inicial siguió esa orientación; Isolation Forest se eligió por su bajo costo \parencite{Liu2008} \\
+	\hline
+	Proyecto propuesto: Isolation Forest + novedad de recurso & CLUE-LDS: 50\,522\,931 eventos reales de 920 usuarios (sección~\ref{sec:dataset}) & FPR en nivel alto: 1,81\,\% en DEV y 1,05\,\% en HOLDOUT (sección~\ref{sec:evaluacion-default}); sin \emph{recall} medible & Detección no medible; brecha de dominio: 53,66\,\% de días marcados en \emph{host} contra 4,13\,\% (sección~\ref{sec:revision-transferencia}) & Fila de referencia \\
+	\hline
+\end{longtable}
+}
+{\small Fuente: elaboración propia a partir de los trabajos citados.\par}
+
+El diseño inicial combinaba Isolation Forest con un LSTM Autoencoder. La revisión de modelos (sección~\ref{sec:revision-modelos}) mostró que el LSTM no aprovechaba el orden de los eventos y que su riesgo identificaba a la persona más que al comportamiento del día, por lo que el camino por defecto pasó a combinar Isolation Forest con la detección de novedad de recurso; después de la entrega del 90\,\%, la novedad quedó como informativa y el país pasó a una regla explícita de ubicación (sección~\ref{sec:que-cambiar-primero}). El LSTM se conserva como alternativa configurable.
+
 \subsection{Tecnologías o enfoques alternativos}
 
 Además de los sistemas UEBA, existen otros enfoques que ajustan la verificación de identidad o el control de acceso según el contexto. Esta subsección describe la autenticación adaptativa, la autenticación continua basada en biometría conductual, el control de acceso adaptativo basado en riesgo y las plataformas de detección y respuesta en el \emph{endpoint}.
 
 \subsubsection{Autenticación adaptativa}\label{sec:ea-okta}
-Un ejemplo ampliamente utilizado de autenticación adaptativa en entornos empresariales es Okta Adaptive Multi-Factor Authentication (Adaptive MFA), integrada dentro de la plataforma de gestión de identidad de Okta. Esta solución aplica un modelo de autenticación basado en riesgo que analiza distintas señales contextuales cada vez que un usuario intenta iniciar sesión. Entre estas señales se incluyen la ubicación geográfica, la dirección IP, el tipo de dispositivo, el estado de la red y patrones de comportamiento previamente registrados.
+Un ejemplo ampliamente utilizado de autenticación adaptativa en entornos empresariales es Okta Adaptive Multi-Factor Authentication (Adaptive MFA), integrada en la plataforma de gestión de identidad de Okta. Su motor de riesgo evalúa cada solicitud de inicio de sesión: trata como de riesgo alto los primeros inicios de sesión de un usuario y, con cada inicio exitoso, arma una línea base de sus ubicaciones y dispositivos habituales; el nivel de riesgo surge de una ubicación o un dispositivo anómalos, o de una amenaza detectada por el servicio ThreatInsight \parencite{OktaRiskScoring}. Las reglas de la política de inicio de sesión usan ese nivel (bajo, medio o alto) para pedir un segundo factor o bloquear el acceso, y pueden definirse por aplicación o por tipo de usuario, de modo que los pasos adicionales solo aparecen cuando el contexto lo justifica.
 
-A partir de esta información, el sistema estima un nivel de riesgo asociado al intento de acceso y, en función de ese valor, aplica diferentes políticas de seguridad de forma dinámica. Dependiendo del nivel de riesgo detectado, puede solicitar factores adicionales de autenticación, exigir una verificación más estricta o directamente bloquear el acceso al recurso. Esto permite ajustar el nivel de seguridad según el contexto, evitando aplicar las mismas medidas a todos los usuarios sin distinción.
-
-Okta Adaptive MFA trabaja con señales en tiempo real para construir un perfil de riesgo del inicio de sesión, considerando indicadores como el uso de un dispositivo nuevo, una ubicación inusual o patrones de red que se desvían del comportamiento esperado. Estos elementos influyen directamente en la decisión final de permitir o restringir el acceso.
-
-Una de las principales ventajas de este enfoque es que mejora la seguridad sin afectar de manera constante la experiencia del usuario. Solo introduce pasos adicionales cuando el sistema detecta condiciones que considera sospechosas o de mayor riesgo. Además, permite definir políticas específicas según la aplicación o el tipo de usuario, lo que aporta flexibilidad en su implementación.
-
-Sin embargo, una limitación importante de este tipo de soluciones es que la evaluación del riesgo se concentra principalmente en el momento de la autenticación inicial. Si bien Okta ofrece por separado capacidades de reevaluación durante la sesión (\emph{Identity Threat Protection}), estas se apoyan en señales de identidad y de los servicios integrados, y el análisis no suele ser completamente continuo ni profundiza en el comportamiento del usuario una vez que el acceso fue concedido, lo que puede dejar algunos escenarios de ataque posteriores a la autenticación sin una detección adecuada.
+La evaluación, sin embargo, ocurre en el momento de la autenticación. La propia documentación aclara que la detección de cambios de comportamiento puede exigir un segundo factor, pero no puede usarse para denegar el acceso \parencite{OktaRiskScoring}. Okta ofrece por separado una reevaluación durante la sesión (\emph{Identity Threat Protection}), que se apoya en señales de identidad y de los servicios integrados y no en el uso del equipo una vez concedido el acceso; ese tramo posterior a la autenticación es el que el proyecto toma como punto de partida.
 
 \subsubsection{Autenticación continua basada en biometría conductual}
 Un trabajo representativo en el área de autenticación continua propone un sistema basado en la combinación de múltiples características biométricas conductuales \parencite{Stylios2023}. En lugar de depender únicamente de una modalidad de autenticación, el modelo integra patrones de escritura en teclado y gestos táctiles realizados sobre dispositivos móviles. El objetivo principal fue mejorar la capacidad de identificar usuarios legítimos durante toda la sesión y reducir los problemas de precisión observados en soluciones que utilizan una única fuente de información.
@@ -285,7 +316,8 @@ El control de acceso adaptativo basado en riesgo (RADAC), definido en la secció
 Una de las principales ventajas de este enfoque es su capacidad para adaptarse a escenarios cambiantes, donde las condiciones de seguridad no son estáticas y pueden variar rápidamente. Esto permite responder a situaciones que los modelos tradicionales basados únicamente en roles o atributos no contemplan de manera efectiva. Sin embargo, su implementación puede ser compleja \parencite{Xiao2022}, ya que requiere la recolección y análisis de grandes volúmenes de información contextual, además de mecanismos de evaluación avanzados. Esto puede aumentar la dificultad operativa del sistema y, en algunos casos, reducir la transparencia de las decisiones de acceso tomadas automáticamente.
 
 \subsubsection{Plataformas de detección y respuesta en el endpoint (EDR/XDR)}\label{sec:ea-edr}
-Las plataformas de detección y respuesta en el \emph{endpoint} (\emph{Endpoint Detection and Response}, EDR), y su extensión a múltiples fuentes de datos (XDR), instalan un agente en cada equipo, recolectan telemetría de procesos, archivos, red y \emph{scripts}, y pueden responder en forma automática, por ejemplo aislando el equipo o terminando un proceso. En el segmento de pequeñas y medianas empresas, dos ejemplos representativos son Microsoft Defender for Business, incluido en la licencia Microsoft 365 Business Premium, y Wazuh, una plataforma de código abierto y uso gratuito que combina funciones de SIEM y XDR y ejecuta respuestas activas en el agente a partir de reglas.
+Las plataformas de detección y respuesta en el \emph{endpoint} (\emph{Endpoint Detection and Response}, EDR), y su extensión a múltiples fuentes de datos (XDR), instalan un agente en cada equipo, recolectan telemetría de procesos, archivos, red y \emph{scripts}, y pueden responder en forma automática, por ejemplo aislando el equipo o terminando un proceso. En el segmento de pequeñas y medianas empresas, dos ejemplos representativos son Microsoft Defender for Business, pensado para organizaciones de hasta 300 usuarios, incluido en la licencia Microsoft 365 Business Premium y con investigación y remediación automatizadas \parencite{MicrosoftDefenderBusiness}, y Wazuh, una plataforma de código abierto y uso gratuito que combina funciones de SIEM y XDR y cuya respuesta activa ejecuta \emph{scripts} en el agente cuando se dispara una regla determinada \parencite{WazuhActiveResponse}.
+
 
 Estas plataformas comparten con el proyecto la presencia de un agente y la capacidad de actuar en el equipo, pero difieren en el objeto de la detección: su análisis se orienta a identificar técnicas y artefactos de ataque, como la inyección de código en procesos, el volcado de credenciales o la ejecución de \emph{malware}. Un análisis de las evaluaciones públicas de MITRE ATT\&CK sobre productos EDR comerciales concluye que estos sistemas detectan mejor las técnicas llamativas y tienen menos confianza para alertar sobre técnicas presentes en la actividad cotidiana, como la recolección de correo, el archivado de datos recopilados o la exfiltración por canales ya establecidos, porque se confunden con el comportamiento de un usuario normal \parencite{Shen2024}. Una evaluación empírica de productos de seguridad del \emph{endpoint} frente a vectores de ataque de amenazas persistentes avanzadas encontró, además, que la mayoría de los ataques no fueron bloqueados ni registrados \parencite{Karantzas2021}. En la misma línea, durante el ataque de \emph{Red Team} del estudio de LADOHD, el EDR comercial en producción generó solo cuatro alertas, mientras que el modelo de comportamiento marcó como anómalos los eventos asociados al ataque \parencite{VillarrealVasquez2021}. En el caso de Wazuh, la detección se apoya principalmente en reglas y decodificadores predefinidos o escritos por el administrador, y no construye de forma nativa una línea base de comportamiento por usuario ni un puntaje de riesgo acumulado entre sesiones.
 
@@ -336,6 +368,44 @@ CERT, la referencia más citada en la detección de amenazas internas, se descar
 
 La elección tiene costos que este relevamiento permite anticipar: CLUE-LDS no tiene etiquetas, de modo que la detección no puede medirse; pertenece al dominio de una plataforma en la nube y no al de un equipo Windows; y su campo de ubicación está casi vacío. Un perfilado de completitud de sus 50,5 millones de eventos muestra que el país falta en el 99,76\,\% de ellos y en el 99,95\,\% de los de la población de entrenamiento, y que tampoco vienen el rol (87,8\,\%) ni el indicador de red local (99,5\,\%). La versión 1 del modelo incluyó igualmente una variable de país, que en la práctica funcionó como un interruptor de ubicación (sección~\ref{sec:regla-ubicacion}). Ese perfilado no se hizo antes de definir las variables, y lo habría mostrado.
 
+\subsection{Matriz de capacidades}
+\label{sec:matriz-capacidades}
+La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que esta sección documenta sobre cada una. Donde la fuente no se pronuncia sobre una capacidad puntual de un competidor, se marca N/D (no documentado en el relevamiento). La tabla~\ref{tab:matriz-capacidades} resume esa verificación.
+
+\begin{longtable}{p{2.5cm}p{1.8cm}p{1.8cm}p{2.0cm}p{2.4cm}p{2.8cm}}
+	\caption{Matriz de capacidades}
+	\label{tab:matriz-capacidades}\\
+	\hline
+	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
+	\hline
+	\endhead
+	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\bigtriangleup$ (motivos por anomalía; modelos no públicos) \\
+	\hline
+	Splunk UBA & \checkmark & \checkmark & N/D & $\times$ & N/D \\
+	\hline
+	Exabeam & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\bigtriangleup$ (reglas que sumaron riesgo; modelos no públicos) \\
+	\hline
+	Microsoft Entra ID Protection & \checkmark & \checkmark & $\bigtriangleup$ (riesgo de identidad, no de uso del equipo) & $\bigtriangleup$ (solo acceso condicional/MFA) & $\times$ \\
+	\hline
+	Okta Adaptive MFA & $\bigtriangleup$ (solo en \emph{login}) & $\bigtriangleup$ & $\times$ & $\bigtriangleup$ (solo MFA/bloqueo en \emph{login}) & N/D \\
+	\hline
+	RADAC académico (ad-RACs) & \checkmark & \checkmark & \checkmark (por solicitud) & $\bigtriangleup$ (política de acceso, sin PEP físico) & N/D \\
+	\hline
+	EDR/XDR para PyMEs (Defender for Business, Wazuh) & $\bigtriangleup$ (técnicas y reglas conocidas; sin línea base por usuario) & $\bigtriangleup$ (por alerta o equipo, no por usuario) & \checkmark & \checkmark & \checkmark (técnica o regla que disparó la alerta) \\
+	\hline
+	Proyecto propuesto & \checkmark & \checkmark & \checkmark & \checkmark (terminar procesos / denegar carpeta) & $\bigtriangleup$ (Isolation Forest: las 3 variables con mayor \emph{z-score}; novedad: el recurso involucrado) \\
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia a partir de las fuentes citadas en esta sección; las valoraciones del proyecto propuesto son una autoevaluación del equipo.\par}
+
+\textbf{Lectura de la matriz.} Ninguna de las soluciones relevadas reúne, según lo que documentan sus fuentes, una detección orientada a la desviación de cada usuario respecto de su conducta habitual, continuidad durante toda la sesión y \emph{enforcement} automático en el \emph{endpoint}. Las plataformas UEBA comerciales detectan desviaciones de comportamiento pero no actúan en el \emph{endpoint} con un agente propio, y las plataformas EDR/XDR actúan en el \emph{endpoint} pero detectan técnicas o reglas conocidas. Esa combinación es, con la evidencia reunida, el espacio que el proyecto ocupa, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las variables de Isolation Forest y el recurso que dispara la detección de novedad, compara con la distribución poblacional de entrenamiento y no con el historial individual, y no explica los caminos alternativos (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
+
+Las valoraciones del proyecto propuesto en la matriz y en las tablas~\ref{tab:comparacion-comercial} y~\ref{tab:comparacion-algoritmos} son una autoevaluación del equipo basada en lo implementado y verificado en las secciones de producto y de pruebas, y no una medición externa. Las de los competidores se basan en lo que describen sus fuentes; cuando una fuente no se pronuncia sobre una capacidad, se marca N/D.
+
 \subsection{Limitaciones reportadas por otros autores}
 Al analizar la literatura y las soluciones de análisis conductual existentes, se identifican diversas limitaciones recurrentes que afectan el rendimiento de los sistemas UEBA. En primer lugar, una problemática central es el marcado desbalance de clases. Diversas investigaciones recientes \parencite{Artioli2024, VillarrealVasquez2021, Sharma2020} coinciden en señalar que los conjuntos de datos utilizados en ciberseguridad suelen presentar una proporción muy reducida de eventos anómalos en comparación con los eventos legítimos; incluso en conjuntos sintéticos como CERT, en los que los ataques se inyectan, la actividad maliciosa es una fracción mínima del total \parencite{Sharma2020}. Esta disparidad dificulta que los modelos aprendan a identificar amenazas reales con precisión, lo que suele derivar en un incremento notable de falsos positivos cuando se intenta maximizar la sensibilidad del sistema para no pasar por alto ninguna intrusión.
 
@@ -381,3 +451,17 @@ segmento corporativo. Un sistema que detecta el uso indebido de una sesión vál
 depender de un analista disponible acerca a ese segmento una capacidad que hoy queda fuera de su
 alcance, y reduce el daño que un incidente puede causar a la organización, a sus empleados y a los
 datos de terceros que esta administra.
+
+
+\subsubsection{Síntesis de diferenciadores}
+\label{sec:sintesis-diferenciadores}
+La matriz de capacidades (tabla~\ref{tab:matriz-capacidades}) permite resumir, para cada alternativa, qué le falta respecto de ese ciclo de detección, decisión y respuesta:
+\begin{itemize}
+	\item \textbf{Microsoft Sentinel UEBA y Splunk UBA:} detectan anomalías y asignan un \emph{score} dinámico, pero el relevamiento no documenta una respuesta en el \emph{endpoint}; la acción queda en manos de un analista o de integraciones externas. En ninguno de los dos casos la documentación describe los modelos.
+	\item \textbf{Exabeam:} automatiza la respuesta, pero mediante una plataforma de orquestación externa (SOAR) y sin un agente propio en el equipo del usuario.
+	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo a partir de señales de identidad y actúan sobre el acceso (acceso condicional, MFA, bloqueo o revocación de sesiones), no sobre el uso continuo de los recursos en el equipo.
+	\item \textbf{RADAC académico (ad-RACs):} comparte el paradigma de \emph{score} por solicitud, pero se queda en la política de decisión, sin un punto de aplicación en el \emph{endpoint}.
+	\item \textbf{Plataformas EDR/XDR para PyMEs (Defender for Business, Wazuh):} tienen agente y actúan en el equipo, pero detectan técnicas o reglas conocidas y no la desviación de un usuario respecto de su propia conducta; el proyecto se plantea como complemento y no como sustituto.
+\end{itemize}
+
+El proyecto propuesto es la única fila de la matriz que reúne detección por desviación conductual del usuario, continuidad durante la sesión y \emph{enforcement} automático en el \emph{endpoint}, con explicabilidad parcial. Esa combinación se apoya en la separación entre el agente, que actúa como PEP, y la API, que actúa como PDP.

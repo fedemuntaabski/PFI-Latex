@@ -77,13 +77,15 @@ Dicho nivel de riesgo no se calcula únicamente por la sesión; por el contrario
 Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de riesgo y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el sistema incluye un mecanismo de reentrenamiento periódico del modelo, pensado para incorporar nuevos comportamientos de los usuarios y mantener su vigencia a lo largo del tiempo. En la configuración actual, con el corte temporal fijo de la partición, los eventos del agente todavía no entran al conjunto de entrenamiento (sección~\ref{sec:reentrenamiento-producto}). El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
 \section{Estructura del documento}
-El documento se organiza en trece secciones. La sección~\ref{chap:antecedentes} presenta el marco
+El documento se organiza en catorce secciones. La sección~\ref{chap:metodologia} presenta la
+metodología de desarrollo: la planificación, los incrementos ejecutados, la herramienta de seguimiento
+y los ajustes que surgieron de los resultados del modelo. La sección~\ref{chap:antecedentes} presenta el marco
 teórico (el punto ciego posterior a la autenticación, la arquitectura Zero Trust, el análisis de
 comportamiento de usuarios y entidades, los modelos de control de acceso, los algoritmos de detección
-de anomalías, el marco legal de protección de datos personales y los fundamentos técnicos de la arquitectura) y el estado del arte en soluciones
-comerciales y trabajos académicos, incluido un relevamiento de los conjuntos de datos de referencia. La sección~\ref{chap:comparativo} compara el proyecto con esas
-alternativas y contrasta el diseño con entrevistas a profesionales de seguridad y con una encuesta a
-usuarios finales. La sección~\ref{chap:requerimientos} define los actores, los requerimientos
+de anomalías, el marco legal de protección de datos personales y los fundamentos técnicos de la arquitectura) y el estado del arte: las soluciones
+comerciales, los trabajos académicos y los enfoques alternativos comparados con el proyecto, un relevamiento de los conjuntos de datos de referencia y una matriz de capacidades. La sección~\ref{chap:validacion} contrasta el problema y el diseño con entrevistas a profesionales de seguridad y con una encuesta a
+usuarios finales.
+ La sección~\ref{chap:requerimientos} define los actores, los requerimientos
 funcionales y no funcionales, los casos de uso y las historias de usuario. La
 sección~\ref{chap:diseno} justifica el diseño del panel de administración con sus wireframes y
 pantallas, y la sección~\ref{chap:uml} presenta los diagramas UML.
