@@ -6,7 +6,10 @@ Rama de referencia: `revision-caps7a13` (16/11/2026). Compañero: `correcciones_
 > - **Aplicadas:** L1, L2, L3, L4, L5, L7, L8, L9, L10, L12, L13, L14, L15 y L16.
 >   - L10: icacls real; la CI sigue sin correr y así se declara.
 >   - L15: borrador en `mail_consultas_devolucion_90.md`.
->   - L16: compila sin referencias ni citas indefinidas, 292 páginas.
+>   - L16: compila limpio sin referencias ni citas indefinidas, 291 páginas.
+>     - `hyperref` sin color y con `pdfborder` en 0.
+>     - `pdfcomment`, `todonotes`, `\Nico` y `\Fermat` comentados.
+>     - El error `\ulp@afterend` venía de un `.aux` viejo y desaparece con `latexmk -C`.
 > - **Salteadas por decisión del autor:**
 >   - L6, la entrevista PyME: no hay entrevista hecha todavía. La falta queda declarada en el cap. de validación (§ "Síntesis de la validación") y en el trabajo futuro.
 >   - L11, usabilidad con usuarios externos: no bloquea la entrega.
@@ -14,7 +17,7 @@ Rama de referencia: `revision-caps7a13` (16/11/2026). Compañero: `correcciones_
 >   - El cap. 4 pasó a ser "Validación del problema con profesionales y usuarios" (`chap:validacion`).
 >   - Las 14 fichas se reemplazaron por `tab:comparacion-comercial` y `tab:comparacion-algoritmos`, en el estado del arte.
 >   - La matriz y la síntesis de diferenciadores se movieron al estado del arte.
->   - En `main.tex` se comentaron `todonotes`, `\Nico` y `\Fermat`. `pdfcomment` se dejó cargado, porque sin él la compilación falla (`\ulp@afterend`).
+>   - En `main.tex` se comentaron `todonotes`, `\Nico`, `\Fermat` y `pdfcomment`.
 
 ## 0. Antes de empezar: la devolución es anterior a la revisión de modelos
 
