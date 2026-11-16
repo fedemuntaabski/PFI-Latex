@@ -256,3 +256,40 @@ Si se reactivan, hay que arreglarlas. **Verizon2025** sería útil en los caps. 
 4. **Alinear los requerimientos**: HU-01, HU-09 y HU-15 con RF-01, RF-09 y RF-19; la nota a del RF-02; el IAM en RF-17 y RNF-07; Entra "no validado".
 5. **Agregar las fuentes faltantes**: documentación oficial de las soluciones comerciales, FAQ de fin de venta de Splunk UBA, Verizon DBIR. Revisar Tian2023 y Landauer2023Survey en el texto completo.
 6. **Revisar en el código**: notificaciones por defecto en "medio", mediciones locales hechas con el `.env` en `markov`, peso de la línea base personal frente al RF-24, mínimo de 50 muestras de la novedad.
+
+---
+
+## 9. Estado de aplicación (rama `revision-caps1a6-bibliografia`, commit `b54a8d1`)
+
+El repositorio del código no se modificó (sigue en `0f53d62`, sin cambios). Compilación: 0 errores, 279 páginas. El aviso genérico "There were undefined references" ya estaba en `HEAD`, y todas las etiquetas agregadas están definidas.
+
+| Hallazgo | Estado | Dónde se aplicó |
+|---|---|---|
+| 1. Corte temporal fijo y reentrenamiento | ✅ Aplicado en el texto, como limitación. El código no se tocó. | Cap. 1 (Descripción), RF-19 + nota a, CU-03, HU-09, cap. 8 l. 181 |
+| 2. Art. 71 de la LCT | ✅ | Cap. 2, marco legal (se agregó también "totalidad del personal" al art. 70 y el art. 6 de la Ley 25.326) |
+| 3. LADOHD: acrónimo y *cold-start* | ✅ | Cap. 2 (2 lugares), cap. 3 `tab:algo-lstm`, cap. 4 CU-04 |
+| 4. Artioli2024 | ✅ | Cap. 2 (punto ciego, UEBA con ML, *cloud-native*), cap. 3 `tab:algo-clustering` |
+| 5. Autores de Sharma2020 | ✅ Corregidos. La cifra del 0,03 % se quitó porque no se pudo verificar. | `biblio.bib`, cap. 2 |
+| 6. Diagrama de objetos de la versión 1 | ⚠️ Parcial: se cambiaron el rótulo, el texto y el comentario del `.tex`. El diagrama no se rehízo. | Cap. 6, `05_objetos_evento.tex` |
+| 7. Novedad frente a procesos y archivos en la encuesta | ✅ | Cap. 3 (2 lugares) |
+| 8. Lectura de la matriz | ✅ | Cap. 3 |
+| 9. HU-15 | ✅ | Cap. 4 |
+| 10. Nota a del RF-02 | ✅ (remite al RNF-05) | Cap. 4 |
+| 11. Umbral por cuantil móvil y condiciones de la novedad | ✅ | Cap. 2, RF-06 |
+| 12. PIP en SP 800-207 | ✅ (atribuido a ABAC, Hu2014) | Cap. 2 |
+| 13. Soluciones comerciales | ⚠️ Parcial: se agregaron la cita de Splunk, CAE de Entra, Identity Threat Protection de Okta y nuevas marcas en la matriz. Falta la documentación oficial de los demás productos. | Cap. 2, cap. 3 |
+| 14. Benova2024 en el CU-04 | ✅ Cita retirada | Cap. 4 |
+| Tian2023: CERT r6.2 y F1 +8,3 % | ✅ Cifras sin verificar quitadas; falta revisar el PDF | Cap. 3 |
+| Landauer2023Survey: IF y baja latencia | ✅ Cita pasada a Liu2008 | Cap. 2, cap. 3 |
+| NIST 800-207A | ✅ Afirmación reformulada | Cap. 2 |
+| Gama2014: tipos de *drift* | ✅ | Cap. 2 |
+| Larman2003 | ✅ Frase reformulada | Cap. 1 |
+| Terminología (riesgo/confianza, operador, aislamiento) | ✅ | Caps. 1, 2, 3, 5 |
+| RF-17, RNF-07 (IAM), RF-28 y cap. 6 (Entra sin validar) | ✅ | Caps. 4 y 6 |
+| RF-24 (peso de la línea base), RNF-01, RNF-08, CU-03 duplicado | ✅ | Cap. 4 |
+| Cap. 5: *badge* de cobertura, *z-score*, PUT de los subformularios, *badges* de salud | ✅ | Cap. 5 |
+| Cap. 6: calibración con 3 días y `markov_service` | ✅ | Cap. 6 |
+| `.bib`: páginas, *booktitle*, escape, duplicado MDZ, Splunk | ✅ | `biblio.bib`, `negocio.tex` |
+| Objetivo 2 (*holdout*) y Anexo I | ✅ | Cap. 1 |
+| §4.3 Revisiones de código (notificaciones en "medio", `.env` en `markov`, etc.) | ⏸️ No aplicado: requiere cambios en el código o mediciones, fuera de alcance | — |
+| Normas argentinas (números del Boletín Oficial, vigencia de 60-E/2016) | ⏸️ Pendiente de verificar en InfoLEG | — |
