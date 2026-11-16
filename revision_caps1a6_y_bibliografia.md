@@ -293,3 +293,11 @@ El repositorio del código no se modificó (sigue en `0f53d62`, sin cambios). Co
 | Objetivo 2 (*holdout*) y Anexo I | ✅ | Cap. 1 |
 | §4.3 Revisiones de código (notificaciones en "medio", `.env` en `markov`, etc.) | ⏸️ No aplicado: requiere cambios en el código o mediciones, fuera de alcance | — |
 | Normas argentinas (números del Boletín Oficial, vigencia de 60-E/2016) | ⏸️ Pendiente de verificar en InfoLEG | — |
+
+### 9.1 Cierre (15/11/2026)
+
+- **InfoLEG:** se volvió a intentar la descarga del texto de la LCT y de la Ley 25.326 por WebFetch y por `curl`, sin respuesta del servidor. Por decisión del autor, la verificación queda pendiente para hacerla a mano: números del Boletín Oficial de las leyes citadas y vigencia de la Disposición 60-E/2016. La corrección del art. 71 de la LCT ya está aplicada.
+- **Pendientes que quedan fuera de esta rama:**
+  - rehacer el diagrama de objetos con el camino por defecto (por ahora está rotulado como versión 1);
+  - agregar la documentación oficial de Sentinel, Exabeam, Entra, Okta, Defender y Wazuh;
+  - las revisiones de código de la §4.3, que no se tocan por la condición de no modificar el repositorio del código.
