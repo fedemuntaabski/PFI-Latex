@@ -1,6 +1,6 @@
 \chapter{Diagramas UML}\label{chap:uml}
 
-Esta sección presenta los diagramas que describen el funcionamiento interno del sistema: el recorrido de un evento entre los componentes (figura~\ref{fig:diagrama-flujo}), los componentes y los protocolos con que se comunican (figura~\ref{fig:diagrama-componentes}), las clases del agente (figura~\ref{fig:diagrama-clases-agente}) y de la API (figuras~\ref{fig:diagrama-clases-api} a~\ref{fig:diagrama-clases-api-schemas}), y un diagrama de objetos construido con una instancia real (figura~\ref{fig:diagrama-objetos}). Los diagramas de esta sección se conservan en formato vectorial y pueden ampliarse en la versión digital; los diagramas de flujo, de componentes y de clases, salvo la vista de paquetes, se presentan como vistas de diseño, con los elementos y las relaciones principales, y el Anexo~H reúne sus versiones completas.
+Esta sección presenta los diagramas que describen el funcionamiento interno del sistema: el recorrido de un evento entre los componentes (figura~\ref{fig:diagrama-flujo}), los componentes y los protocolos con que se comunican (figura~\ref{fig:diagrama-componentes}), las clases del agente (figura~\ref{fig:diagrama-clases-agente}) y de la API (figuras~\ref{fig:diagrama-clases-api} a~\ref{fig:diagrama-clases-api-schemas}), y un diagrama de objetos con valores ilustrativos de la versión~1 (figura~\ref{fig:diagrama-objetos}). Los diagramas de esta sección se conservan en formato vectorial y pueden ampliarse en la versión digital; los diagramas de flujo, de componentes y de clases, salvo la vista de paquetes, se presentan como vistas de diseño, con los elementos y las relaciones principales, y el Anexo~H reúne sus versiones completas.
 % Permite dos diagramas por página flotante; se restaura al final del capítulo.
 \begingroup
 \renewcommand{\topfraction}{0.9}
@@ -57,7 +57,7 @@ La API se documenta en seis diagramas. La figura~\ref{fig:diagrama-clases-api} p
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API mantiene por usuario en Redis (\texttt{User\-Scoring\-State}), compuesto por la continuidad de la secuencia de eventos, el acumulado diario de Isolation Forest, el ancla del puntaje con decaimiento y la línea base personal, cuyas estadísticas se actualizan en forma incremental con el algoritmo de Welford. La revisión de modelos agregó el estado de la detección de novedad (recursos vistos en los últimos 90 días) y los días activos que habilitan la calibración, que usa el camino por defecto. Los campos del perfil de Markov, del \emph{buffer} del LSTM y de la cola por cuenta solo se actualizan cuando está activo el camino alternativo o la opción correspondiente. El umbral móvil no forma parte de este estado: es una lista global en Redis. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
+La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API mantiene por usuario en Redis (\texttt{User\-Scoring\-State}), compuesto por la continuidad de la secuencia de eventos, el acumulado diario de Isolation Forest, el ancla del puntaje con decaimiento y la línea base personal, cuyas estadísticas se actualizan en forma incremental con el algoritmo de Welford. La revisión de modelos agregó el estado de la detección de novedad (recursos vistos en los últimos 90 días) y los días activos que habilitan la calibración, que usa el camino por defecto. La calibración del puntaje de Isolation Forest se aplica recién cuando el usuario tiene al menos tres días previos con actividad; antes, el puntaje es el de Isolation Forest sin calibrar. Los campos del perfil de Markov, del \emph{buffer} del LSTM y de la cola por cuenta solo se actualizan cuando está activo el camino alternativo o la opción correspondiente. El umbral móvil no forma parte de este estado: es una lista global en Redis. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -67,7 +67,7 @@ La figura~\ref{fig:diagrama-clases-api-redis} detalla el estado que la API manti
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La figura~\ref{fig:diagrama-clases-api-scoring} presenta las clases que calculan el puntaje en el camino por defecto: el orquestador, que calibra el puntaje de Isolation Forest y aplica el decaimiento temporal y la regla de piso; los servicios de Isolation Forest y de la detección de novedad; el módulo \texttt{markov\_service}, que define el camino activo y carga la calibración; la cobertura del puntaje, la explicación de las variables y los artefactos del modelo, que se cargan al iniciar la API y se reemplazan sin reiniciarla. El diagrama incluye también las piezas de los caminos alternativos (el perfil de Markov y el LSTM) y de la cola por cuenta, que no intervienen en el camino por defecto. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
+La figura~\ref{fig:diagrama-clases-api-scoring} presenta las clases que calculan el puntaje en el camino por defecto: el orquestador, que calibra el puntaje de Isolation Forest y aplica el decaimiento temporal y la regla de piso; los servicios de Isolation Forest y de la detección de novedad; el módulo \texttt{markov\_service}, que por razones históricas (el primer camino sin LSTM fue el de Markov) aloja también el selector del camino activo y la carga de la calibración; la cobertura del puntaje, la explicación de las variables y los artefactos del modelo, que se cargan al iniciar la API y se reemplazan sin reiniciarla. El diagrama incluye también las piezas de los caminos alternativos (el perfil de Markov y el LSTM) y de la cola por cuenta, que no intervienen en el camino por defecto. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -77,7 +77,7 @@ La figura~\ref{fig:diagrama-clases-api-scoring} presenta las clases que calculan
 	{\small Fuente: elaboración propia.\par}
 \end{figure}
 
-La figura~\ref{fig:diagrama-clases-api-iam} presenta la integración con los proveedores de identidad, mediante un adaptador con implementaciones para el proveedor simulado, Keycloak y Microsoft Entra ID, junto con las clases de autenticación: las sesiones del panel y las claves individuales de los agentes. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
+La figura~\ref{fig:diagrama-clases-api-iam} presenta la integración con los proveedores de identidad, mediante un adaptador con implementaciones para el proveedor simulado, Keycloak y Microsoft Entra ID (esta última sin validar contra un \emph{tenant} real), junto con las clases de autenticación: las sesiones del panel y las claves individuales de los agentes. La versión completa, con todos los atributos y operaciones, se presenta en el Anexo~H.
 
 \begin{figure}[htbp]
 	\centering
@@ -109,12 +109,12 @@ La figura~\ref{fig:diagrama-clases-api-schemas} presenta los esquemas de datos q
 
 \clearpage
 \section{Diagrama de objetos}
-La figura~\ref{fig:diagrama-objetos} presenta un diagrama de objetos construido con una instancia real del sistema.
+La figura~\ref{fig:diagrama-objetos} presenta un diagrama de objetos con valores ilustrativos, construido sobre la versión~1 del cálculo (Isolation Forest y LSTM Autoencoder combinados con $w_{iso} = 0{,}5$). Se conserva porque muestra los objetos que intervienen en la evaluación de un evento; en el camino por defecto vigente no intervienen los objetos del LSTM, el puntaje es el de Isolation Forest calibrado y la detección de novedad actúa sobre la regla de piso (sección~\ref{sec:caminos-alternativos}).
 
 \begin{figure}[htbp]
 	\centering
 	\adjustbox{max width=\textwidth, max height=0.62\textheight, center}{\includegraphics{images/diagramas/uml/05_objetos_evento.pdf}}
-	\caption{Diagrama de objetos con una instancia real (uid \texttt{DESKTOP-DEMO-usuario1}).}
+	\caption{Diagrama de objetos con valores ilustrativos de la versión~1 (uid \texttt{DESKTOP-DEMO-usuario1}).}
 	\label{fig:diagrama-objetos}
 	{\small Fuente: elaboración propia.\par}
 \end{figure}

@@ -156,6 +156,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	Diferenciador del proyecto propuesto & El proyecto es, en la práctica, una implementación \emph{end-to-end} de este mismo paradigma RADAC, pero cerrando el circuito con un PEP real en el endpoint: no se queda en el nivel de política de decisión \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Proyecto propuesto}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -202,13 +203,13 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 	\textbf{Solución} & \textbf{Detección de anomalías} & \textbf{Score de riesgo dinámico} & \textbf{Continuo durante toda la sesión} & \textbf{Enforcement automático en el endpoint} & \textbf{Explicabilidad (XAI)} \\
 	\hline
 	\endhead
-	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\times$ \\
+	Microsoft Sentinel UEBA & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\bigtriangleup$ (motivos por anomalía; modelos no públicos) \\
 	\hline
 	Splunk UBA & \checkmark & \checkmark & N/D & $\times$ & N/D \\
 	\hline
-	Exabeam & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\times$ \\
+	Exabeam & \checkmark & \checkmark & N/D & $\bigtriangleup$ (vía SOAR, sin agente propio) & $\bigtriangleup$ (reglas que sumaron riesgo; modelos no públicos) \\
 	\hline
-	Microsoft Entra ID Protection & \checkmark & \checkmark & $\times$ & $\bigtriangleup$ (solo acceso condicional/MFA) & $\times$ \\
+	Microsoft Entra ID Protection & \checkmark & \checkmark & $\bigtriangleup$ (riesgo de identidad, no de uso del equipo) & $\bigtriangleup$ (solo acceso condicional/MFA) & $\times$ \\
 	\hline
 	Okta Adaptive MFA & $\bigtriangleup$ (solo en \emph{login}) & $\bigtriangleup$ & $\times$ & $\bigtriangleup$ (solo MFA/bloqueo en \emph{login}) & N/D \\
 	\hline
@@ -221,7 +222,7 @@ La matriz verifica qué capacidades cubre cada alternativa, a partir de lo que l
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}); las valoraciones del proyecto propuesto son una autoevaluación del equipo.\par}
 
-\textbf{Lectura de la matriz.} Ninguna de las soluciones relevadas reúne, según lo que documenta el estado del arte, una detección orientada a la desviación de cada usuario respecto de su conducta habitual, continuidad durante toda la sesión y \emph{enforcement} automático en el \emph{endpoint}. Las plataformas UEBA comerciales detectan desviaciones de comportamiento pero no actúan en el \emph{endpoint} con un agente propio, y las plataformas EDR/XDR actúan en el \emph{endpoint} pero detectan técnicas o reglas conocidas. Esa combinación es, con la evidencia reunida, el espacio que el proyecto ocupa, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre solo el componente Isolation Forest del \emph{score} híbrido (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
+\textbf{Lectura de la matriz.} Ninguna de las soluciones relevadas reúne, según lo que documenta el estado del arte, una detección orientada a la desviación de cada usuario respecto de su conducta habitual, continuidad durante toda la sesión y \emph{enforcement} automático en el \emph{endpoint}. Las plataformas UEBA comerciales detectan desviaciones de comportamiento pero no actúan en el \emph{endpoint} con un agente propio, y las plataformas EDR/XDR actúan en el \emph{endpoint} pero detectan técnicas o reglas conocidas. Esa combinación es, con la evidencia reunida, el espacio que el proyecto ocupa, con la salvedad de que, en el proyecto propuesto, la explicabilidad hoy es parcial: cubre las variables de Isolation Forest y el recurso que dispara la detección de novedad, compara con la distribución poblacional de entrenamiento y no con el historial individual, y no explica los caminos alternativos (sección~\ref{sec:pantalla-porque}). De la misma manera, la marca \checkmark en continuidad durante toda la sesión se refiere a la arquitectura.
 
 \section{Comparación de algoritmos de inteligencia artificial}
 \label{sec:comparacion-algoritmos}
@@ -250,6 +251,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	Relación con el diseño del proyecto & El proyecto comparte el paradigma de \emph{score} dinámico por evento, con un modelo distinto (no supervisado) porque no dispone de etiquetas de ``acceso autorizado/denegado'' como sí tenía este trabajo \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{LSTM secuencial}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -269,11 +271,12 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Métrica reportada & Tasa de verdaderos positivos 97,29\%, tasa de falsos positivos 0,38\% \\
 	\hline
-	Limitación reportada & \emph{Cold-start}: depende de historial suficiente por usuario, baja el rendimiento en usuarios nuevos \\
+	Limitación reportada & El modelo se construye por equipo a partir de un historial previo de actividad normal; el trabajo no analiza equipos o usuarios sin historial (\emph{cold-start}) \\
 	\hline
-	Relación con el diseño del proyecto & En su versión 1, el proyecto usa LSTM Autoencoder con el mismo problema de \emph{cold-start}, y lo declara explícitamente vía el estado de cobertura ``parcial''/``sin \emph{score}'' en vez de ocultarlo; la revisión de modelos lo retiró del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
+	Relación con el diseño del proyecto & En su versión 1, el proyecto usa LSTM Autoencoder, que requiere completar una secuencia de 50 eventos antes de puntuar, y lo declara explícitamente vía el estado de cobertura ``parcial''/``sin \emph{score}'' en vez de ocultarlo; la revisión de modelos lo retiró del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Graph Neural Networks (GNN)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -289,15 +292,16 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Fuente académica & \textcite{Tian2023HGNN} \\
 	\hline
-	Dataset / validación & CERT r6.2 \\
+	Dataset / validación & Conjunto CERT de amenazas internas (sintético) \\
 	\hline
-	Métrica reportada & F1 +8.3\% vs. modelos secuenciales \\
+	Métrica reportada & Mejora de la detección respecto de modelos secuenciales, según los autores \\
 	\hline
 	Limitación reportada & Alta complejidad de infraestructura para grafos a gran escala \\
 	\hline
 	Relación con el diseño del proyecto & El proyecto evalúa ese costo de infraestructura como desproporcionado para su alcance y prioriza Isolation Forest y detectores por usuario de bajo costo por menor costo computacional y viabilidad de ejecución sin infraestructura de grafos dedicada \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Clustering no supervisado (K-Means, DBSCAN, OPTICS, GMM)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -313,15 +317,16 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Fuente académica & \textcite{Artioli2024} \\
 	\hline
-	Dataset / validación & Datasets reales de actividad de red \\
+	Dataset / validación & Clickstream de una tienda en línea, CLUE-LDS (registros reales de una nube) y CERT r5.2 (sintético) \\
 	\hline
-	Métrica reportada & Sin un único algoritmo ganador en todos los escenarios \\
+	Métrica reportada & Sin un único algoritmo ganador: el mejor cambia según el conjunto de datos \\
 	\hline
-	Limitación reportada & Mayor consumo de recursos en enfoques de densidad; alta diversidad entre perfiles de usuario dificulta líneas base estables \\
+	Limitación reportada & Costo de ejecución muy alto en algunos métodos (por ejemplo, HDBSCAN y SSC-OMP); el comportamiento cambia con el tiempo (\emph{concept drift}) \\
 	\hline
 	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (Isolation Forest y la detección de novedad de recurso) en vez de apostar a un único algoritmo \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Isolation Forest}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -346,6 +351,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre ocho variables diarias estandarizadas y lo combina con la detección de novedad de recurso, la regla de piso y el decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Revisión sistemática}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -363,13 +369,14 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Dataset / validación & Múltiples datasets de logs \\
 	\hline
-	Métrica reportada & Concluye que LSTM\slash{}Autoencoders dominan para anomalías secuenciales; Isolation Forest sigue siendo eficiente en baja latencia \\
+	Métrica reportada & Concluye que LSTM\slash{}Autoencoders se encuentran entre las técnicas más usadas para anomalías secuenciales en logs \\
 	\hline
 	Limitación reportada & Pocos trabajos enfocados específicamente en comportamiento de usuario (vs. logs de sistema en general) \\
 	\hline
-	Relación con el diseño del proyecto & El diseño inicial combinó las dos familias de técnicas que esta revisión destaca: LSTM y autoencoders para anomalías secuenciales, e Isolation Forest para baja latencia; la revisión de modelos retiró el LSTM del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
+	Relación con el diseño del proyecto & El diseño inicial combinó LSTM y autoencoders, que esta revisión destaca para anomalías secuenciales, con Isolation Forest, de bajo costo computacional \parencite{Liu2008}; la revisión de modelos retiró el LSTM del camino por defecto (sección~\ref{sec:revision-diagnostico}) \\
 	\hline
 \end{longtable}
+{\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
 
 \subsection{Isolation Forest + novedad de recurso (proyecto propuesto)}
 \begin{longtable}{p{3cm}p{11.6cm}}
@@ -402,7 +409,7 @@ La matriz de capacidades (tabla~\ref{tab:matriz-capacidades}) permite resumir, p
 \begin{itemize}
 	\item \textbf{Microsoft Sentinel UEBA y Splunk UBA:} detectan anomalías y asignan un \emph{score} dinámico, pero el relevamiento no documenta una respuesta en el \emph{endpoint}; la acción queda en manos de un analista o de integraciones externas. Sentinel, además, no expone el funcionamiento de sus algoritmos.
 	\item \textbf{Exabeam:} automatiza la respuesta, pero mediante una plataforma de orquestación externa (SOAR) y sin un agente propio en el equipo del usuario.
-	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo y actúan en el momento de la autenticación (acceso condicional, MFA o bloqueo), no durante el uso continuo de los recursos.
+	\item \textbf{Microsoft Entra ID Protection y Okta Adaptive MFA:} evalúan el riesgo a partir de señales de identidad y actúan sobre el acceso (acceso condicional, MFA, bloqueo o revocación de sesiones), no sobre el uso continuo de los recursos en el equipo.
 	\item \textbf{RADAC académico (ad-RACs):} comparte el paradigma de \emph{score} por solicitud, pero se queda en la política de decisión, sin un punto de aplicación en el \emph{endpoint}.
 	\item \textbf{Plataformas EDR/XDR para PyMEs (Defender for Business, Wazuh):} tienen agente y actúan en el equipo, pero detectan técnicas o reglas conocidas y no la desviación de un usuario respecto de su propia conducta; el proyecto se plantea como complemento y no como sustituto.
 \end{itemize}
@@ -415,7 +422,7 @@ El proyecto propuesto es la única fila de la matriz que reúne detección por d
 Como complemento al análisis comparativo frente a herramientas comerciales y trabajos académicos, se realiza un relevamiento cualitativo con cinco profesionales vinculados a la seguridad de la información, mediante cuatro entrevistas semiestructuradas y un cuestionario escrito, con el objetivo de contrastar las decisiones de diseño del proyecto con la práctica profesional vigente y de identificar líneas de evolución del sistema.
 
 \subsection{Perfil de los especialistas consultados}
-El grupo de entrevistados reúne perfiles con responsabilidad directa sobre seguridad y gestión de accesos en organizaciones reguladas, además de una mirada complementaria desde una función adyacente. Luciana Jacubovich, con más de veinte años de trayectoria en seguridad, lidera un equipo de siete personas en el área de operaciones de seguridad y gestión de accesos de un grupo económico financiero integrado por una aseguradora, un banco y una compañía de leasing. Guillermo Pita se desempeña como director de ciberseguridad en un organismo estatal de alcance nacional, con responsabilidad sobre miles de estaciones de trabajo y cientos de sucursales, y actúa además como perito judicial en causas vinculadas a fraude informático. Alejandro Francisco Peña ocupa un rol de responsable de seguridad en una compañía financiera regulada, con experiencia en centros de operaciones de seguridad (SOC), gestión de identidades y accesos, y prevención de fuga de información. Matías Gabriel Ruiz aporta un perfil de seguridad orientado al monitoreo y la respuesta a incidentes, con experiencia en herramientas de tipo SIEM/XDR y en la gestión de accesos. Finalmente, Pablo Rodolfo Villarino, ingeniero DevOps con catorce años de trayectoria en IBM Argentina, participa en proyectos para el sector bancario y aporta la perspectiva de un rol técnico adyacente al de seguridad, que interactúa de forma cotidiana con los equipos de seguridad de sus clientes. Tres de los cinco entrevistados ejercen funciones de seguridad en entornos financieros o regulados de Argentina, Ruiz ejerce funciones de seguridad sin que la entrevista escrita precise la organización o el sector en que se desempeña, y Villarino ofrece una mirada externa desde una disciplina técnica vecina. Ninguno de los cinco se desempeña en una PyME: sus aportes validan el problema y las decisiones de diseño desde la práctica profesional, pero no la demanda ni la disposición a pagar del segmento al que se orienta el producto, que se tratan en la sección~\ref{chap:negocio}.
+El grupo de entrevistados reúne perfiles con responsabilidad directa sobre seguridad y gestión de accesos en organizaciones reguladas, además de una mirada complementaria desde una función adyacente. Luciana Jacubovich, con más de veinte años de trayectoria en seguridad, lidera un equipo de siete personas en el área de operaciones de seguridad y gestión de accesos de un grupo económico financiero integrado por una aseguradora, un banco y una compañía de leasing. Guillermo Pita se desempeña como director de ciberseguridad en un organismo estatal de alcance nacional, con responsabilidad sobre miles de estaciones de trabajo y cientos de sucursales, y actúa además como perito judicial en causas vinculadas a fraude informático. Alejandro Francisco Peña ocupa un rol de responsable de seguridad en una compañía financiera regulada, con experiencia en centros de operaciones de seguridad (SOC), gestión de identidades y accesos, y prevención de fuga de información. Matías Gabriel Ruiz aporta un perfil de seguridad orientado al monitoreo y la respuesta a incidentes, con experiencia en herramientas de tipo SIEM/XDR y en la gestión de accesos. Finalmente, Pablo Rodolfo Villarino, ingeniero DevOps con catorce años de trayectoria en IBM Argentina, participa en proyectos para el sector bancario y aporta la perspectiva de un rol técnico adyacente al de seguridad, que interactúa de forma cotidiana con los equipos de seguridad de sus clientes. Tres de los cinco entrevistados ejercen funciones de seguridad en entornos financieros o del sector público de Argentina, Ruiz ejerce funciones de seguridad sin que la entrevista escrita precise la organización o el sector en que se desempeña, y Villarino ofrece una mirada externa desde una disciplina técnica vecina. Ninguno de los cinco se desempeña en una PyME: sus aportes validan el problema y las decisiones de diseño desde la práctica profesional, pero no la demanda ni la disposición a pagar del segmento al que se orienta el producto, que se tratan en la sección~\ref{chap:negocio}.
 
 A diferencia de las otras cuatro, la consulta a Ruiz se realiza mediante un cuestionario escrito. Su
 inclusión se justifica por el rol operativo que aporta: la atención de alertas en herramientas de
@@ -428,7 +435,7 @@ un incidente, que se contrasta con el catálogo de acciones del proyecto en la s
 \label{sec:validacion-diseno}
 \textbf{Modelo de confianza cero.} Pita y Peña coinciden en que la ausencia de un perímetro definido exige partir de una desconfianza estructural hacia toda acción digital, validándola más de una vez antes de asumirla legítima. Peña resume este criterio al señalar que, ante una acción del usuario, «siempre se presupone ilegítima» hasta que se descarten las alternativas mediante análisis de contexto o consulta directa. Pita plantea un principio equivalente: todo debe ser validado más de una vez, coleccionado y correlacionado en más de una oportunidad antes de tomarse como confiable. Este planteo profesional resulta coincidente con el estándar NIST SP 800-207, que constituye la base conceptual adoptada por el proyecto para su arquitectura de confianza cero.
 
-\textbf{Catálogo de acciones de respuesta.} El proceso de respuesta descrito por Ruiz ante una alerta de riesgo (validación para descartar falsos positivos, recopilación de evidencia, análisis de contexto del usuario y, de corresponder, escalamiento hacia medidas como bloqueo de cuenta, revocación de sesiones, limitación de accesos o aislamiento del equipo afectado) se corresponde con la lógica escalonada de acciones adoptada en el catálogo del proyecto, que también gradúa la respuesta según el nivel de riesgo detectado, desde el registro de una alerta hasta la denegación de acceso o el aislamiento de procesos en el equipo del usuario. En la misma línea, Peña describe casos concretos de su organización donde una descarga masiva de información dispara una alerta inmediata al equipo de seguridad, y donde la filtración de datos sensibles por parte de un usuario deriva en un bloqueo inmediato de su cuenta, reforzando la pertinencia de contar con acciones automatizadas de distinta severidad según el tipo de evento.
+\textbf{Catálogo de acciones de respuesta.} El proceso de respuesta descrito por Ruiz ante una alerta de riesgo (validación para descartar falsos positivos, recopilación de evidencia, análisis de contexto del usuario y, de corresponder, escalamiento hacia medidas como bloqueo de cuenta, revocación de sesiones, limitación de accesos o aislamiento del equipo afectado) se corresponde con la lógica escalonada de acciones adoptada en el catálogo del proyecto, que también gradúa la respuesta según el nivel de riesgo detectado, desde el registro de una alerta hasta la denegación de acceso a carpetas o la suspensión o terminación de procesos en el equipo del usuario. En la misma línea, Peña describe casos concretos de su organización donde una descarga masiva de información dispara una alerta inmediata al equipo de seguridad, y donde la filtración de datos sensibles por parte de un usuario deriva en un bloqueo inmediato de su cuenta, reforzando la pertinencia de contar con acciones automatizadas de distinta severidad según el tipo de evento.
 
 \textbf{Variables del modelo de scoring.} Consultado sobre los factores que determinan el nivel de riesgo de un usuario, Ruiz enumera el nivel de privilegios, la criticidad de la información a la que accede, el tipo de operaciones que realiza, la ubicación y el dispositivo desde el que se conecta, el horario de actividad y las desviaciones respecto de su comportamiento habitual. Este conjunto de factores es consistente con las variables ya incorporadas en el modelo de scoring del proyecto, que combina indicadores de horario, dispersión geográfica, diversidad de tipos de evento y volumen de actividad para caracterizar el comportamiento de cada usuario. Los incidentes de mayor impacto mencionados de forma independiente por los entrevistados con responsabilidad directa en seguridad (robo de credenciales y abuso de privilegios, \emph{phishing} y filtración de datos) coinciden además con el enfoque conductual (UEBA) que orienta el diseño del proyecto.
 
@@ -481,7 +488,7 @@ Sin embargo, ante un escenario de riesgo moderado, el 37\% considera que una not
 
 Al consultar las funcionalidades prioritarias de un sistema de monitoreo de comportamiento, los resultados son relativamente equilibrados, con porcentajes de selección entre el 52\% y el 62\%: detección de horarios anómalos (62\%), procesos no habituales (61\%), restricción automática de acceso (61\%), historial de auditoría completo (58\%), accesos inusuales a archivos (55\%) y alertas inmediatas a IT (52\%) (figura~\ref{fig:encuesta-14}, Anexo B).
 
-La ausencia de una funcionalidad claramente dominante sugiere que los participantes valoran un sistema integral. El sistema cubre esas fuentes de forma desigual. El agente recolecta la actividad de procesos y de archivos, el modelo considera el horario de la actividad y el sistema ofrece la denegación de acceso a carpetas, el historial de puntajes y la notificación al administrador. Sin embargo, el modelo no evalúa el nombre del proceso ni del archivo, sino el volumen, la diversidad y el horario de la actividad (sección~\ref{sec:mapeo-agente}), por lo que los procesos no habituales y los accesos inusuales a archivos se recolectan, pero no se detectan como tales.
+La ausencia de una funcionalidad claramente dominante sugiere que los participantes valoran un sistema integral. El sistema cubre esas fuentes de forma desigual. El agente recolecta la actividad de procesos y de archivos, el modelo considera el horario de la actividad y el sistema ofrece la denegación de acceso a carpetas, el historial de puntajes y la notificación al administrador. Sin embargo, Isolation Forest no evalúa el nombre del proceso ni del archivo, sino el volumen, la diversidad y el horario de la actividad (sección~\ref{sec:mapeo-agente}). La detección de novedad cubre en parte ese hueco: marca el primer acceso del usuario a una aplicación de la lista vigilada, a una carpeta o a un destino de red (sección~\ref{sec:novedad-recurso}). Un archivo inusual dentro de una carpeta ya conocida, o un proceso fuera de la lista vigilada, se recolecta pero no se detecta como tal.
 
 \subsection{Factores de adopción: sin un factor dominante}
 
@@ -501,6 +508,6 @@ Este resultado aporta un indicio, entre los participantes, del problema que moti
 
 \subsection{Síntesis}
 
-En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida por los participantes principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades del sistema cubren la mayoría de las fuentes que priorizan los participantes, aunque el modelo no distingue procesos ni archivos inusuales por su nombre, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante dado el peso que los participantes asignan a la reacción de los empleados. Estas coincidencias describen a los 185 participantes de una muestra por conveniencia y no permiten estimar proporciones en la población de empleados de empresas argentinas ni en el segmento PyME.
+En conjunto, los resultados de la encuesta son consistentes con la premisa central del proyecto: la autenticación continúa siendo percibida por los participantes principalmente como un evento puntual y no como una garantía sostenida durante la sesión. Los resultados también son consistentes con varias decisiones de diseño: las funcionalidades del sistema cubren la mayoría de las fuentes que priorizan los participantes, aunque solo distingue como inusuales los primeros accesos a aplicaciones vigiladas, carpetas y destinos, y no los archivos individuales, la respuesta graduada por niveles de riesgo se alinea con la preferencia por mecanismos menos disruptivos y la necesidad de explicabilidad resulta relevante dado el peso que los participantes asignan a la reacción de los empleados. Estas coincidencias describen a los 185 participantes de una muestra por conveniencia y no permiten estimar proporciones en la población de empleados de empresas argentinas ni en el segmento PyME.
 
 Al mismo tiempo, la encuesta plantea dos desafíos para la adopción: la confianza en el proveedor y la reacción de los empleados tienen, para los participantes, mayor peso que la garantía de privacidad como criterio de decisión, y una parte significativa (34\%) considera improbable que su empresa adopte un sistema de este tipo, además del 23\% que se ubica en una posición intermedia. Por lo tanto, las respuestas sugieren una oportunidad para este tipo de solución, pero su adopción dependerá tanto de sus capacidades técnicas como de la confianza y aceptación que logre generar.

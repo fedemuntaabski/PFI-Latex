@@ -50,7 +50,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\endhead
 	RF-01 & El agente local (PEP) debe ejecutarse en segundo plano y recolectar metadatos de actividad del usuario: procesos ejecutados (incluidas las aplicaciones de una lista vigilada), cambios en los archivos del primer nivel de las carpetas vigiladas (alta, baja, modificación y renombre) y conexiones a recursos de red. No captura contenido, pantallas ni pulsaciones de teclado. Los metadatos incluyen nombres de archivo y de proceso, IP y puerto remotos y el identificador host-usuario. & Alta & Implementado \\
 	\hline
-	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado (ver nota a) \\
+	RF-02 & El agente debe enviar los eventos recolectados a la API central por un canal autenticado, identificándose con una clave propia por agente, y conservarlos en un \emph{buffer} local cuando la API no esté disponible. & Alta & Implementado; \emph{buffer} acotado (ver RNF-05) \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
@@ -75,7 +75,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\hline
 	RF-05 & La API debe asignar a cada evento un nivel de riesgo a partir de los umbrales vigentes (por defecto: bajo $[0,40)$, medio $[40,70)$, alto $[70,90)$ y crítico $[90,100]$). & Alta & Implementado \\
 	\hline
-	RF-06 & La API debe aplicar una regla de piso que eleve el nivel mínimo (por defecto, alto) cuando Isolation Forest marca anomalía o la cantidad de recursos nuevos del día supera el cuantil poblacional (detección de novedad), evitando que el resto del cálculo diluya una señal fuerte. & Media & Implementado \\
+	RF-06 & La API debe aplicar una regla de piso que eleve el nivel mínimo (por defecto, alto) cuando Isolation Forest marca anomalía o la cantidad de recursos nuevos del día supera el cuantil poblacional (detección de novedad), evitando que el resto del cálculo diluya una señal fuerte. La condición de novedad requiere al menos tres días previos de historia del usuario y un mínimo de 50 usuarios-día en la ventana del cuantil; antes de eso no eleva el nivel. & Media & Implementado \\
 	\hline
 	RF-07 & La API debe devolver al agente, en la respuesta del evento, la acción de mitigación correspondiente al nivel asignado según el mapeo nivel\,$\rightarrow$\,acción vigente. Mapeo por defecto: bajo, medio y alto $\rightarrow$ \texttt{alertar}; crítico $\rightarrow$ \texttt{terminar\_y\_denegar} (configurable, RF-14). & Alta & Implementado \\
 	\hline
@@ -131,7 +131,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\hline
 	RF-16 & El \emph{dashboard} debe mostrar el listado de usuarios monitoreados con su puntaje, nivel, estado de aprendizaje e historial, y el detalle de los eventos recientes de cada uno. & Alta & Implementado \\
 	\hline
-	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento y umbral de aprendizaje) en un historial en el que la aplicación solo inserta, con fecha, valores anteriores y nuevos e identificador del actor (el rol de la sesión del panel o, para las claves que usan los scripts, un identificador derivado de la clave), consultable desde una vista de auditoría. & Media & Implementado \\
+	RF-17 & La API debe registrar cada cambio de política (umbrales, acciones, notificaciones, reentrenamiento, umbral de aprendizaje y proveedores de identidad) en un historial en el que la aplicación solo inserta, con fecha, valores anteriores y nuevos e identificador del actor (el rol de la sesión del panel o, para las claves que usan los scripts, un identificador derivado de la clave), consultable desde una vista de auditoría. & Media & Implementado \\
 	\hline
 	RF-31 & La API puede asistir la redacción del correo de notificación con un modelo de lenguaje externo, que recibe el identificador del usuario, el puntaje, el nivel, las variables que lo explican y los eventos recientes de la alerta; si el servicio no está configurado o no responde, se utiliza un texto predefinido. El modelo solo redacta el correo: no interviene en el nivel ni en la acción (RNF-04). & Baja & Implementado (ver nota a) \\
 	\hline
@@ -158,7 +158,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\endhead
 	RF-18 & El administrador debe poder configurar la periodicidad (1 a 365 días) y la ventana horaria del reentrenamiento; el planificador solo dispara el proceso dentro de esa ventana. & Baja & Implementado \\
 	\hline
-	RF-19 & El sistema debe registrar los eventos crudos que recibe y, en cada reentrenamiento, exportar todos los acumulados (sin los de prueba, de demostración ni las repeticiones del conjunto original) junto con el conjunto de datos original, como insumo del \emph{pipeline} de reentrenamiento. & Alta & Implementado \\
+	RF-19 & El sistema debe registrar los eventos crudos que recibe y, en cada reentrenamiento, exportar todos los acumulados (sin los de prueba, de demostración ni las repeticiones del conjunto original) junto con el conjunto de datos original, como insumo del \emph{pipeline} de reentrenamiento. & Alta & Implementado; con el corte temporal fijo, los eventos del agente no entran al entrenamiento (ver nota a) \\
 	\hline
 	RF-20 & El reentrenamiento debe ejecutarse en un proceso aislado del que atiende producción, disparado por un planificador cuando se cumple la periodicidad configurada. & Alta & Implementado \\
 	\hline
@@ -169,6 +169,10 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 \end{tablacompacta}
+
+\begin{notastabla}
+\noindent a) El Isolation Forest se entrena solo con los días anteriores al corte temporal fijo de la partición (2021-08-02, sección~\ref{sub:particion-parametros}). Los eventos del agente son posteriores, por lo que quedan del lado de prueba y no modifican el modelo. La incorporación efectiva de la telemetría propia requiere otro criterio de partición o un \emph{pipeline} para el dominio de \emph{host}, y queda como trabajo futuro.
+\end{notastabla}
 
 
 \subsection{Módulo 6: Alta de usuario nuevo y cold-start (CU-04)}
@@ -186,7 +190,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\endhead
 	RF-23 & El sistema debe dar de alta automáticamente a un usuario no registrado al recibir su primer evento, sin intervención del administrador. & Alta & Implementado \\
 	\hline
-	RF-24 & Todo usuario nuevo debe quedar en estado ``en aprendizaje'' hasta acumular un umbral de eventos configurable en tiempo de ejecución (por defecto 20, rango 1 a 1000). El mismo umbral define la cantidad mínima de eventos a partir de la cual la línea base personal del usuario pondera en el puntaje. & Alta & Implementado \\
+	RF-24 & Todo usuario nuevo debe quedar en estado ``en aprendizaje'' hasta acumular un umbral de eventos configurable en tiempo de ejecución (por defecto 20, rango 1 a 1000). El mismo umbral regula el peso de la línea base personal en el puntaje: crece en proporción a los eventos acumulados y alcanza su máximo (0,7) al llegar al umbral. & Alta & Implementado \\
 	\hline
 	RF-25 & Durante el aprendizaje, el sistema debe atenuar la acción de mitigación (no el nivel informado), forzándola a \texttt{alertar}, salvo para eventos sobre recursos sensibles (eventos de archivo: creación, escritura, renombrado y borrado), que se tratan con la política normal. La notificación por correo no se atenúa. & Alta & Implementado \\
 	\hline
@@ -211,7 +215,7 @@ Los requerimientos funcionales, identificados de RF-01 a RF-31, se organizan en 
 	\textbf{ID} & \textbf{Requerimiento} & \textbf{Prioridad} & \textbf{Estado} \\
 	\hline
 	\endhead
-	RF-28 & La API debe poder consultar a un proveedor IAM, Keycloak, el rol y el departamento del usuario monitoreado, mediante un adaptador seleccionable por configuración y desactivado por defecto. Ante cada cambio de nivel de riesgo, la API informa el nuevo nivel a Keycloak y, en nivel crítico, le solicita el cierre de las sesiones del usuario. & Media & Implementado; Keycloak validado contra un servidor real \\
+	RF-28 & La API debe poder consultar a un proveedor IAM (Keycloak; existe además un adaptador para Microsoft Entra ID) el rol y el departamento del usuario monitoreado, mediante un adaptador seleccionable por configuración y desactivado por defecto. Ante cada cambio de nivel de riesgo, la API informa el nuevo nivel a Keycloak y, en nivel crítico, le solicita el cierre de las sesiones del usuario. & Media & Implementado; Keycloak validado contra un servidor real; Entra ID sin validar contra un \emph{tenant} real \\
 	\hline
 	RF-29 & La respuesta del proveedor IAM debe almacenarse en caché durante 30 minutos y, ante una falla o indisponibilidad del proveedor, el cálculo del puntaje debe continuar sin ese contexto. & Media & Implementado \\
 	\hline
@@ -238,7 +242,7 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\textbf{ID} & \textbf{Categoría} & \textbf{Requerimiento} & \textbf{Estado} \\
 	\hline
 	\endhead
-	RNF-01 & Rendimiento & La evaluación de un evento debe completarse en tiempo casi real: percentil 95 de la latencia extremo a extremo menor o igual a 500~ms y percentil 99 menor o igual a 1~s, en red local. & Implementado: p95 de 13,7~ms y p99 de 18,2~ms en entorno local con el camino por defecto; la medición extremo a extremo en la nube se informa aparte (p95 de 3,1~s) \\
+	RNF-01 & Rendimiento & La evaluación de un evento debe completarse en tiempo casi real: percentil 95 de la latencia extremo a extremo menor o igual a 500~ms y percentil 99 menor o igual a 1~s, en red local. & Cumple en red local: p95 de 13,7~ms y p99 de 18,2~ms en entorno local con el camino por defecto; en la nube no se cumple (p95 de 3,1~s, medido aparte) \\
 	\hline
 	RNF-02 & Eficiencia & El agente opera con un consumo acotado que preserva el uso normal del equipo: consumo medio de CPU menor o igual al 5\,\% de la máquina y memoria residente menor o igual a 150~MB. & Implementado: CPU media 0,09\,\% y memoria residente de 33~MB \\
 	\hline
@@ -250,9 +254,9 @@ Los requerimientos no funcionales son transversales a los casos de uso y definen
 	\hline
 	RNF-06 & Reversibilidad & Las acciones de mitigación deben poder revertirse siempre que el sistema operativo lo permita. & Implementado \\
 	\hline
-	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje y reentrenamiento deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
+	RNF-07 & Configurabilidad & Umbrales, acciones, notificaciones, umbral de aprendizaje, reentrenamiento y proveedores de identidad deben poder modificarse en tiempo de ejecución, sin reiniciar ni redesplegar componentes. & Implementado \\
 	\hline
-	RNF-08 & Privacidad & El agente recolecta exclusivamente metadatos de actividad: nombres de archivo y de proceso, dirección y puerto remotos, marca temporal e identificador del par equipo-usuario, identificador del agente, identificador de proceso en las conexiones de red, código de país, indicador de IP local y, en los renombrados, el nombre anterior. & Implementado \\
+	RNF-08 & Privacidad & El agente recolecta exclusivamente metadatos de actividad: nombres de archivo y de proceso, dirección y puerto remotos, marca temporal e identificador del par equipo-usuario, identificador del agente, identificador de proceso en las conexiones de red, código de país, indicador de IP local, en los renombrados, el nombre anterior, y los eventos de inicio y cierre de sesión. & Implementado \\
 	\hline
 	RNF-09 & Integridad y trazabilidad & Los eventos crudos deben almacenarse con encadenamiento de \emph{hashes} verificable, con validación de tipos, formato, ventana temporal, identificadores reservados y tamaño en la ingesta. & Parcial: cadena verificada manualmente, sin test automatizado ni inmutabilidad; esquema no estricto \\
 	\hline
@@ -311,11 +315,11 @@ El actor principal es el planificador del sistema, mientras que el administrador
 
 Cuando detecta que corresponde reentrenar, el sistema exporta los eventos crudos acumulados junto con el conjunto de datos original, adaptándolos al formato requerido por el \emph{pipeline} de entrenamiento. Este se ejecuta en un proceso aislado. Una vez generado el nuevo modelo, el sistema evalúa tanto este como el modelo vigente sobre los mismos días reales de la partición de desarrollo. Si el nuevo modelo cumple el criterio de promoción, es decir, si su desempeño no resulta inferior al permitido, se incorpora como modelo vigente sin necesidad de reiniciar la API. Finalmente, el sistema registra el reentrenamiento, incluyendo la fecha, los eventos utilizados y la variación de las métricas obtenidas.
 
-Como alternativa al disparo automático, el administrador de seguridad puede registrar manualmente un reentrenamiento realizado fuera del planificador. Si se produce un fallo en algún paso del \emph{pipeline}, se restauran los artefactos del modelo vigente, que continúa en servicio. Si el \emph{pipeline} falla, termina por una excepción o supera el tiempo máximo configurado, el intento se registra como fallido, con su motivo, y se restauran los artefactos del modelo vigente.
+Como alternativa al disparo automático, el administrador de seguridad puede registrar manualmente un reentrenamiento realizado fuera del planificador. Si algún paso del \emph{pipeline} falla, termina por una excepción o supera el tiempo máximo configurado (4 horas por defecto), el intento se registra como fallido, con su motivo, y se restauran los artefactos del modelo vigente, que continúa en servicio.
 
 Por otra parte, si el nuevo modelo no cumple el criterio de promoción, falta la definición de la partición, el corte temporal no coincide con el esperado o se produce un error durante el cálculo de las métricas, el sistema rechaza la promoción, conserva el modelo vigente y registra el motivo del rechazo.
 
-Al finalizar el proceso, el modelo vigente se mantiene o se actualiza según el resultado de la evaluación, y el reentrenamiento queda registrado cuando corresponde. Este caso de uso se relaciona con los requerimientos RF-18 a RF-22 y con las historias de usuario HU-08 a HU-10. Su principal aporte es reducir el riesgo de degradación del modelo ante el \emph{concept drift}, mediante reentrenamientos periódicos y una evaluación previa a la promoción, sin interrumpir el servicio ni incorporar modelos cuyo desempeño supere el margen de degradación permitido.
+Al finalizar el proceso, el modelo vigente se mantiene o se actualiza según el resultado de la evaluación, y el reentrenamiento queda registrado cuando corresponde. Este caso de uso se relaciona con los requerimientos RF-18 a RF-22 y con las historias de usuario HU-08 a HU-10. Su principal aporte es reducir el riesgo de degradación del modelo ante el \emph{concept drift}, mediante reentrenamientos periódicos y una evaluación previa a la promoción, sin interrumpir el servicio ni incorporar modelos cuya degradación supere el margen permitido. Con el corte temporal fijo de la partición, los eventos recibidos del agente quedan posteriores al corte y no entran al conjunto de entrenamiento, por lo que el mecanismo todavía no incorpora la telemetría propia (sección~\ref{sec:reentrenamiento-producto}).
 
 \subsection{CU-04: Alta de usuario nuevo y período de aprendizaje (cold-start)}
 \label{sec:cu04}
@@ -324,7 +328,7 @@ Los actores principales son el agente local y la API, mientras que el administra
 
 Al detectar que el usuario no está registrado, la API crea su estado y lo establece en modo de aprendizaje, de acuerdo con el umbral configurado. Durante este período, los eventos se evalúan normalmente, pero la acción de mitigación se aplica de forma atenuada. A su vez, el \emph{dashboard} muestra al usuario en aprendizaje e informa su progreso. Una vez alcanzado el umbral establecido, el sistema lo incorpora automáticamente al monitoreo normal. Si el administrador modifica el umbral durante el aprendizaje, el cambio se aplica a partir del siguiente evento. Sin embargo, cuando un evento afecta a un recurso sensible, se aplica la política normal, sin atenuar la acción de mitigación.
 
-Al finalizar el caso de uso, el usuario deja el modo de aprendizaje y las acciones se aplican sin atenuación, según el mapeo configurado. Este caso de uso se relaciona con los requerimientos RF-23 a RF-27 y con las historias de usuario HU-11 a HU-13. Su principal aporte es reducir los falsos positivos durante la incorporación de nuevos usuarios, asociados al problema de \emph{cold-start}, una limitación documentada en la literatura \parencite{VillarrealVasquez2021, Benova2024}.
+Al finalizar el caso de uso, el usuario deja el modo de aprendizaje y las acciones se aplican sin atenuación, según el mapeo configurado. Este caso de uso se relaciona con los requerimientos RF-23 a RF-27 y con las historias de usuario HU-11 a HU-13. Su principal aporte es reducir los falsos positivos durante la incorporación de nuevos usuarios, asociados al problema de \emph{cold-start}: los modelos basados en perfiles se entrenan con un historial previo de actividad normal del que un usuario nuevo carece \parencite{VillarrealVasquez2021}.
 
 \section{Historias de usuario}
 \label{sec:historias-usuario}
@@ -335,7 +339,7 @@ Las historias de usuario se expresan con el formato ``Como [rol], quiero [funcio
 
 Esta épica reúne las historias asociadas a CU-01: la recolección de actividad, el puntaje de riesgo por evento, la mitigación automática y la reversión de acciones.
 
-\textbf{HU-01: Recolección de actividad en el endpoint.} Como administrador de seguridad, quiero que el agente recolecte en segundo plano la actividad de procesos, archivos, aplicaciones y red de cada equipo, para contar con la información necesaria para evaluar el comportamiento sin interrumpir al usuario. La historia se considera cumplida cuando, con un agente instalado, cada proceso ejecutado o archivo accedido por el usuario llega a la API como evento con identificador de usuario, tipo y marca temporal; cuando, si la API no responde, el evento queda en el \emph{buffer} local y se envía al restablecerse la conexión; y cuando ningún evento incluye contenido de archivos, capturas de pantalla ni pulsaciones de teclado.
+\textbf{HU-01: Recolección de actividad en el endpoint.} Como administrador de seguridad, quiero que el agente recolecte en segundo plano la actividad de procesos, archivos, aplicaciones y red de cada equipo, para contar con la información necesaria para evaluar el comportamiento sin interrumpir al usuario. La historia se considera cumplida cuando, con un agente instalado, cada aplicación vigilada que el usuario ejecuta y cada cambio en un archivo de una carpeta vigilada llega a la API como evento con identificador de usuario, tipo y marca temporal; cuando, si la API no responde, el evento queda en el \emph{buffer} local y se envía al restablecerse la conexión; y cuando ningún evento incluye contenido de archivos, capturas de pantalla ni pulsaciones de teclado.
 
 \textbf{HU-02: Puntaje de riesgo por evento.} Como administrador de seguridad, quiero que cada evento reciba un puntaje de riesgo y un nivel, para saber en tiempo casi real cuánto se desvía un usuario de su conducta esperada. Ante un evento válido, la API debe devolver un puntaje entre 0 y 100 y el nivel que corresponde a los umbrales vigentes. Cuando un usuario vuelve tras un período sin actividad, su riesgo acumulado debe haberse reducido por decaimiento temporal, y cuando Isolation Forest o la detección de novedad marcan anomalía, el nivel se mantiene en el piso o por encima de él, que por defecto es alto.
 
@@ -359,7 +363,7 @@ Esta épica reúne las historias asociadas a CU-03: la planificación del reentr
 
 \textbf{HU-08: Planificación del reentrenamiento.} Como administrador de seguridad, quiero configurar cada cuánto y en qué franja horaria se reentrena el modelo, para que el reentrenamiento no interfiera con el entorno productivo. Un período de entre 1 y 365 días y una ventana horaria válida deben quedar persistidos al guardarse, y un valor fuera de rango o con formato inválido debe rechazarse.
 
-\textbf{HU-09: Reentrenamiento aislado y promoción controlada.} Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos nuevos y solo se reemplace si su tasa de falsos positivos no empeora más allá del margen tolerado, para incorporar cambios de comportamiento sin aumentar las alertas ni arriesgar el servicio. Cumplido el período, el planificador debe ejecutar el \emph{pipeline} en un proceso aparte. Un modelo nuevo que satisface el criterio de no inferioridad sobre los días reales de la partición de desarrollo debe reemplazar al vigente sin reiniciar la API; si no lo satisface, o si la evaluación queda incompleta, debe conservarse el vigente y registrarse el motivo.
+\textbf{HU-09: Reentrenamiento aislado y promoción controlada.} Como administrador de seguridad, quiero que el modelo se reentrene automáticamente con los eventos acumulados y solo se reemplace si su tasa de falsos positivos no empeora más allá del margen tolerado, para incorporar cambios de comportamiento sin aumentar las alertas ni arriesgar el servicio. Cumplido el período, el planificador debe ejecutar el \emph{pipeline} en un proceso aparte. Un modelo nuevo que satisface el criterio de no inferioridad sobre los días reales de la partición de desarrollo debe reemplazar al vigente sin reiniciar la API; si no lo satisface, o si la evaluación queda incompleta, debe conservarse el vigente y registrarse el motivo.
 
 \textbf{HU-10: Historial de reentrenamientos.} Como administrador de seguridad, quiero ver el historial de reentrenamientos, para auditar cómo evolucionó el modelo. Para cada reentrenamiento finalizado, el \emph{dashboard} debe mostrar la fecha, los eventos utilizados, la variación de métricas y el actor, y debe permitir registrar los reentrenamientos realizados manualmente.
 
@@ -379,6 +383,6 @@ Esta épica reúne las historias que no dependen de un único caso de uso: la au
 
 \textbf{HU-14: Autenticación de acceso y configuración.} Como administrador de seguridad, quiero que el acceso al \emph{dashboard} y a la configuración requiera autenticación, para que nadie sin autorización modifique las políticas. El \emph{dashboard} solo es accesible para un usuario con sesión iniciada, y la API debe rechazar toda operación de configuración que no presente un token de sesión vigente con rol administrador, así como cualquier token cuya sesión se haya cerrado o haya vencido.
 
-\textbf{HU-15: Explicación persistida.} Como analista de seguridad, quiero que la explicación de cada puntaje quede guardada en el historial, para poder justificar una decisión tiempo después, aunque el modelo se haya reentrenado. La explicación y el motivo de cada evento evaluado deben persistirse en el historial, y tras un reentrenamiento posterior, las explicaciones ya guardadas se conservan sin cambios.
+\textbf{HU-15: Explicación persistida.} Como analista de seguridad, quiero que la explicación de cada puntaje quede guardada en el historial, para poder justificar una decisión tiempo después, aunque el modelo se haya reentrenado. La explicación y el motivo del último evento evaluado de cada día deben persistirse en el historial diario, y tras un reentrenamiento posterior, las explicaciones ya guardadas se conservan sin cambios.
 
 \textbf{HU-16: Contexto organizacional desde el IAM.} Como administrador de seguridad, quiero que el sistema obtenga el rol y el departamento del usuario desde el IAM de la organización, para ver en el \emph{dashboard} el contexto organizacional existente. Con un proveedor IAM configurado, la llegada de un evento de un usuario sin datos en caché debe provocar la consulta del rol y el departamento y su almacenamiento en caché. Si el proveedor no responde, el evento debe evaluarse igualmente, sin contexto IAM.

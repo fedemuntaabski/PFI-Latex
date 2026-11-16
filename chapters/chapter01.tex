@@ -25,9 +25,9 @@ propuesta por la arquitectura Zero Trust \parencite{Rose2020}.
         150\,MB de memoria residente.
   \item Entrenar un modelo no supervisado de detección de anomalías
         sobre un conjunto de datos público de comportamiento de usuarios, y evaluarlo con datos reales,
-        en una partición de desarrollo y un conjunto reservado (\emph{holdout}), informando la tasa de
-        alertas sobre actividad normal y la estabilidad del nivel frente a las metas definidas en la sección
-        \ref{sec:metas-modelo}.
+        sobre una partición de desarrollo fijada de antemano y con un conjunto reservado
+        (\emph{holdout}) que no interviene en las decisiones de diseño, informando la tasa de alertas sobre actividad normal y la estabilidad del nivel frente a las metas
+        definidas en la sección \ref{sec:metas-modelo}.
   \item Calcular un puntaje de riesgo de 0 a 100 por evento, con continuidad entre sesiones y
         decaimiento temporal, con una latencia de evaluación de percentil 95 menor o igual a 500\,ms,
         medida desde el cliente en un entorno local aislado.
@@ -68,18 +68,18 @@ organizacionales que esa normativa exige a la empresa que lo adopte (por ejemplo
 los empleados o la inscripción de la base de datos).
 
 \section{Descripción}
-Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante, ya que las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.
+Los sistemas de seguridad actuales suelen confiar en el usuario solo en el momento del inicio de sesión. Esto deja un punto ciego crítico: si un atacante logra robar credenciales válidas, puede moverse dentro de la red sin ser detectado. Este problema es cada vez más relevante: el uso de credenciales robadas figura de forma sostenida entre los vectores de acceso inicial más frecuentes en las brechas analizadas por \textcite{Verizon2025}, y las soluciones tradicionales han demostrado quedarse limitadas frente a amenazas más sofisticadas \parencite{Ansari2025}. Ante este escenario, el proyecto propone sumar una capa de monitoreo continuo que acompañe toda la sesión. Esta solución actúa como un complemento a los sistemas de gestión de identidad (IAM) tradicionales y puede integrarse con ellos para validar no solo quién accede, sino también cómo se comporta. La idea es pasar a un modelo capaz de adaptarse a comportamientos cambiantes y detectar anomalías de forma más precisa.
 
-Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta información sobre la actividad del usuario, como procesos ejecutados e intentos de acceso a sistemas, aplicaciones o recursos de red. Estos datos se envían de forma segura a la API, que calcula en tiempo real el nivel de confianza mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
+Para lograrlo, el sistema se organiza en tres componentes: un agente instalado en el equipo local, una API central desplegada en la nube y un panel de administración (\emph{dashboard}). El agente es un programa liviano que se ejecuta en segundo plano y recolecta metadatos de la actividad del usuario, como las aplicaciones que ejecuta, los cambios en carpetas vigiladas y las conexiones a recursos de red. Estos datos se envían de forma segura a la API, que calcula en tiempo real el nivel de riesgo mediante un modelo de inteligencia artificial y, con base en ese resultado, define la acción a tomar.
 
-Dicho nivel de confianza no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
+Dicho nivel de riesgo no se calcula únicamente por la sesión; por el contrario, se apoya en el historial previo del usuario, manteniendo una continuidad entre sesiones, pero aplicando un decaimiento en el factor de riesgo con el paso del tiempo. En función del nivel de riesgo detectado, la API devuelve una respuesta al agente indicando la acción a ejecutar, que puede variar desde una simple alerta hasta restricciones más severas como limitación de permisos.
 
-Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de confianza y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el modelo de inteligencia artificial se reentrena para incorporar nuevos comportamientos de los usuarios, lo que permite mantener su vigencia a lo largo del tiempo. El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
+Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de riesgo y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el sistema incluye un mecanismo de reentrenamiento periódico del modelo, pensado para incorporar nuevos comportamientos de los usuarios y mantener su vigencia a lo largo del tiempo. En la configuración actual, con el corte temporal fijo de la partición, los eventos del agente todavía no entran al conjunto de entrenamiento (sección~\ref{sec:reentrenamiento-producto}). El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
 \section{Metodología de desarrollo}
 \label{sec:metodologia}
-El proyecto se desarrolla mediante un proceso iterativo e incremental guiado por casos de uso
-\parencite{Larman2003}. Cada incremento toma un conjunto de casos de uso, lo lleva a través de
+El proyecto se desarrolla mediante un proceso iterativo e incremental \parencite{Larman2003},
+organizado en torno a casos de uso. Cada incremento toma un conjunto de casos de uso, lo lleva a través de
 análisis, diseño, implementación y prueba, y entrega una versión ejecutable del sistema completo
 sobre la que se planifica el incremento siguiente. Se elige este enfoque por tres motivos. Primero,
 el comportamiento del modelo de detección no puede conocerse antes de entrenarlo y probarlo
@@ -102,7 +102,8 @@ ciclo de desarrollo del software. En el camino por defecto, sus fases son el an�
 exploratorio y el perfilado del conjunto de datos; la limpieza y la clasificación de los usuarios
 por volumen y tipo; la ingeniería de variables; el entrenamiento de Isolation Forest; y la
 configuración del puntaje, que fija la vida media del decaimiento y los umbrales y exporta las
-referencias, la calibración y el perfil de Markov. El camino alternativo \texttt{lstm} agrega el
+referencias y la calibración, junto con el perfil de Markov que usa el camino alternativo
+\texttt{markov}. El camino alternativo \texttt{lstm} agrega el
 entrenamiento del LSTM Autoencoder, una auditoría bloqueante de consistencia de los datos y la
 combinación de ambos modelos (sección~\ref{sec:caminos-alternativos}).
 
@@ -136,5 +137,5 @@ sección~\ref{chap:conclusiones} expone las conclusiones y el trabajo futuro.
 Los anexos complementan el cuerpo del documento. El Anexo~A presenta el cronograma de
 actividades; el Anexo~B, los resultados completos de la encuesta; los Anexos~C a F, las
 transcripciones de las entrevistas a cuatro de los profesionales consultados; el Anexo~G, el
-cuestionario escrito respondido por el quinto, y el Anexo~H, las versiones completas de los
-diagramas de la sección~\ref{chap:uml}.
+cuestionario escrito respondido por el quinto; el Anexo~H, las versiones completas de los
+diagramas de la sección~\ref{chap:uml}, y el Anexo~I, el contenido de la entrega.
