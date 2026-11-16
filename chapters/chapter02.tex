@@ -291,6 +291,51 @@ Estas plataformas comparten con el proyecto la presencia de un agente y la capac
 
 En síntesis, un EDR responde a la pregunta de si una actividad corresponde a una técnica maliciosa conocida, mientras que el enfoque UEBA responde a si un usuario con credenciales válidas se aparta de su propia conducta habitual. Ambos enfoques son complementarios: un sistema UEBA no reemplaza a un EDR, sino que apunta a la actividad que parece legítima y que el EDR tiende a dejar pasar.
 
+\subsection{Conjuntos de datos de referencia}\label{sec:ea-datasets}
+La elección del conjunto de datos condiciona tanto el entrenamiento como lo que puede afirmarse de la detección. Por eso se relevaron los conjuntos públicos usados en la literatura de UEBA y amenazas internas con seis criterios: que la actividad sea humana y real, y no generada; que la unidad de análisis sea el usuario y no solo el equipo o la red; que el dominio sea cercano al del agente (un equipo Windows); que, si hay etiquetas de ataque, provengan de personas (un \emph{red team} o incidentes) y no de inyecciones o guiones; que estén los campos que usa el modelo (tipo, hora, usuario y ubicación); y que la licencia permita el uso sin acuerdos firmados. La tabla~\ref{tab:datasets-referencia} resume el relevamiento.
+
+{\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{3.0cm}}
+	\caption{Conjuntos de datos de referencia para UEBA y amenazas internas}
+	\label{tab:datasets-referencia}\\
+	\hline
+	\textbf{Conjunto} & \textbf{Origen y dominio} & \textbf{Etiquetas} & \textbf{Ubicación} & \textbf{Acceso} & \textbf{Decisión} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Conjunto} & \textbf{Origen y dominio} & \textbf{Etiquetas} & \textbf{Ubicación} & \textbf{Acceso} & \textbf{Decisión} \\
+	\hline
+	\endhead
+	CLUE-LDS \parencite{Landauer2022Dataset} & Real: plataforma de archivos en la nube, 2017--2022, 50,5 millones de eventos & No tiene & Campo presente; falta en el 99,76\,\% de los eventos & CC BY 4.0 & \textbf{Elegido} para entrenar y evaluar \\
+	\hline
+	CERT r4.2--r6.2 \parencite{Glasser2013CERT} & \textbf{Sintético}: usuarios, organización y ataques generados por un simulador; equipo, correo, web y dispositivos & Escenarios generados & Sintética & Libre & Descartado: la actividad no es real \\
+	\hline
+	DARPA OpTC \parencite{Arantes2021OpTC} & Ejercicio en unos 500 equipos Windows instrumentados & \emph{Red team} externo & IP, sin país & Dominio público & Solo piloto de transferencia \\
+	\hline
+	LANL 2017 \parencite{Turcotte2018LANL} & Real: 90 días de una red corporativa; equipos Windows y flujos & No tiene & No & CC0 & Solo para medir la brecha de dominio \\
+	\hline
+	LANL 2015 \parencite{Kent2015} & Real: autenticación, procesos, DNS y flujos & \emph{Red team} (autenticación) & No & CC0 & Descartado: protocolo de evaluación poco realista \parencite{Larroche2026} \\
+	\hline
+	GUIDE \parencite{Freitas2024GUIDE} & Incidentes reales de otro producto (alertas de SOC) & Sí & -- & Pública & Solo para validar la acumulación por cuenta \\
+	\hline
+	RUU \parencite{BenSalem2011RUU} & Usuarios reales; \emph{masqueraders} voluntarios con guion; equipo Windows & Guionadas & No & Acuerdo firmado & Descartado: acuerdo y ataque guionado \\
+	\hline
+	TWOS \parencite{Harilal2018TWOS} & Estudiantes en un juego de cinco días; equipo, HTTP y correo & Del juego & No & Sin licencia publicada & Descartado: actividad escenificada \\
+	\hline
+	WUIL \parencite{Camina2014WUIL} & Usuarios reales; ataques simulados con \emph{scripts}; archivos en Windows & Por \emph{scripts} & No & A pedido & Descartado: etiquetas sintéticas \\
+	\hline
+	SEA \parencite{Schonlau2001SEA} & Comandos UNIX reales de 50 usuarios & Por inserción & No & Sin licencia publicada & Descartado: etiquetas construidas \\
+	\hline
+	DARPA TC, OTRF, Splunk BOTS, CIC-IDS, UNSW-NB15 & Laboratorio o grafos de procedencia, sin línea base de usuario & De laboratorio & Variable & Variable & Descartados: laboratorio u otro dominio \\
+	\hline
+\end{longtable}
+}
+{\small Fuente: elaboración propia a partir de la documentación de cada conjunto.\par}
+
+CERT, la referencia más citada en la detección de amenazas internas, se descartó como fuente de evidencia porque tanto los usuarios como los ataques son generados por un simulador: un modelo que lo detecta bien demuestra que reconoce los patrones del generador, no los de un atacante. Las alternativas reales con etiquetas en el dominio de un equipo Windows exigían un acuerdo firmado (RUU), tenían una disponibilidad sin confirmar (TWOS) o etiquetas producidas por \emph{scripts} (WUIL). Se eligió CLUE-LDS por ser el único conjunto con actividad humana real, a nivel de usuario y con licencia abierta.
+
+La elección tiene costos que este relevamiento permite anticipar: CLUE-LDS no tiene etiquetas, de modo que la detección no puede medirse; pertenece al dominio de una plataforma en la nube y no al de un equipo Windows; y su campo de ubicación está casi vacío. Un perfilado de completitud de sus 50,5 millones de eventos muestra que el país falta en el 99,76\,\% de ellos y en el 99,95\,\% de los de la población de entrenamiento, y que tampoco vienen el rol (87,8\,\%) ni el indicador de red local (99,5\,\%). La versión 1 del modelo incluyó igualmente una variable de país, que en la práctica funcionó como un interruptor de ubicación (sección~\ref{sec:regla-ubicacion}). Ese perfilado no se hizo antes de definir las variables, y lo habría mostrado.
+
 \subsection{Limitaciones reportadas por otros autores}
 Al analizar la literatura y las soluciones de análisis conductual existentes, se identifican diversas limitaciones recurrentes que afectan el rendimiento de los sistemas UEBA. En primer lugar, una problemática central es el marcado desbalance de clases. Diversas investigaciones recientes \parencite{Artioli2024, VillarrealVasquez2021, Sharma2020} coinciden en señalar que los conjuntos de datos utilizados en ciberseguridad suelen presentar una proporción muy reducida de eventos anómalos en comparación con los eventos legítimos; incluso en conjuntos sintéticos como CERT, en los que los ataques se inyectan, la actividad maliciosa es una fracción mínima del total \parencite{Sharma2020}. Esta disparidad dificulta que los modelos aprendan a identificar amenazas reales con precisión, lo que suele derivar en un incremento notable de falsos positivos cuando se intenta maximizar la sensibilidad del sistema para no pasar por alto ninguna intrusión.
 

@@ -26,7 +26,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Alcance de monitoreo & Amplio (no se limita a usuarios individuales) pero centralizado en la nube, sin agente propio en el endpoint \\
 	\hline
-	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest con detección de novedad de recurso) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
+	Diferenciador del proyecto propuesto & El proyecto ejecuta la mitigación en el propio endpoint en tiempo casi real; su lógica de \emph{scoring} (Isolation Forest con una regla explícita de ubicación y detección de novedad de recurso) es propia y auditable, no una caja negra propietaria de costo variable por volumen de datos \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
@@ -174,7 +174,7 @@ Incluye las cuatro soluciones comerciales relevadas, la tecnología de autentica
 	\hline
 	Funcionalidad principal & \emph{Score} dinámico de confianza por usuario, actualizado por evento, con decaimiento temporal y continuidad entre sesiones \\
 	\hline
-	Tecnología / IA & Modelo propio: Isolation Forest (agregado diario) + detección de novedad de recurso en el camino por defecto; LSTM Autoencoder (secuencias) y perfil de Markov como caminos alternativos; código propio auditable \\
+	Tecnología / IA & Modelo propio: Isolation Forest (agregado diario) + regla de ubicación + detección de novedad de recurso informativa en el camino por defecto; LSTM Autoencoder (secuencias) y perfil de Markov como caminos alternativos; código propio auditable \\
 	\hline
 	Alcance de monitoreo & Agente ligero propio en el endpoint (Windows) + motor de decisión centralizado en la nube \\
 	\hline
@@ -323,7 +323,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Costo de ejecución muy alto en algunos métodos (por ejemplo, HDBSCAN y SSC-OMP); el comportamiento cambia con el tiempo (\emph{concept drift}) \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina dos técnicas (Isolation Forest y la detección de novedad de recurso) en vez de apostar a un único algoritmo \\
+	Relación con el diseño del proyecto & El proyecto sigue la conclusión de este trabajo: combina un modelo (Isolation Forest) con reglas explícitas y la detección de novedad de recurso en vez de apostar a un único algoritmo \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
@@ -348,7 +348,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\hline
 	Limitación reportada & Isolation Forest estándar introduce artefactos en el puntaje por usar cortes paralelos a los ejes; el rendimiento depende de la representación de los datos \\
 	\hline
-	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre ocho variables diarias estandarizadas y lo combina con la detección de novedad de recurso, la regla de piso y el decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
+	Relación con el diseño del proyecto & El proyecto usa Isolation Forest estándar sobre variables diarias estandarizadas (siete efectivas, sin el país) y lo combina con la regla de piso, la regla de ubicación, la detección de novedad de recurso y el decaimiento temporal; la variante extendida queda como alternativa no evaluada \\
 	\hline
 \end{longtable}
 {\small Fuente: elaboración propia a partir del estado del arte (sección~\ref{sec:estado-del-arte}).\par}
@@ -392,7 +392,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 	\endhead
 	Dataset / validación & CLUE-LDS: 50\,522\,931 eventos reales seudonimizados de 920 usuarios de una plataforma de archivos en la nube, entre julio de 2017 y septiembre de 2022 (sección~\ref{sec:dataset}). La evaluación se hace exclusivamente con datos reales: tasa de falsos positivos, estabilidad y carga de alertas sobre días reales de CLUE-LDS y LANL 2017 (secciones~\ref{sec:revision-modelos} y~\ref{sec:evaluacion-default}). \\
 	\hline
-	Métrica reportada & Tasa de falsos positivos en nivel alto del camino por defecto sobre los días reales de DEV: 2,66\,\%, con un percentil 90 semanal de 4,95\,\% (sección~\ref{sec:evaluacion-default}). No hay \emph{recall} medible: ningún conjunto de datos del dominio trae ataques etiquetados. \\
+	Métrica reportada & Tasa de falsos positivos en nivel alto del camino por defecto sobre los días reales de DEV: 1,81\,\%, con un percentil 90 semanal de 5,19\,\%, y 1,05\,\% en una única evaluación sobre HOLDOUT (sección~\ref{sec:evaluacion-default}). No hay \emph{recall} medible: ningún conjunto de datos del dominio trae ataques etiquetados. \\
 	\hline
 	Limitación reportada & Detección no medible sin ataques etiquetados del dominio; brecha de dominio entre los registros de la plataforma en la nube y la telemetría de un equipo Windows: el Isolation Forest de CLUE-LDS marca el 53,66\,\% de los días de \emph{host}, contra el 4,13\,\% de uno entrenado en \emph{host} (secciones~\ref{sec:revision-transferencia} y~\ref{sec:limitaciones-pruebas}). \\
 	\hline
@@ -401,7 +401,7 @@ Esta sección profundiza la comparación general de alternativas (sección~\ref{
 \end{longtable}
 {\small Fuente: elaboración propia.\par}
 
-El diseño inicial combinaba Isolation Forest con un LSTM Autoencoder. La revisión de modelos (sección~\ref{sec:revision-modelos}) mostró que el LSTM no aprovechaba el orden de los eventos y que su riesgo identificaba a la persona más que al comportamiento del día, por lo que el camino por defecto pasó a combinar Isolation Forest con la detección de novedad de recurso. El LSTM se conserva como alternativa configurable.
+El diseño inicial combinaba Isolation Forest con un LSTM Autoencoder. La revisión de modelos (sección~\ref{sec:revision-modelos}) mostró que el LSTM no aprovechaba el orden de los eventos y que su riesgo identificaba a la persona más que al comportamiento del día, por lo que el camino por defecto pasó a combinar Isolation Forest con la detección de novedad de recurso; después de la entrega del 90\,\%, la novedad quedó como informativa y el país pasó a una regla explícita de ubicación (sección~\ref{sec:que-cambiar-primero}). El LSTM se conserva como alternativa configurable.
 
 \section{Síntesis de diferenciadores}
 \label{sec:sintesis-diferenciadores}

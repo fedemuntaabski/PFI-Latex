@@ -1,0 +1,145 @@
+\chapter{Metodología de desarrollo}\label{chap:metodologia}
+\label{sec:metodologia}
+
+Esta sección describe el proceso con el que se desarrolló el sistema: el enfoque adoptado y su justificación, la planificación inicial y sus desvíos, los incrementos efectivamente ejecutados con sus fechas reales, la herramienta de seguimiento, los ajustes que surgieron de los resultados del modelo y el \emph{pipeline} de entrenamiento.
+
+\section{Enfoque y justificación}
+El proyecto se desarrolla mediante un proceso iterativo e incremental \parencite{Larman2003},
+organizado en torno a casos de uso. Cada incremento toma un conjunto de casos de uso, lo lleva a través de
+análisis, diseño, implementación y prueba, y entrega una versión ejecutable del sistema completo
+sobre la que se planifica el incremento siguiente. Se elige este enfoque por tres motivos. Primero,
+el comportamiento del modelo de detección no puede conocerse antes de entrenarlo y probarlo
+contra la telemetría real del agente, de modo que los requerimientos se ajustan a partir de los
+resultados de cada iteración. Segundo, el sistema tiene tres componentes desplegados en forma
+independiente (agente, API y panel), y un incremento vertical que atraviesa los tres permite
+verificar la integración temprano. Tercero, un equipo de dos personas no justifica los roles y
+ceremonias de un marco como Scrum, pero sí la entrega frecuente de versiones verificables.
+
+\section{Planificación inicial y desvíos}
+\label{sec:plan-contra-real}
+La planificación inicial, elaborada el 13 de junio de 2026, se presenta como diagrama de Gantt en el Anexo~A. Organizaba el trabajo en fases por componente (infraestructura y \emph{pipeline} de datos, agente e integración con la API, iteración del modelo, API central, panel web, validación del puntaje y documentación), con hitos en las entregas del 25\,\%, 50\,\% y 75\,\% y la defensa final. La tabla~\ref{tab:plan-contra-real} compara cada fase con su ejecución real. Las fechas reales se toman del historial de versiones: el inicio es el primer \emph{commit} que nombra el trabajo y el fin, el último, por lo que son fechas de \emph{commit} y no de calendario de trabajo.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{6.4cm}}
+	\caption{Planificación inicial contra ejecución real}
+	\label{tab:plan-contra-real}\\
+	\hline
+	\textbf{Fase planificada} & \textbf{Plan} & \textbf{Real} & \textbf{Desvío y causa} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Fase planificada} & \textbf{Plan} & \textbf{Real} & \textbf{Desvío y causa} \\
+	\hline
+	\endhead
+	Infraestructura base y \emph{pipeline} de datos y modelo & 14/06--18/08 & 03/05--04/08 & Se adelantó: la preparación de CLUE-LDS y los primeros modelos empezaron antes de formalizar el plan. \\
+	\hline
+	Entorno de pruebas y datos sintéticos & 21/06--18/07 & -- & Se reemplazó por escenarios construidos sobre historiales reales, que luego también se retiraron (sección~\ref{sec:revision-metodo}). \\
+	\hline
+	Agente local e integración con la API & 19/07--18/08 & 17/07--12/08 & En plazo; cerró con la demostración del 50\,\%. \\
+	\hline
+	Panel web e integración & 19/08--20/10 & 17/07--27/08 & Se adelantó para que el incremento 1 cubriera CU-02 completo. \\
+	\hline
+	Modelo: iteración y reentrenamiento & 08/08--27/09 & 20/08--25/08 y 04/10--13/11 & El reentrenamiento (CU-03) se cerró en plazo; la revisión del modelo se extendió siete semanas más, como un incremento propio. \\
+	\hline
+	API central: desarrollo avanzado & 08/08--27/09 & 31/08--20/10 & Se extendió por la integración IAM y el endurecimiento, que no estaban en el plan. \\
+	\hline
+	Validación y calibración del puntaje & 19/08--05/10 & 04/10--13/11 & Se postergó y se rehízo con datos reales, criterios fijados antes de medir y una partición DEV/HOLDOUT fija. \\
+	\hline
+	Despliegue e infraestructura & 06/09--12/10 & 10/09--14/11 & Se extendió por las sucesivas versiones desplegadas en la nube. \\
+	\hline
+	Hito del 75\,\% & 20/10 & 20/10 & Sin desvío. \\
+	\hline
+	Cierre y defensa & 21/10--14/12 & desde 13/11 & En curso; incluye las correcciones de la entrega del 90\,\%. \\
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia a partir del Anexo~A y del historial del repositorio.\par}
+
+El historial registra el primer \emph{commit} el 16 de abril de 2026 y la siguiente cantidad de \emph{commits} por mes: 4 en abril, 3 en mayo, 17 en julio, 119 en agosto, 26 en septiembre, 359 en octubre y 46 en noviembre (hasta el 16). La concentración en agosto y octubre coincide con los dos incrementos de producto y con la revisión de modelos.
+
+\section{Incrementos ejecutados}
+\label{sec:incrementos}
+El plan por fases se ejecutó, en la práctica, como una secuencia de incrementos verticales. La tabla~\ref{tab:incrementos} los presenta con sus fechas reales, su alcance y la versión o hito con que cerró cada uno.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{5.0cm}>{\raggedright\arraybackslash}p{3.4cm}}
+	\caption{Incrementos ejecutados}
+	\label{tab:incrementos}\\
+	\hline
+	\textbf{Incremento} & \textbf{Fechas reales} & \textbf{Alcance} & \textbf{Versión o hito} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Incremento} & \textbf{Fechas reales} & \textbf{Alcance} & \textbf{Versión o hito} \\
+	\hline
+	\endhead
+	0. Datos y modelos base & 03/05--04/08 & Fases 1 a 6 sobre CLUE-LDS: limpieza, agregado usuario-día, secuencias, Isolation Forest y LSTM Autoencoder & Artefactos de la versión~1 (02/09) \\
+	\hline
+	1. Detección y ajuste de políticas (CU-01 y CU-02) & 17/07--27/08 & API con puntaje híbrido, agente Windows con mitigación local, panel con umbrales y acciones editables y niveles configurables (RF-13) & Demostración del 50\,\% (12/08) \\
+	\hline
+	2. Reentrenamiento, alta de usuarios, IAM y endurecimiento (CU-03 y CU-04) & 20/08--20/10 & Captura de eventos crudos, planificador, criterio de promoción y recarga sin reinicio (RF-19 a RF-22); período de aprendizaje configurable (RF-24 y RF-25); adaptador IAM con Keycloak y Entra ID; resiliencia, deduplicación, clave por agente, cadena de \emph{hashes} y sesión del panel & Primera corrida automática completa (25/08); entrega del 75\,\% (20/10) \\
+	\hline
+	Despliegue en la nube (transversal) & 10/09--14/11 & Terraform, instancia, \emph{proxy} inverso y versiones publicadas & Versiones del 08/11, 14/11 y 16/11 \\
+	\hline
+	3. Revisión de modelos & 04/10--13/11 & Partición DEV/HOLDOUT fija, criterio de no inferioridad, retiro de escenarios construidos, tercer detector y etiquetado de triage (sección~\ref{sec:revision-modelos}) & Etiqueta \texttt{pre-limpieza-entrega} (13/11) \\
+	\hline
+	4. Cierre y correcciones del 90\,\% & 13/11--16/11 & Regresión del puntaje, pruebas del panel, cambios de modelo de la sección~\ref{sec:que-cambiar-primero} y evaluación única en HOLDOUT & Versión del 16/11 \\
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia a partir del historial del repositorio.\par}
+
+El primer incremento cubre la detección y la mitigación en el equipo (CU-01) y el ajuste de políticas desde el panel (CU-02), y se verificó con la demostración del 50\,\%. El segundo incorpora el reentrenamiento periódico del modelo (CU-03), el alta de usuarios nuevos con período de aprendizaje (CU-04), la integración con sistemas de gestión de identidad y el endurecimiento de la ingesta, la autenticación y el canal; se verificó con la primera corrida automática del reentrenamiento y con la entrega del 75\,\%. La revisión de modelos funcionó como un tercer incremento: tuvo un objetivo propio, criterios de decisión fijados antes de medir y una versión desplegada como resultado.
+
+\section{Herramienta de seguimiento}
+El seguimiento se hizo exclusivamente con el control de versiones: no se usaron tableros, gestores de incidencias ni planillas. Las ramas por funcionalidad (con prefijos como \texttt{feature/}, \texttt{analysis/} y \texttt{fix/}) hicieron las veces de tablero, y cada sesión de trabajo dejó en el repositorio un documento que registra qué se decidió y por qué. La revisión de cada cambio antes de integrarlo y un \emph{pipeline} de integración continua que ejecuta el análisis estático, la compilación y las pruebas automatizadas (sección~\ref{sec:integracion-continua}) completan el control. La división de tareas responde a la especialización de cada integrante: uno concentra el entrenamiento del modelo y el otro el agente, la API y el panel.
+
+Como limitación, la historia es casi lineal (diez \emph{merges}, en su mayoría de la integración de la entrega del 75\,\%), por lo que las ramas no permiten reconstruir por sí solas la duración de cada tarea, y las fechas de la tabla~\ref{tab:incrementos} son las del primer y el último \emph{commit} de cada trabajo.
+
+\section{Ajustes derivados de los resultados del modelo}
+\label{sec:ajustes-modelo}
+Varias decisiones de diseño surgieron de resultados medidos y no del plan inicial. La tabla~\ref{tab:ajustes-modelo} los resume con su fecha.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{7.6cm}>{\raggedright\arraybackslash}p{1.6cm}}
+	\caption{Ajustes derivados de los resultados del modelo}
+	\label{tab:ajustes-modelo}\\
+	\hline
+	\textbf{Ajuste} & \textbf{Resultado que lo motivó} & \textbf{Fecha} \\
+	\hline
+	\endfirsthead
+	\hline
+	\textbf{Ajuste} & \textbf{Resultado que lo motivó} & \textbf{Fecha} \\
+	\hline
+	\endhead
+	Umbral de aprendizaje configurable & Distribución del tiempo que tardan los usuarios reales en acumular 20 eventos & 27/08 \\
+	\hline
+	Criterio de promoción por no inferioridad & El criterio anterior (``iguala o mejora'') decidió dos rechazos por ruido & 10/10 \\
+	\hline
+	Corte temporal fijo y \emph{pipeline} determinista & Con un corte dinámico, el criterio comparaba particiones distintas & 28/10 \\
+	\hline
+	Clasificación única de usuarios & Dos fases del \emph{pipeline} clasificaban distinto a los mismos usuarios & 28/10 \\
+	\hline
+	Evaluación solo con datos reales; retiro de los escenarios S1--S7 & Los escenarios construidos no representan ataques reales y orientaban las decisiones & 29/10 \\
+	\hline
+	LSTM fuera del camino por defecto & Permutar la secuencia no cambia su ordenamiento (Spearman 0,989) y sin la variable de país queda cerca del azar & 30/10 \\
+	\hline
+	Detección de novedad como tercer detector & Criterio fijado sobre CLUE-LDS DEV & 30/10 \\
+	\hline
+	Markov fuera del camino por defecto & Su regla de piso explicaba 177 de 189 días con oscilación del nivel & 31/10 \\
+	\hline
+	LANL 2015 retirado como evidencia & Una sola intrusión, casi toda desde un equipo \parencite{Larroche2026} & 31/10 \\
+	\hline
+	Regresión contra la simulación del camino por defecto & El oráculo anterior estaba desactualizado y contaba eventos duplicados & 16/11 \\
+	\hline
+	Novedad solo informativa; país fuera del modelo con una regla explícita de ubicación & Comparación de opciones con un criterio fijado antes de medir (sección~\ref{sec:que-cambiar-primero}) & 16/11 \\
+	\hline
+\end{longtable}
+{\small Fuente: elaboración propia a partir del historial del repositorio.\par}
+
+\section{\emph{Pipeline} de entrenamiento}
+El \emph{pipeline} de entrenamiento del modelo va desde la preparación del conjunto de datos
+hasta la exportación de los artefactos que consume la API, y se ejecuta en forma separada del
+ciclo de desarrollo del software. En el camino por defecto, sus fases son el análisis
+exploratorio y el perfilado del conjunto de datos; la limpieza y la clasificación de los usuarios
+por volumen y tipo; la ingeniería de variables; el entrenamiento de Isolation Forest; y la
+configuración del puntaje, que fija la vida media del decaimiento y los umbrales y exporta las
+referencias y la calibración, junto con el perfil de Markov que usa el camino alternativo
+\texttt{markov}. El camino alternativo \texttt{lstm} agrega el
+entrenamiento del LSTM Autoencoder, una auditoría bloqueante de consistencia de los datos y la
+combinación de ambos modelos (sección~\ref{sec:caminos-alternativos}). El perfilado de completitud de los campos, que habría anticipado la falta casi total del país, se hizo después de elegir las variables (sección~\ref{sec:ea-datasets}).

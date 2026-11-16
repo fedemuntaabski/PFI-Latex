@@ -1,6 +1,6 @@
 \chapter{Introducción}
 
-Esta sección presenta los objetivos del proyecto, su alcance, una descripción general del sistema propuesto y de sus componentes, la metodología de desarrollo y la estructura del documento.
+Esta sección presenta los objetivos del proyecto, su alcance, una descripción general del sistema propuesto y de sus componentes y la estructura del documento. La metodología de desarrollo se presenta en una sección propia (sección~\ref{chap:metodologia}).
 
 \section{Objetivos}
 
@@ -76,49 +76,12 @@ Dicho nivel de riesgo no se calcula únicamente por la sesión; por el contrario
 
 Por último, el sistema incluye un \emph{dashboard web} que permite visualizar el estado de los usuarios y sus niveles de riesgo en tiempo real. Desde allí, los administradores pueden ajustar los umbrales de riesgo y definir qué acciones se ejecutan en cada caso, adaptando el sistema a distintos contextos de seguridad. Además, el sistema incluye un mecanismo de reentrenamiento periódico del modelo, pensado para incorporar nuevos comportamientos de los usuarios y mantener su vigencia a lo largo del tiempo. En la configuración actual, con el corte temporal fijo de la partición, los eventos del agente todavía no entran al conjunto de entrenamiento (sección~\ref{sec:reentrenamiento-producto}). El periodo en el que se realiza este proceso puede configurarse desde el panel de administración, de modo que no interfiera con el funcionamiento del entorno productivo.
 
-\section{Metodología de desarrollo}
-\label{sec:metodologia}
-El proyecto se desarrolla mediante un proceso iterativo e incremental \parencite{Larman2003},
-organizado en torno a casos de uso. Cada incremento toma un conjunto de casos de uso, lo lleva a través de
-análisis, diseño, implementación y prueba, y entrega una versión ejecutable del sistema completo
-sobre la que se planifica el incremento siguiente. Se elige este enfoque por tres motivos. Primero,
-el comportamiento del modelo de detección no puede conocerse antes de entrenarlo y probarlo
-contra la telemetría real del agente, de modo que los requerimientos se ajustan a partir de los
-resultados de cada iteración. Segundo, el sistema tiene tres componentes desplegados en forma
-independiente (agente, API y panel), y un incremento vertical que atraviesa los tres permite
-verificar la integración temprano. Tercero, un equipo de dos personas no justifica los roles y
-ceremonias de un marco como Scrum, pero sí la entrega frecuente de versiones verificables.
-
-Se organizan dos incrementos principales. El primero cubre la detección y la mitigación en el
-equipo (CU-01) y el ajuste de políticas desde el panel (CU-02). El segundo incorpora el
-reentrenamiento periódico del modelo (CU-03), el alta de usuarios nuevos con período de
-aprendizaje (CU-04), la integración con sistemas de gestión de identidad y el endurecimiento de la
-ingesta, la autenticación y el canal. La planificación inicial del proyecto, previa a esta
-organización en incrementos, se presenta en el Anexo~A.
-
-El \emph{pipeline} de entrenamiento del modelo va desde la preparación del conjunto de datos
-hasta la exportación de los artefactos que consume la API, y se ejecuta en forma separada del
-ciclo de desarrollo del software. En el camino por defecto, sus fases son el análisis
-exploratorio y el perfilado del conjunto de datos; la limpieza y la clasificación de los usuarios
-por volumen y tipo; la ingeniería de variables; el entrenamiento de Isolation Forest; y la
-configuración del puntaje, que fija la vida media del decaimiento y los umbrales y exporta las
-referencias y la calibración, junto con el perfil de Markov que usa el camino alternativo
-\texttt{markov}. El camino alternativo \texttt{lstm} agrega el
-entrenamiento del LSTM Autoencoder, una auditoría bloqueante de consistencia de los datos y la
-combinación de ambos modelos (sección~\ref{sec:caminos-alternativos}).
-
-La gestión del trabajo se apoya en el control de versiones con ramas por funcionalidad, la
-revisión de cada cambio antes de integrarlo y un \emph{pipeline} de integración continua que ejecuta el
-análisis estático, la compilación y las pruebas automatizadas en cada cambio (sección
-\ref{sec:integracion-continua}). La división de tareas responde a la especialización de cada
-integrante: uno concentra el entrenamiento del modelo y el otro el agente, la API y el panel.
-
 \section{Estructura del documento}
 El documento se organiza en trece secciones. La sección~\ref{chap:antecedentes} presenta el marco
 teórico (el punto ciego posterior a la autenticación, la arquitectura Zero Trust, el análisis de
 comportamiento de usuarios y entidades, los modelos de control de acceso, los algoritmos de detección
 de anomalías, el marco legal de protección de datos personales y los fundamentos técnicos de la arquitectura) y el estado del arte en soluciones
-comerciales y trabajos académicos. La sección~\ref{chap:comparativo} compara el proyecto con esas
+comerciales y trabajos académicos, incluido un relevamiento de los conjuntos de datos de referencia. La sección~\ref{chap:comparativo} compara el proyecto con esas
 alternativas y contrasta el diseño con entrevistas a profesionales de seguridad y con una encuesta a
 usuarios finales. La sección~\ref{chap:requerimientos} define los actores, los requerimientos
 funcionales y no funcionales, los casos de uso y las historias de usuario. La
