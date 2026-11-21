@@ -1,4 +1,4 @@
-# Guía para el repo de código: puntos 3 y 5
+[text](../../pfi/Agente-Aut-nomo-de-Vigilancia-Conductual-y-Mitigaci-n-de-Riesgo-de-Identidad/devolucion_puntos_3_y_5.md)# Guía para el repo de código: puntos 3 y 5
 
 Esta guía acompaña a `revision_caps7_13_bibliografia.md`. Cubre los dos puntos que se resuelven en el repo de código, no en la memoria LaTeX.
 
